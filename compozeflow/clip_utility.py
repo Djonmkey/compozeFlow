@@ -1,0 +1,96 @@
+from moviepy import VideoFileClip
+from image_helper import append_image
+from video_utility import crop_video_to_aspect_ratio
+from text_helper import append_watermark
+
+def load_video_clip(video_clip_meta, aspect_ratio, quick_and_dirty, video_clips_to_close, source_file_watermark = False):
+    return_video_clip = None
+    
+    video_path = video_clip_meta["clip_file_pathname"]
+
+    playback_speed = 1
+
+    if "playback_speed" in video_clip_meta:
+        playback_speed = video_clip_meta["playback_speed"]
+
+    watermark = video_path
+
+    video_clip = VideoFileClip(video_path)
+    video_clips_to_close.append(video_clip)
+
+    # Debug: Check FPS
+    print(f"Video FPS: {video_clip.fps}")
+
+    if video_clip.fps is None:
+        raise ValueError("Error: FPS could not be determined. Check your video file.")
+
+    if "clip_start_seconds" in video_clip_meta and "clip_end_seconds" in video_clip_meta:
+        clip_start_minutes = int(video_clip_meta["clip_start_minutes"])
+        clip_start_seconds = int(video_clip_meta["clip_start_seconds"])
+        clip_end_minutes = int(video_clip_meta["clip_end_minutes"])
+        clip_end_seconds = int(video_clip_meta["clip_end_seconds"])
+
+        watermark = watermark + f" clip_start_minutes:{clip_start_minutes}, clip_start_seconds:{clip_start_seconds}, clip_end_minutes:{clip_end_minutes}, clip_end_seconds:{clip_end_seconds}"
+
+        # Convert start time to total seconds (float)
+        clip_start_total_seconds = float(clip_start_minutes * 60 + clip_start_seconds)
+
+        # Convert end time to total seconds (float)
+        clip_end_total_seconds = float(clip_end_minutes * 60 + clip_end_seconds)
+
+        #print(dir(video_clip))
+        sub_video_clip = video_clip.subclipped(clip_start_total_seconds, clip_end_total_seconds)
+        return_video_clip = sub_video_clip
+        video_clips_to_close.append(sub_video_clip)
+
+    elif "clip_start_seconds" in video_clip_meta and "clip_end_seconds" not in video_clip_meta:
+        clip_start_minutes = int(video_clip_meta["clip_start_minutes"])
+        clip_start_seconds = int(video_clip_meta["clip_start_seconds"])
+
+        watermark = watermark + f" clip_start_minutes:{clip_start_minutes}, clip_start_seconds:{clip_start_seconds}, clip_end_minutes:END, clip_end_seconds:END"
+
+        # Convert start time to total seconds (float)
+        clip_start_total_seconds = float(clip_start_minutes * 60 + clip_start_seconds)
+
+        #print(dir(video_clip))
+        sub_video_clip = video_clip.subclipped(clip_start_total_seconds)
+        return_video_clip = sub_video_clip
+        video_clips_to_close.append(sub_video_clip)
+
+    elif "clip_start_seconds" not in video_clip_meta and "clip_end_seconds" in video_clip_meta:
+        clip_end_minutes = int(video_clip_meta["clip_end_minutes"])
+        clip_end_seconds = int(video_clip_meta["clip_end_seconds"])
+
+        watermark = watermark + f" clip_start_minutes:START, clip_start_seconds:START, clip_end_minutes:{clip_end_minutes}, clip_end_seconds:{clip_end_seconds}"
+
+        # Convert end time to total seconds (float)
+        clip_end_total_seconds = float(clip_end_minutes * 60 + clip_end_seconds)
+
+        #print(dir(video_clip))
+        sub_video_clip = video_clip.subclipped(0, clip_end_total_seconds)
+        return_video_clip = sub_video_clip
+        video_clips_to_close.append(sub_video_clip)
+
+    else:
+        if video_clip != None:
+            return_video_clip = video_clip
+    
+    #if playback_speed != 1:
+    #    speen_updated_video_clip = speedx(video_clip, factor=playback_speed)
+    #    video_clips_to_close.append(speen_updated_video_clip)
+    #    return_video_clip = speen_updated_video_clip
+
+    if return_video_clip != None:
+        video_clips_to_close.append(return_video_clip)
+        cropped_video_clip = crop_video_to_aspect_ratio(return_video_clip, aspect_ratio) 
+        video_clips_to_close.append(video_clips_to_close)
+        return_video_clip = cropped_video_clip
+    
+    if "images" in video_clip_meta:
+        for image in video_clip_meta["images"]:
+            return_video_clip = append_image(image, return_video_clip, video_clips_to_close)
+
+    if source_file_watermark:
+        return_video_clip = append_watermark(watermark, return_video_clip, video_clips_to_close)
+
+    return return_video_clip
