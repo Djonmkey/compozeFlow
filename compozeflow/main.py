@@ -1,52 +1,66 @@
 import json
 import argparse
-
 from typing import Dict
-from cut_utility  import generate_video_cut
-from video_utility import get_last_modified_timestamp
+
+# Import error handling
+try:
+    from cut_utility import generate_video_cut
+    from video_utility import get_last_modified_timestamp
+except ImportError as e:
+    print(f"Error: Missing required module - {e.name}")
+    exit(1)
 
 def load_json(file_path: str) -> Dict:
-    """Load a JSON file and return its contents."""
-    with open(file_path, 'r') as file:
-        return json.load(file)
+    """Load a JSON file and return its contents safely."""
+    try:
+        with open(file_path, 'r') as file:
+            data = json.load(file)
+            if not isinstance(data, dict):
+                raise ValueError("JSON content must be a dictionary.")
+            return data
+    except FileNotFoundError:
+        print(f"Error: The file '{file_path}' was not found.")
+        exit(1)
+    except json.JSONDecodeError:
+        print(f"Error: The file '{file_path}' is not a valid JSON file or is empty.")
+        exit(1)
+    except ValueError as e:
+        print(f"Error: {e}")
+        exit(1)
+    except Exception as e:
+        print(f"Unexpected error while reading JSON: {e}")
+        exit(1)
 
-def get_manifest_file_pathname() -> str:
-    """Get the manifest file pathname from command-line arguments or prompt the user if not provided."""
-    parser = argparse.ArgumentParser(description="Generate videos from a manifest file.")
-    parser.add_argument("manifest_file", nargs="?", help="Path to the video manifest JSON file.")
-    parser.add_argument("--quick_and_dirty", choices=["yes", "no"], help="Enable quick and dirty mode (yes/no).")
-    parser.add_argument("--source_file_watermark", choices=["yes", "no"], help="Show source file watermark (yes/no).")
+def get_video_assembly_file_pathname() -> str:
+    """Get the video assembly file pathname from the command-line."""
+    parser = argparse.ArgumentParser(description="Generate videos from a video assembly file.")
+    parser.add_argument("video_assembly_file", nargs="?", default=None, help="Path to the video assembly JSON file.")
+    
     args = parser.parse_args()
     
-    if args.manifest_file:
-        manifest_file = args.manifest_file
-    else:
-        manifest_file = input("Enter the path to the video manifest JSON file: ")
+    file_path = args.video_assembly_file or input("Enter the file pathname to the video assembly JSON file: ").strip()
     
-    if args.quick_and_dirty:
-        quick_and_dirty = args.quick_and_dirty.lower() == "yes"
-    else:
-        quick_and_dirty = input("Enable quick and dirty mode? (yes/no): ").strip().lower() == "yes"
-    
-    if args.source_file_watermark:
-        source_file_watermark = args.source_file_watermark.lower() == "yes"
-    else:
-        source_file_watermark = input("Show source file watermark? (yes/no): ").strip().lower() == "yes"
+    if not file_path:
+        print("Error: No file path provided.")
+        exit(1)
 
-    return manifest_file, quick_and_dirty, source_file_watermark
+    return file_path
 
 def main():
-    manifest_file_pathname, quick_and_dirty, source_file_watermark = get_manifest_file_pathname()
+    video_assembly_file_pathname = get_video_assembly_file_pathname()
     
-    manifest = load_json(manifest_file_pathname)
-    manifest_last_modified_timestamp = get_last_modified_timestamp(manifest_file_pathname)
+    video_assembly = load_json(video_assembly_file_pathname)
+    video_assembly_last_modified_timestamp = get_last_modified_timestamp(video_assembly_file_pathname)
 
-    # Access the "cuts" list
-    cuts = manifest["episode"]["cuts"]
-
-    # Loop through each "cut"
+    # Access the "cuts" list safely
+    cuts = video_assembly.get("episode", {}).get("cuts", [])
+    
+    if not cuts:
+        print("Warning: No cuts found in the video assembly file.")
+    
+    # Process cuts if available
     for cut in cuts:
-        generate_video_cut(manifest, cut, quick_and_dirty, manifest_last_modified_timestamp, source_file_watermark)
+        generate_video_cut(video_assembly, cut, video_assembly_last_modified_timestamp)
 
 if __name__ == "__main__":
     main()

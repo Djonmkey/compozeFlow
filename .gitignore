@@ -170,3 +170,6 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 .DS_Store
+compozeflow/.vscode/launch.json
+compozeflow/temp_video_pipeline_clip_*
+*.mp4
