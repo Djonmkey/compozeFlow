@@ -3,7 +3,14 @@ from segment_utility import generate_video_segment
 from moviepy import concatenate_videoclips
 from image_helper import append_image
 
-def generate_video_cut(manifest, cut, quick_and_dirty, manifest_last_modified_timestamp,  source_file_watermark = False):
+def generate_video_cut(video_assembly, cut, video_assembly_last_modified_timestamp):
+    # Read settings with default values safely
+    composeflow_org = video_assembly.get("composeflow.org", {})
+    settings = composeflow_org.get("settings", {})
+
+    quick_and_dirty = settings.get("quick_and_dirty", False)
+    source_file_watermark = settings.get("source_file_watermark", False)
+
     # Loop through each aspect ratio
     for aspect_ratio in cut["aspect_ratios"]:
         video_output_file_pathname = aspect_ratio["output_file_pathname"]
@@ -22,7 +29,7 @@ def generate_video_cut(manifest, cut, quick_and_dirty, manifest_last_modified_ti
                 print(f"  Min Length: {segment['min_len_seconds']} seconds")
                 print(f"  Max Length: {segment['max_len_seconds']} seconds") 
 
-                segment_video = generate_video_segment(manifest, segment, quick_and_dirty, manifest_last_modified_timestamp, aspect_ratio_text, source_file_watermark)
+                segment_video = generate_video_segment(video_assembly, segment, quick_and_dirty, video_assembly_last_modified_timestamp, aspect_ratio_text, source_file_watermark)
 
                 if segment_video != None:
                     segments_for_aspect_ratio.append(segment_video)
