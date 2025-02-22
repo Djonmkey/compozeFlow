@@ -52,15 +52,10 @@ def main():
     video_assembly = load_json(video_assembly_file_pathname)
     video_assembly_last_modified_timestamp = get_last_modified_timestamp(video_assembly_file_pathname)
 
-    # Access the "cuts" list safely
-    cuts = video_assembly.get("episode", {}).get("cuts", [])
+    # Access the "cut"  safely
+    cut = video_assembly.get("cut", {})
     
-    if not cuts:
-        print("Warning: No cuts found in the video assembly file.")
-    
-    # Process cuts if available
-    for cut in cuts:
-        generate_video_cut(video_assembly, cut, video_assembly_last_modified_timestamp)
+    generate_video_cut(video_assembly, cut, video_assembly_last_modified_timestamp)
 
 if __name__ == "__main__":
     main()
