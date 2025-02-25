@@ -34,12 +34,14 @@ def append_audio(voice_over, video_clip, video_volume, clips_to_close):
         final_audio = CompositeAudioClip([faded_audio, voice_over, remaining_audio])
     else:
         final_audio = CompositeAudioClip([faded_audio, voice_over])
-
+    
+    # Ensure voice_over doesn't exceed video duration
     clips_to_close.append(final_audio)
+    trimmed_voice = final_audio.subclipped(0, video_duration)
+    clips_to_close.append(trimmed_voice)
     
     # Apply the modified audio to the video
-    clips_to_close.append(video_clip)
-    final_video = video_clip.with_audio(final_audio)
+    final_video = video_clip.with_audio(trimmed_voice)
     clips_to_close.append(final_video)
 
     return final_video
