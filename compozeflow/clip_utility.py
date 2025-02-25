@@ -26,9 +26,9 @@ def load_video_clip(video_clip_meta, aspect_ratio, quick_and_dirty, video_clips_
 
     if "clip_start_seconds" in video_clip_meta and "clip_end_seconds" in video_clip_meta:
         clip_start_minutes = int(video_clip_meta["clip_start_minutes"])
-        clip_start_seconds = int(video_clip_meta["clip_start_seconds"])
+        clip_start_seconds = float(video_clip_meta["clip_start_seconds"])
         clip_end_minutes = int(video_clip_meta["clip_end_minutes"])
-        clip_end_seconds = int(video_clip_meta["clip_end_seconds"])
+        clip_end_seconds = float(video_clip_meta["clip_end_seconds"])
 
         watermark = watermark + f" clip_start_minutes:{clip_start_minutes}, clip_start_seconds:{clip_start_seconds}, clip_end_minutes:{clip_end_minutes}, clip_end_seconds:{clip_end_seconds}"
 
@@ -45,7 +45,7 @@ def load_video_clip(video_clip_meta, aspect_ratio, quick_and_dirty, video_clips_
 
     elif "clip_start_seconds" in video_clip_meta and "clip_end_seconds" not in video_clip_meta:
         clip_start_minutes = int(video_clip_meta["clip_start_minutes"])
-        clip_start_seconds = int(video_clip_meta["clip_start_seconds"])
+        clip_start_seconds = float(video_clip_meta["clip_start_seconds"])
 
         watermark = watermark + f" clip_start_minutes:{clip_start_minutes}, clip_start_seconds:{clip_start_seconds}, clip_end_minutes:END, clip_end_seconds:END"
 
@@ -59,7 +59,7 @@ def load_video_clip(video_clip_meta, aspect_ratio, quick_and_dirty, video_clips_
 
     elif "clip_start_seconds" not in video_clip_meta and "clip_end_seconds" in video_clip_meta:
         clip_end_minutes = int(video_clip_meta["clip_end_minutes"])
-        clip_end_seconds = int(video_clip_meta["clip_end_seconds"])
+        clip_end_seconds = float(video_clip_meta["clip_end_seconds"])
 
         watermark = watermark + f" clip_start_minutes:START, clip_start_seconds:START, clip_end_minutes:{clip_end_minutes}, clip_end_seconds:{clip_end_seconds}"
 
