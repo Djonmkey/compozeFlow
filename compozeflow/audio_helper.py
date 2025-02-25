@@ -1,7 +1,7 @@
 import numpy as np
 
 from typing import List
-from moviepy import VideoFileClip, AudioFileClip, CompositeAudioClip
+from moviepy import VideoFileClip, AudioFileClip, CompositeAudioClip, concatenate_audioclips
 
 
 def append_audio(voice_over, video_clip, video_volume, clips_to_close):
@@ -13,6 +13,7 @@ def append_audio(voice_over, video_clip, video_volume, clips_to_close):
     :return: Video clip with adjusted audio.
     """
     # Extract the original audio from the video clip
+    clips_to_close.append(voice_over)
     clips_to_close.append(video_clip)
     original_audio = video_clip.audio
     clips_to_close.append(original_audio)
@@ -29,10 +30,19 @@ def append_audio(voice_over, video_clip, video_volume, clips_to_close):
     # Restore original volume for the remaining duration
     if video_duration > voice_duration:
         clips_to_close.append(original_audio)
-        remaining_audio = original_audio.subclipped(voice_duration).with_volume(1.0)
+        remaining_audio = original_audio.subclipped(voice_duration, video_duration).with_volume_scaled(1.0)
         clips_to_close.append(remaining_audio)
-        final_audio = CompositeAudioClip([faded_audio, voice_over, remaining_audio])
+        # Play the original video audio scaled and the voice-over at the same time.
+        # then trim to the voice-over duration
+        combined_starting_audio = CompositeAudioClip([faded_audio, voice_over])
+        clips_to_close.append(combined_starting_audio)
+
+        trimmed_combined = combined_starting_audio.subclipped(0, voice_duration)
+        clips_to_close.append(trimmed_combined)
+        
+        final_audio = concatenate_audioclips([trimmed_combined, remaining_audio])
     else:
+        # Play the original video audio scaled and the voice-over at the same time.
         final_audio = CompositeAudioClip([faded_audio, voice_over])
     
     # Ensure voice_over doesn't exceed video duration
