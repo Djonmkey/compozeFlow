@@ -7,7 +7,7 @@ from video_utility import write_video, crop_video_to_aspect_ratio, file_exists
 from moviepy import VideoFileClip, concatenate_videoclips, AudioFileClip, concatenate_audioclips
 #from moviepy.video.fx.speedx import speedx
 from clip_utility import load_video_clip
-from audio_helper import append_audio
+from audio_helper import append_audio, process_time_codes
 
 def sort_parallel_clips_by_sequence(scene: Dict) -> List[Dict]:
     """
@@ -108,7 +108,12 @@ def load_audio_clips(audio_clip_list, clips_to_close):
 
     for audio in audio_clip_list:
         audio_path = audio["clip_file_pathname"]
+
         audio_clip = AudioFileClip(audio_path)
+        clips_to_close.append(audio_clip)
+
+        watermark = ""
+        audio_clip, watermark = process_time_codes(audio, clips_to_close, watermark, audio_clip)
         clips_to_close.append(audio_clip)
 
         if "audio_volume" in audio:
