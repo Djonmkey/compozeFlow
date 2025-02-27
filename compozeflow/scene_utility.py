@@ -73,7 +73,7 @@ def load_video_clips(segment, scene, video_clip_list, audio_clips, aspect_ratio,
                 
                 if parallel_audio_clip != None:
                     clips_to_close.append(parallel_audio_clip)
-                    parallel_clips_video_volume = scene.get("parallel_clips_video_volume", 0.75)
+                    parallel_clips_video_volume = scene.get("parallel_clips_master_clip_volume", 0.75)
                     clips_to_close.append(cropped_video_clip)
                     cropped_video_clip = append_audio(parallel_audio_clip, cropped_video_clip, parallel_clips_video_volume, clips_to_close)
                     clips_to_close.append(cropped_video_clip)

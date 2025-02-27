@@ -7,7 +7,7 @@ def append_watermark(watermark_text, video, clips_to_close):
     watermark = TextClip(
         text=watermark_text,
         font=font_path,
-        font_size=40,
+        font_size=60,
         color="orange",
         stroke_color="black",
         stroke_width=2

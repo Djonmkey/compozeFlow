@@ -55,6 +55,11 @@ def process_time_codes(video_clip_meta, video_clips_to_close, watermark, video_c
 
         watermark += f"\nclip_start_minutes:{clip_start_minutes}, clip_start_seconds:{clip_start_seconds}, clip_end_minutes:{clip_end_minutes}, clip_end_seconds:{clip_end_seconds}"
 
+        if "sequence" in video_clip_meta:
+            sequence = video_clip_meta["sequence"]
+            watermark += f"\nsequence:{sequence}"
+
+
         # Convert start time to total seconds (float)
         clip_start_total_seconds = float(clip_start_minutes * 60 + clip_start_seconds)
 
