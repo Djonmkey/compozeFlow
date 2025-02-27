@@ -5,11 +5,11 @@ from segment_utility import generate_video_segment
 from moviepy import concatenate_videoclips
 from image_helper import append_image
 
-def generate_html_from_video_assembly(data, output_html_path: str) -> None:
+def generate_html_from_video_assembly(data: dict, output_html_path: str) -> None:
     """
-    Generates an HTML page from the provided video assembly JSON file.
+    Generates an HTML page from the provided video assembly JSON structure.
 
-    :param json_file_path: Path to the JSON file containing the video assembly data.
+    :param data: Dictionary containing the video assembly data.
     :param output_html_path: Path to the output HTML file.
     """
     
@@ -54,6 +54,7 @@ def generate_html_from_video_assembly(data, output_html_path: str) -> None:
             html_content += """
             <table>
                 <tr>
+                    <th>Sequence</th>
                     <th>Clip File Pathname</th>
                     <th>Start (min:sec)</th>
                     <th>End (min:sec)</th>
@@ -61,6 +62,7 @@ def generate_html_from_video_assembly(data, output_html_path: str) -> None:
             """
 
             for clip in scene.get("master_clips", []):
+                sequence = clip.get("sequence", "N/A")
                 clip_path = clip.get("clip_file_pathname", "Unknown Path")
 
                 clip_start_seconds = float(clip.get('clip_start_seconds', 0))
@@ -73,6 +75,7 @@ def generate_html_from_video_assembly(data, output_html_path: str) -> None:
 
                 html_content += f"""
                 <tr>
+                    <td>{sequence}</td>
                     <td>
                         <div class="clip-path">{file_path}</div>
                         <div class="clip-name">{file_name}</div>
@@ -95,7 +98,7 @@ def generate_html_from_video_assembly(data, output_html_path: str) -> None:
     
     print(f"HTML file successfully created: {output_html_path}")
 
-
+    
 def generate_video_cut(video_assembly, cut, video_assembly_last_modified_timestamp):
     # Read settings with default values safely
     composeflow_org = video_assembly.get("composeflow.org", {})
