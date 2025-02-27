@@ -65,11 +65,22 @@ def generate_html_from_video_assembly(data: dict, output_html_path: str) -> None
                 sequence = clip.get("sequence", "N/A")
                 clip_path = clip.get("clip_file_pathname", "Unknown Path")
 
-                clip_start_seconds = float(clip.get('clip_start_seconds', 0))
-                clip_end_seconds = float(clip.get('clip_end_seconds', 0))
+                clip_start = ""
+                clip_end = ""
+                # Extract optional values safely
+                if "clip_start_seconds" in clip:
+                    clip_start_minutes = clip.get("clip_start_minutes", 0)
+                    clip_start_seconds = float(clip.get("clip_start_seconds", 0))
+                    clip_start = f"{clip_start_minutes}:{clip_start_seconds:05.2f}"
+                else:
+                    clip_start = "Start of clip"
 
-                clip_start = f"{clip.get('clip_start_minutes', 0)}:{clip_start_seconds:05.2f}"
-                clip_end = f"{clip.get('clip_end_minutes', 0)}:{clip_end_seconds:05.2f}"
+                if "clip_end_seconds" in clip:
+                    clip_end_minutes = clip.get("clip_end_minutes", 0)
+                    clip_end_seconds = float(clip.get("clip_end_seconds", 0))
+                    clip_end = f"{clip_end_minutes}:{clip_end_seconds:05.2f}"
+                else:
+                    clip_end = "End of clip"
 
                 file_path, file_name = os.path.split(clip_path)
 
@@ -98,7 +109,7 @@ def generate_html_from_video_assembly(data: dict, output_html_path: str) -> None
     
     print(f"HTML file successfully created: {output_html_path}")
 
-    
+
 def generate_video_cut(video_assembly, cut, video_assembly_last_modified_timestamp):
     # Read settings with default values safely
     composeflow_org = video_assembly.get("composeflow.org", {})
