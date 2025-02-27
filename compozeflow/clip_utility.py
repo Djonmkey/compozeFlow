@@ -53,7 +53,7 @@ def process_time_codes(video_clip_meta, video_clips_to_close, watermark, video_c
         clip_end_minutes = int(video_clip_meta["clip_end_minutes"])
         clip_end_seconds = float(video_clip_meta["clip_end_seconds"])
 
-        watermark = watermark + f" clip_start_minutes:{clip_start_minutes}, clip_start_seconds:{clip_start_seconds}, clip_end_minutes:{clip_end_minutes}, clip_end_seconds:{clip_end_seconds}"
+        watermark += f"\nclip_start_minutes:{clip_start_minutes}, clip_start_seconds:{clip_start_seconds}, clip_end_minutes:{clip_end_minutes}, clip_end_seconds:{clip_end_seconds}"
 
         # Convert start time to total seconds (float)
         clip_start_total_seconds = float(clip_start_minutes * 60 + clip_start_seconds)
