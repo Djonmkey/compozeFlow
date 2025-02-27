@@ -1,7 +1,100 @@
+import os
+
 from video_utility import write_video, resize_clips_to_max_resolution, file_exists
 from segment_utility import generate_video_segment
 from moviepy import concatenate_videoclips
 from image_helper import append_image
+
+def generate_html_from_video_assembly(data, output_html_path: str) -> None:
+    """
+    Generates an HTML page from the provided video assembly JSON file.
+
+    :param json_file_path: Path to the JSON file containing the video assembly data.
+    :param output_html_path: Path to the output HTML file.
+    """
+    
+    cut = data.get("cut", {})
+    title = cut.get("title", "Untitled")
+    subtitle = cut.get("subtitle", "")
+
+    html_content = f"""<!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{title}</title>
+        <style>
+            body {{ font-family: Arial, sans-serif; line-height: 1.6; }}
+            h1 {{ text-align: center; }}
+            h2 {{ text-align: center; color: gray; }}
+            h3 {{ margin-top: 20px; }}
+            h4 {{ margin-top: 10px; font-style: italic; }}
+            table {{ width: 100%; border-collapse: collapse; margin-bottom: 20px; }}
+            th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
+            th {{ background-color: #f4f4f4; }}
+            .clip-path {{ font-size: 8pt; color: gray; }}
+            .clip-name {{ font-weight: bold; }}
+        </style>
+    </head>
+    <body>
+        <h1>{title}</h1>
+        <h2>{subtitle}</h2>
+    """
+
+    # Process segments
+    for segment in cut.get("segments", []):
+        segment_title = segment.get("title", "Unnamed Segment")
+        html_content += f"<h3>{segment_title}</h3>\n"
+
+        for scene in segment.get("scenes", []):
+            scene_title = scene.get("title")
+            if scene_title:
+                html_content += f"<h4>{scene_title}</h4>\n"
+
+            html_content += """
+            <table>
+                <tr>
+                    <th>Clip File Pathname</th>
+                    <th>Start (min:sec)</th>
+                    <th>End (min:sec)</th>
+                </tr>
+            """
+
+            for clip in scene.get("master_clips", []):
+                clip_path = clip.get("clip_file_pathname", "Unknown Path")
+
+                clip_start_seconds = float(clip.get('clip_start_seconds', 0))
+                clip_end_seconds = float(clip.get('clip_end_seconds', 0))
+
+                clip_start = f"{clip.get('clip_start_minutes', 0)}:{clip_start_seconds:05.2f}"
+                clip_end = f"{clip.get('clip_end_minutes', 0)}:{clip_end_seconds:05.2f}"
+
+                file_path, file_name = os.path.split(clip_path)
+
+                html_content += f"""
+                <tr>
+                    <td>
+                        <div class="clip-path">{file_path}</div>
+                        <div class="clip-name">{file_name}</div>
+                    </td>
+                    <td>{clip_start}</td>
+                    <td>{clip_end}</td>
+                </tr>
+                """
+
+            html_content += "</table>\n"
+
+    html_content += """
+    </body>
+    </html>
+    """
+
+    # Write HTML to file
+    with open(output_html_path, 'w', encoding='utf-8') as html_file:
+        html_file.write(html_content)
+    
+    print(f"HTML file successfully created: {output_html_path}")
+
 
 def generate_video_cut(video_assembly, cut, video_assembly_last_modified_timestamp):
     # Read settings with default values safely
@@ -16,6 +109,10 @@ def generate_video_cut(video_assembly, cut, video_assembly_last_modified_timesta
         video_output_file_pathname = aspect_ratio["output_file_pathname"]
 
         if file_exists(video_output_file_pathname) == False:
+            html_output_file_pathname = os.path.splitext(video_output_file_pathname)[0] + ".video_assembly.html"
+
+            generate_html_from_video_assembly(video_assembly, html_output_file_pathname)
+
             aspect_ratio_text = aspect_ratio["aspect_ratio"]
             # Sort segments by sequence value before looping
             sorted_segments = sorted(cut["segments"], key=lambda segment: segment["sequence"])
