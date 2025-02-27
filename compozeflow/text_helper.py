@@ -1,11 +1,19 @@
 from moviepy import VideoFileClip, TextClip, CompositeVideoClip
 
 def append_watermark(watermark_text, video, clips_to_close):
-    # Create a text watermark
-    font_path = "/System/Library/Fonts/Supplemental/Arial.ttf"  # Update this if needed
-    watermark = TextClip(text=watermark_text, font_size=40, color="orange", font=font_path)
+    # Create a text watermark with default font and black outline
 
-    # Position the watermark in the upper-left corner with some padding
+    font_path = "/System/Library/Fonts/Supplemental/Arial.ttf"  # Update this if needed
+    watermark = TextClip(
+        text=watermark_text,
+        font=font_path,
+        font_size=40,
+        color="orange",
+        stroke_color="black",
+        stroke_width=2
+    )
+
+    # Position the watermark in the center with the video's duration
     watermark = watermark.with_position("center").with_duration(video.duration)
 
     # Overlay the watermark on the video
