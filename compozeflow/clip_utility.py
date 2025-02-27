@@ -24,13 +24,41 @@ def load_video_clip(video_clip_meta, aspect_ratio, quick_and_dirty, video_clips_
     if video_clip.fps is None:
         raise ValueError("Error: FPS could not be determined. Check your video file.")
 
+    return_video_clip, watermark = process_time_codes(video_clip_meta, video_clips_to_close, watermark, video_clip)
+    
+    #if playback_speed != 1:
+    #    speen_updated_video_clip = speedx(video_clip, factor=playback_speed)
+    #    video_clips_to_close.append(speen_updated_video_clip)
+    #    return_video_clip = speen_updated_video_clip
+
+    if return_video_clip != None:
+        video_clips_to_close.append(return_video_clip)
+        cropped_video_clip = crop_video_to_aspect_ratio(return_video_clip, aspect_ratio) 
+        video_clips_to_close.append(video_clips_to_close)
+        return_video_clip = cropped_video_clip
+    
+    if "images" in video_clip_meta:
+        for image in video_clip_meta["images"]:
+            return_video_clip = append_image(image, return_video_clip, video_clips_to_close)
+
+    if source_file_watermark:
+        return_video_clip = append_watermark(watermark, return_video_clip, video_clips_to_close)
+
+    return return_video_clip
+
+def process_time_codes(video_clip_meta, video_clips_to_close, watermark, video_clip):
     if "clip_start_seconds" in video_clip_meta and "clip_end_seconds" in video_clip_meta:
         clip_start_minutes = int(video_clip_meta["clip_start_minutes"])
         clip_start_seconds = float(video_clip_meta["clip_start_seconds"])
         clip_end_minutes = int(video_clip_meta["clip_end_minutes"])
         clip_end_seconds = float(video_clip_meta["clip_end_seconds"])
 
-        watermark = watermark + f" clip_start_minutes:{clip_start_minutes}, clip_start_seconds:{clip_start_seconds}, clip_end_minutes:{clip_end_minutes}, clip_end_seconds:{clip_end_seconds}"
+        watermark += f"\nclip_start_minutes:{clip_start_minutes}, clip_start_seconds:{clip_start_seconds}, clip_end_minutes:{clip_end_minutes}, clip_end_seconds:{clip_end_seconds}"
+
+        if "sequence" in video_clip_meta:
+            sequence = video_clip_meta["sequence"]
+            watermark += f"\nsequence:{sequence}"
+
 
         # Convert start time to total seconds (float)
         clip_start_total_seconds = float(clip_start_minutes * 60 + clip_start_seconds)
@@ -74,23 +102,4 @@ def load_video_clip(video_clip_meta, aspect_ratio, quick_and_dirty, video_clips_
     else:
         if video_clip != None:
             return_video_clip = video_clip
-    
-    #if playback_speed != 1:
-    #    speen_updated_video_clip = speedx(video_clip, factor=playback_speed)
-    #    video_clips_to_close.append(speen_updated_video_clip)
-    #    return_video_clip = speen_updated_video_clip
-
-    if return_video_clip != None:
-        video_clips_to_close.append(return_video_clip)
-        cropped_video_clip = crop_video_to_aspect_ratio(return_video_clip, aspect_ratio) 
-        video_clips_to_close.append(video_clips_to_close)
-        return_video_clip = cropped_video_clip
-    
-    if "images" in video_clip_meta:
-        for image in video_clip_meta["images"]:
-            return_video_clip = append_image(image, return_video_clip, video_clips_to_close)
-
-    if source_file_watermark:
-        return_video_clip = append_watermark(watermark, return_video_clip, video_clips_to_close)
-
-    return return_video_clip
+    return return_video_clip,watermark
