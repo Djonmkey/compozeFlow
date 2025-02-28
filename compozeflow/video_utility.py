@@ -7,14 +7,26 @@ from moviepy import VideoFileClip
 from datetime import datetime, MINYEAR
 
 
-def file_exists(file_path: str) -> bool:
+def video_file_exists(file_path: str, and_is_newer_than=None) -> bool:
     """
-    Check if a given file exists.
+    Check if a given file exists and optionally if it's newer than another file.
 
     :param file_path: The path to the file.
-    :return: True if the file exists, False otherwise.
+    :param and_is_newer_than: Path to a reference file. If provided, will check if file_path
+                             exists and is newer than the reference file.
+    :return: True if the file exists (and is newer than the reference file if specified),
+             False otherwise.
     """
-    return os.path.isfile(file_path)
+    if not os.path.isfile(file_path):
+        return False
+    
+    if and_is_newer_than is not None:
+        timestamp = os.path.getmtime(file_path)
+        file_mod_time = datetime.fromtimestamp(timestamp)
+
+        return file_mod_time > and_is_newer_than
+    
+    return True
 
 
 def crop_video_to_aspect_ratio(video_clip: VideoFileClip, aspect_ratio: str) -> VideoFileClip:
@@ -73,11 +85,6 @@ def write_video(
 
     # Start time
     start_time = time.time()
-
-    # final_video.write_videofile(final_output_path, codec='libx264', fps=60, audio_codec="aac")
-
-    if clip.fps is None:
-        clip.fps = 60  # Ensure FPS is set
 
     if clip.duration is None:
         raise ValueError(
@@ -216,4 +223,4 @@ def get_last_modified_timestamp(file_path: str) -> Union[str, None]:
     timestamp = os.path.getmtime(file_path)
     last_modified_datetime = datetime.fromtimestamp(timestamp)
 
-    return last_modified_datetime.strftime("%Y-%m-%d %H:%M:%S")
+    return last_modified_datetime

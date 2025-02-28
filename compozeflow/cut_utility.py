@@ -1,6 +1,6 @@
 import os
 
-from video_utility import write_video, resize_clips_to_max_resolution, file_exists
+from video_utility import write_video, resize_clips_to_max_resolution, video_file_exists
 from segment_utility import generate_video_segment
 from moviepy import concatenate_videoclips
 from image_helper import append_image
@@ -61,41 +61,64 @@ def generate_html_from_video_assembly(data: dict, output_html_path: str) -> None
                 </tr>
             """
 
-            for clip in scene.get("master_clips", []):
-                sequence = clip.get("sequence", "N/A")
-                clip_path = clip.get("clip_file_pathname", "Unknown Path")
+            master_clips_type = scene.get("master_clips_type", "video")
 
-                clip_start = ""
-                clip_end = ""
-                # Extract optional values safely
-                if "clip_start_seconds" in clip:
-                    clip_start_minutes = clip.get("clip_start_minutes", 0)
-                    clip_start_seconds = float(clip.get("clip_start_seconds", 0))
-                    clip_start = f"{clip_start_minutes}:{clip_start_seconds:05.2f}"
-                else:
+            if master_clips_type == "video" or master_clips_type == "audio":
+                for clip in scene.get("master_clips", []):
+                    sequence = clip.get("sequence", "N/A")
+                    clip_path = clip.get("clip_file_pathname", "Unknown Path")
+
+                    clip_start = ""
+                    clip_end = ""
+                    # Extract optional values safely
+                    if "clip_start_seconds" in clip:
+                        clip_start_minutes = clip.get("clip_start_minutes", 0)
+                        clip_start_seconds = float(clip.get("clip_start_seconds", 0))
+                        clip_start = f"{clip_start_minutes}:{clip_start_seconds:05.2f}"
+                    else:
+                        clip_start = "Start of clip"
+
+                    if "clip_end_seconds" in clip:
+                        clip_end_minutes = clip.get("clip_end_minutes", 0)
+                        clip_end_seconds = float(clip.get("clip_end_seconds", 0))
+                        clip_end = f"{clip_end_minutes}:{clip_end_seconds:05.2f}"
+                    else:
+                        clip_end = "End of clip"
+
+                    file_path, file_name = os.path.split(clip_path)
+
+                    html_content += f"""
+                    <tr>
+                        <td>{sequence}</td>
+                        <td>
+                            <div class="clip-path">{file_path}</div>
+                            <div class="clip-name">{file_name}</div>
+                        </td>
+                        <td>{clip_start}</td>
+                        <td>{clip_end}</td>
+                    </tr>
+                    """
+            elif master_clips_type == "image":
+                for image in scene.get("master_clips", []):
+                    sequence = image.get("sequence", "N/A")
+                    clip_path = image.get("clip_file_pathname", "Unknown Path")
+
                     clip_start = "Start of clip"
-
-                if "clip_end_seconds" in clip:
-                    clip_end_minutes = clip.get("clip_end_minutes", 0)
-                    clip_end_seconds = float(clip.get("clip_end_seconds", 0))
-                    clip_end = f"{clip_end_minutes}:{clip_end_seconds:05.2f}"
-                else:
                     clip_end = "End of clip"
 
-                file_path, file_name = os.path.split(clip_path)
+                    file_path, file_name = os.path.split(clip_path)
 
-                html_content += f"""
-                <tr>
-                    <td>{sequence}</td>
-                    <td>
-                        <div class="clip-path">{file_path}</div>
-                        <div class="clip-name">{file_name}</div>
-                    </td>
-                    <td>{clip_start}</td>
-                    <td>{clip_end}</td>
-                </tr>
-                """
-
+                    html_content += f"""
+                    <tr>
+                        <td>{sequence}</td>
+                        <td>
+                            <div class="clip-path">{file_path}</div>
+                            <div class="clip-name">{file_name}</div>
+                        </td>
+                        <td>N/A</td>
+                        <td>N/A</td>
+                    </tr>
+                    """
             html_content += "</table>\n"
 
     html_content += """
@@ -122,8 +145,8 @@ def generate_video_cut(video_assembly, cut, video_assembly_last_modified_timesta
     for aspect_ratio in cut["aspect_ratios"]:
         video_output_file_pathname = aspect_ratio["output_file_pathname"]
 
-        if file_exists(video_output_file_pathname) == False:
-            html_output_file_pathname = os.path.splitext(video_output_file_pathname)[0] + ".video_assembly.html"
+        if video_file_exists(video_output_file_pathname, video_assembly_last_modified_timestamp) == False:
+            html_output_file_pathname = os.path.splitext(video_output_file_pathname)[0] + ".video_assembly_timeline.html"
 
             generate_html_from_video_assembly(video_assembly, html_output_file_pathname)
 
