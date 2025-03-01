@@ -72,32 +72,36 @@ def append_audio(voice_over, video_clip, video_volume, clips_to_close):
     original_audio = video_clip.audio
     clips_to_close.append(original_audio)
 
-    # Determine the duration of the voice-over
-    voice_duration = voice_over.duration
-    video_duration = original_audio.duration
+    if original_audio:
+        # Determine the duration of the voice-over
+        voice_duration = voice_over.duration
+        video_duration = original_audio.duration
 
-    # Reduce original audio volume while the voice-over is playing
-    faded_audio = original_audio.subclipped(0, video_duration).with_volume_scaled(video_volume)
-    
-    clips_to_close.append(faded_audio)
-
-    # Restore original volume for the remaining duration
-    if video_duration > voice_duration:
-        clips_to_close.append(original_audio)
-        remaining_audio = original_audio.subclipped(voice_duration, video_duration).with_volume_scaled(1.0)
-        clips_to_close.append(remaining_audio)
-        # Play the original video audio scaled and the voice-over at the same time.
-        # then trim to the voice-over duration
-        combined_starting_audio = CompositeAudioClip([faded_audio, voice_over])
-        clips_to_close.append(combined_starting_audio)
-
-        trimmed_combined = combined_starting_audio.subclipped(0, voice_duration)
-        clips_to_close.append(trimmed_combined)
+        # Reduce original audio volume while the voice-over is playing
+        faded_audio = original_audio.subclipped(0, video_duration).with_volume_scaled(video_volume)
         
-        final_audio = concatenate_audioclips([trimmed_combined, remaining_audio])
+        clips_to_close.append(faded_audio)
+
+        # Restore original volume for the remaining duration
+        if video_duration > voice_duration:
+            clips_to_close.append(original_audio)
+            remaining_audio = original_audio.subclipped(voice_duration, video_duration).with_volume_scaled(1.0)
+            clips_to_close.append(remaining_audio)
+            # Play the original video audio scaled and the voice-over at the same time.
+            # then trim to the voice-over duration
+            combined_starting_audio = CompositeAudioClip([faded_audio, voice_over])
+            clips_to_close.append(combined_starting_audio)
+
+            trimmed_combined = combined_starting_audio.subclipped(0, voice_duration)
+            clips_to_close.append(trimmed_combined)
+            
+            final_audio = concatenate_audioclips([trimmed_combined, remaining_audio])
+        else:
+            # Play the original video audio scaled and the voice-over at the same time.
+            final_audio = CompositeAudioClip([faded_audio, voice_over])
     else:
-        # Play the original video audio scaled and the voice-over at the same time.
-        final_audio = CompositeAudioClip([faded_audio, voice_over])
+        video_duration = video_clip.duration
+        final_audio =  voice_over
     
     # Ensure voice_over doesn't exceed video duration
     clips_to_close.append(final_audio)

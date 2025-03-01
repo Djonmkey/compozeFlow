@@ -1,5 +1,26 @@
 from moviepy import ImageClip, CompositeVideoClip
 
+
+def create_video_from_image(image_clip_meta, aspect_ratio, quick_and_dirty, clips_to_close, source_file_watermark):
+    """
+    Convert a PNG image to a video clip of specified duration.
+    
+    Args:
+        image_path (str): Path to the input PNG image
+        output_path (str): Path for the output video file
+        duration (int): Duration of the video in seconds
+    """
+    duration_seconds = image_clip_meta.get("duration_seconds", 5)
+    source_image_file_pathname = image_clip_meta.get("clip_file_pathname", None)
+    image_clip = None
+    
+    # Create a clip from the image
+    image_clip = ImageClip(source_image_file_pathname, duration=duration_seconds)
+    clips_to_close.append(image_clip)
+    
+    return image_clip
+
+
 def set_image_position(image_meta, image):
     # Extract position data
     position_data = image_meta["position"]
