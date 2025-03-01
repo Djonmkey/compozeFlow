@@ -50,10 +50,10 @@ def process_time_codes(video_clip_meta, video_clips_to_close, watermark, video_c
     if "trim_start_seconds" in video_clip_meta and "clip_end_seconds" in video_clip_meta:
         trim_start_minutes = int(video_clip_meta["trim_start_minutes"])
         trim_start_seconds = float(video_clip_meta["trim_start_seconds"])
-        clip_end_minutes = int(video_clip_meta["clip_end_minutes"])
+        trim_end_minutes = int(video_clip_meta["trim_end_minutes"])
         clip_end_seconds = float(video_clip_meta["clip_end_seconds"])
 
-        watermark = watermark + f"\nStart: {trim_start_minutes} minutes, {trim_start_seconds} seconds\nEnd: {clip_end_minutes} minutes, {clip_end_seconds} seconds"
+        watermark = watermark + f"\nStart: {trim_start_minutes} minutes, {trim_start_seconds} seconds\nEnd: {trim_end_minutes} minutes, {clip_end_seconds} seconds"
 
         if "sequence" in video_clip_meta:
             sequence = video_clip_meta["sequence"]
@@ -64,7 +64,7 @@ def process_time_codes(video_clip_meta, video_clips_to_close, watermark, video_c
         clip_start_total_seconds = float(trim_start_minutes * 60 + trim_start_seconds)
 
         # Convert end time to total seconds (float)
-        clip_end_total_seconds = float(clip_end_minutes * 60 + clip_end_seconds)
+        clip_end_total_seconds = float(trim_end_minutes * 60 + clip_end_seconds)
 
         #print(dir(video_clip))
         sub_video_clip = video_clip.subclipped(clip_start_total_seconds, clip_end_total_seconds)
@@ -86,13 +86,13 @@ def process_time_codes(video_clip_meta, video_clips_to_close, watermark, video_c
         video_clips_to_close.append(sub_video_clip)
 
     elif "trim_start_seconds" not in video_clip_meta and "clip_end_seconds" in video_clip_meta:
-        clip_end_minutes = int(video_clip_meta["clip_end_minutes"])
+        trim_end_minutes = int(video_clip_meta["trim_end_minutes"])
         clip_end_seconds = float(video_clip_meta["clip_end_seconds"])
 
-        watermark = watermark + f"\nStart: start of clip\nEnd: {clip_end_minutes} minutes, {clip_end_seconds} seconds"
+        watermark = watermark + f"\nStart: start of clip\nEnd: {trim_end_minutes} minutes, {clip_end_seconds} seconds"
 
         # Convert end time to total seconds (float)
-        clip_end_total_seconds = float(clip_end_minutes * 60 + clip_end_seconds)
+        clip_end_total_seconds = float(trim_end_minutes * 60 + clip_end_seconds)
 
         #print(dir(video_clip))
         sub_video_clip = video_clip.subclipped(0, clip_end_total_seconds)

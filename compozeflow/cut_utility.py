@@ -79,9 +79,9 @@ def generate_html_from_video_assembly(data: dict, output_html_path: str) -> None
                         clip_start = "Start of clip"
 
                     if "clip_end_seconds" in clip:
-                        clip_end_minutes = clip.get("clip_end_minutes", 0)
+                        trim_end_minutes = clip.get("trim_end_minutes", 0)
                         clip_end_seconds = float(clip.get("clip_end_seconds", 0))
-                        clip_end = f"{clip_end_minutes}:{clip_end_seconds:05.2f}"
+                        clip_end = f"{trim_end_minutes}:{clip_end_seconds:05.2f}"
                     else:
                         clip_end = "End of clip"
 
