@@ -71,10 +71,10 @@ def generate_html_from_video_assembly(data: dict, output_html_path: str) -> None
                     clip_start = ""
                     clip_end = ""
                     # Extract optional values safely
-                    if "clip_start_seconds" in clip:
+                    if "trim_start_seconds" in clip:
                         trim_start_minutes = clip.get("trim_start_minutes", 0)
-                        clip_start_seconds = float(clip.get("clip_start_seconds", 0))
-                        clip_start = f"{trim_start_minutes}:{clip_start_seconds:05.2f}"
+                        trim_start_seconds = float(clip.get("trim_start_seconds", 0))
+                        clip_start = f"{trim_start_minutes}:{trim_start_seconds:05.2f}"
                     else:
                         clip_start = "Start of clip"
 

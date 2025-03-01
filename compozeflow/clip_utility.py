@@ -47,13 +47,13 @@ def load_video_clip(video_clip_meta, aspect_ratio, quick_and_dirty, video_clips_
     return return_video_clip
 
 def process_time_codes(video_clip_meta, video_clips_to_close, watermark, video_clip):
-    if "clip_start_seconds" in video_clip_meta and "clip_end_seconds" in video_clip_meta:
+    if "trim_start_seconds" in video_clip_meta and "clip_end_seconds" in video_clip_meta:
         trim_start_minutes = int(video_clip_meta["trim_start_minutes"])
-        clip_start_seconds = float(video_clip_meta["clip_start_seconds"])
+        trim_start_seconds = float(video_clip_meta["trim_start_seconds"])
         clip_end_minutes = int(video_clip_meta["clip_end_minutes"])
         clip_end_seconds = float(video_clip_meta["clip_end_seconds"])
 
-        watermark = watermark + f"\nStart: {trim_start_minutes} minutes, {clip_start_seconds} seconds\nEnd: {clip_end_minutes} minutes, {clip_end_seconds} seconds"
+        watermark = watermark + f"\nStart: {trim_start_minutes} minutes, {trim_start_seconds} seconds\nEnd: {clip_end_minutes} minutes, {clip_end_seconds} seconds"
 
         if "sequence" in video_clip_meta:
             sequence = video_clip_meta["sequence"]
@@ -61,7 +61,7 @@ def process_time_codes(video_clip_meta, video_clips_to_close, watermark, video_c
 
 
         # Convert start time to total seconds (float)
-        clip_start_total_seconds = float(trim_start_minutes * 60 + clip_start_seconds)
+        clip_start_total_seconds = float(trim_start_minutes * 60 + trim_start_seconds)
 
         # Convert end time to total seconds (float)
         clip_end_total_seconds = float(clip_end_minutes * 60 + clip_end_seconds)
@@ -71,21 +71,21 @@ def process_time_codes(video_clip_meta, video_clips_to_close, watermark, video_c
         return_video_clip = sub_video_clip
         video_clips_to_close.append(sub_video_clip)
 
-    elif "clip_start_seconds" in video_clip_meta and "clip_end_seconds" not in video_clip_meta:
+    elif "trim_start_seconds" in video_clip_meta and "clip_end_seconds" not in video_clip_meta:
         trim_start_minutes = int(video_clip_meta["trim_start_minutes"])
-        clip_start_seconds = float(video_clip_meta["clip_start_seconds"])
+        trim_start_seconds = float(video_clip_meta["trim_start_seconds"])
 
-        watermark = watermark + f"\nStart: {trim_start_minutes} minutes, {clip_start_seconds} seconds\nEnd: end of clip"
+        watermark = watermark + f"\nStart: {trim_start_minutes} minutes, {trim_start_seconds} seconds\nEnd: end of clip"
 
         # Convert start time to total seconds (float)
-        clip_start_total_seconds = float(trim_start_minutes * 60 + clip_start_seconds)
+        clip_start_total_seconds = float(trim_start_minutes * 60 + trim_start_seconds)
 
         #print(dir(video_clip))
         sub_video_clip = video_clip.subclipped(clip_start_total_seconds)
         return_video_clip = sub_video_clip
         video_clips_to_close.append(sub_video_clip)
 
-    elif "clip_start_seconds" not in video_clip_meta and "clip_end_seconds" in video_clip_meta:
+    elif "trim_start_seconds" not in video_clip_meta and "clip_end_seconds" in video_clip_meta:
         clip_end_minutes = int(video_clip_meta["clip_end_minutes"])
         clip_end_seconds = float(video_clip_meta["clip_end_seconds"])
 
