@@ -37,8 +37,8 @@ def load_video_clip(video_clip_meta, aspect_ratio, quick_and_dirty, video_clips_
         video_clips_to_close.append(video_clips_to_close)
         return_video_clip = cropped_video_clip
     
-    if "images" in video_clip_meta:
-        for image in video_clip_meta["images"]:
+    if "overlay_images" in video_clip_meta:
+        for image in video_clip_meta["overlay_images"]:
             return_video_clip = append_image(image, return_video_clip, video_clips_to_close)
 
     if source_file_watermark:

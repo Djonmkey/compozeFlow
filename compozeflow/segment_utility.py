@@ -14,10 +14,10 @@ def generate_video_segment(
 
     for scene in sorted_scenes:
         # If we have an image defined at the segment, then copy it to the scene
-        if "images" in segment:
-            if "images" not in scene:
-                scene["images"] = []
-            scene["images"].extend(segment["images"])
+        if "overlay_images" in segment:
+            if "overlay_images" not in scene:
+                scene["overlay_images"] = []
+            scene["overlay_images"].extend(segment["overlay_images"])
     
         scene_video = generate_video_scene(
             segment,

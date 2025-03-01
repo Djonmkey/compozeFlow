@@ -56,8 +56,8 @@ def check_file_existence(video_assembly):
     # Collect all file paths
     if "cut" in video_assembly and "segments" in video_assembly["cut"]:
         for segment in video_assembly["cut"]["segments"]:
-            if "images" in segment:
-                for image in segment["images"]:
+            if "overlay_images" in segment:
+                for image in segment["overlay_images"]:
                     file_paths.append(image.get("image_file_pathname"))
             if "scenes" in segment:
                 for scene in segment["scenes"]:

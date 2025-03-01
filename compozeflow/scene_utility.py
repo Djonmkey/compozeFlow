@@ -118,10 +118,10 @@ def load_video_clips(segment, scene, video_clip_list, audio_clips, aspect_ratio,
     if video_file_exists(output_path) == False:
         for video in video_clip_list:
             # If we have an image defined at the scene, then copy it to the clip
-            if "images" in scene:
-                if "images" not in video:
-                    video["images"] = []
-                video["images"].extend(scene["images"])
+            if "overlay_images" in scene:
+                if "overlay_images" not in video:
+                    video["overlay_images"] = []
+                video["overlay_images"].extend(scene["overlay_images"])
 
             video_clip = load_video_clip(video, aspect_ratio, quick_and_dirty, clips_to_close, source_file_watermark)
             clips_to_close.append(video_clip)
