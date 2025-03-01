@@ -49,9 +49,9 @@ def process_parallel_clips(scene, video_clips, audio_clips, aspect_ratio, clips_
             if parallel_audio_clip != None:
                 clips_to_close.append(parallel_audio_clip)
 
-                master_clips_type = scene.get("master_clips_type", "video").lower()
+                timeline_clip_type = scene.get("timeline_clip_type", "video").lower()
 
-                if master_clips_type == "image":
+                if timeline_clip_type == "image":
                     parallel_clips_video_volume = scene.get("parallel_clips_master_clip_volume", 0)
                 else:
                     parallel_clips_video_volume = scene.get("parallel_clips_master_clip_volume", 1)
@@ -175,7 +175,7 @@ def load_audio_clips(audio_clip_list, clips_to_close):
     
 
 def generate_video_scene(segment, scene, quick_and_dirty, manifest_last_modified_timestamp, aspect_ratio, source_file_watermark = False):
-    master_clips_type = scene.get("master_clips_type", "video").lower()
+    timeline_clip_type = scene.get("timeline_clip_type", "video").lower()
     sorted_master_clips = sort_master_clips_by_sequence(scene)
     sorted_parallel_clips = sort_parallel_clips_by_sequence(scene)
     enabled = scene.get("enabled", True)
@@ -184,11 +184,7 @@ def generate_video_scene(segment, scene, quick_and_dirty, manifest_last_modified
     master_video_clip = None 
 
     if enabled:
-        if master_clips_type == "audio":
-            # The timeline is bound by the audio length, parallel_clips should all be of type video
-            master_video_clip = load_audio_clips(sorted_master_clips)
-
-        elif master_clips_type == "image":
+        if timeline_clip_type == "image":
             master_video_clip = load_image_clips(segment, scene, sorted_master_clips, sorted_parallel_clips, aspect_ratio, quick_and_dirty, source_file_watermark)
 
         else:
