@@ -6,15 +6,15 @@ from moviepy import VideoFileClip, AudioFileClip, CompositeAudioClip, concatenat
 
 def process_time_codes(audio_clip_meta, clips_to_close, watermark, audio_clip):
     if "clip_start_seconds" in audio_clip_meta and "clip_end_seconds" in audio_clip_meta:
-        clip_start_minutes = int(audio_clip_meta["clip_start_minutes"])
+        trim_start_minutes = int(audio_clip_meta["trim_start_minutes"])
         clip_start_seconds = float(audio_clip_meta["clip_start_seconds"])
         clip_end_minutes = int(audio_clip_meta["clip_end_minutes"])
         clip_end_seconds = float(audio_clip_meta["clip_end_seconds"])
 
-        watermark = watermark + f" clip_start_minutes:{clip_start_minutes}, clip_start_seconds:{clip_start_seconds}, clip_end_minutes:{clip_end_minutes}, clip_end_seconds:{clip_end_seconds}"
+        watermark = watermark + f"\nStart: {trim_start_minutes} minutes, {clip_start_seconds} seconds\nEnd: {clip_end_minutes} minutes, {clip_end_seconds} seconds"
 
         # Convert start time to total seconds (float)
-        clip_start_total_seconds = float(clip_start_minutes * 60 + clip_start_seconds)
+        clip_start_total_seconds = float(trim_start_minutes * 60 + clip_start_seconds)
 
         # Convert end time to total seconds (float)
         clip_end_total_seconds = float(clip_end_minutes * 60 + clip_end_seconds)
@@ -25,13 +25,13 @@ def process_time_codes(audio_clip_meta, clips_to_close, watermark, audio_clip):
         clips_to_close.append(sub_video_clip)
 
     elif "clip_start_seconds" in audio_clip_meta and "clip_end_seconds" not in audio_clip_meta:
-        clip_start_minutes = int(audio_clip_meta["clip_start_minutes"])
+        trim_start_minutes = int(audio_clip_meta["trim_start_minutes"])
         clip_start_seconds = float(audio_clip_meta["clip_start_seconds"])
 
-        watermark = watermark + f" clip_start_minutes:{clip_start_minutes}, clip_start_seconds:{clip_start_seconds}, clip_end_minutes:END, clip_end_seconds:END"
+        watermark = watermark + f"\nStart: {trim_start_minutes} minutes, {clip_start_seconds} seconds\nEnd: end of clip"
 
         # Convert start time to total seconds (float)
-        clip_start_total_seconds = float(clip_start_minutes * 60 + clip_start_seconds)
+        clip_start_total_seconds = float(trim_start_minutes * 60 + clip_start_seconds)
 
         #print(dir(video_clip))
         sub_video_clip = audio_clip.subclipped(clip_start_total_seconds)
@@ -42,7 +42,7 @@ def process_time_codes(audio_clip_meta, clips_to_close, watermark, audio_clip):
         clip_end_minutes = int(audio_clip_meta["clip_end_minutes"])
         clip_end_seconds = float(audio_clip_meta["clip_end_seconds"])
 
-        watermark = watermark + f" clip_start_minutes:START, clip_start_seconds:START, clip_end_minutes:{clip_end_minutes}, clip_end_seconds:{clip_end_seconds}"
+        watermark = watermark + f"\nStart: start of clip\nEnd: {clip_end_minutes} minutes, {clip_end_seconds} seconds"
 
         # Convert end time to total seconds (float)
         clip_end_total_seconds = float(clip_end_minutes * 60 + clip_end_seconds)
