@@ -63,8 +63,8 @@ def generate_html_from_video_assembly(data: dict, output_html_path: str) -> None
 
             timeline_clip_type = scene.get("timeline_clip_type", "video")
 
-            if timeline_clip_type == "video" or timeline_clip_type == "audio":
-                for clip in scene.get("master_clips", []):
+            if timeline_clip_type == "video":
+                for clip in scene.get("timeline_clips", []):
                     sequence = clip.get("sequence", "N/A")
                     clip_path = clip.get("clip_file_pathname", "Unknown Path")
 
@@ -99,7 +99,7 @@ def generate_html_from_video_assembly(data: dict, output_html_path: str) -> None
                     </tr>
                     """
             elif timeline_clip_type == "image":
-                for image in scene.get("master_clips", []):
+                for image in scene.get("timeline_clips", []):
                     sequence = image.get("sequence", "N/A")
                     clip_path = image.get("clip_file_pathname", "Unknown Path")
 

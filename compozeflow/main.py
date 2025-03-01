@@ -61,8 +61,8 @@ def check_file_existence(video_assembly):
                     file_paths.append(image.get("image_file_pathname"))
             if "scenes" in segment:
                 for scene in segment["scenes"]:
-                    if "master_clips" in scene:
-                        for clip in scene["master_clips"]:
+                    if "timeline_clips" in scene:
+                        for clip in scene["timeline_clips"]:
                             file_paths.append(clip.get("clip_file_pathname"))
 
     # Check for missing files
