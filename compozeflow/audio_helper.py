@@ -4,7 +4,7 @@ from typing import List
 from moviepy import VideoFileClip, AudioFileClip, CompositeAudioClip, concatenate_audioclips
 
 
-def process_time_codes(audio_clip_meta, clips_to_close, watermark, audio_clip):
+def process_audio_time_codes(audio_clip_meta, clips_to_close, watermark, audio_clip):
     if "trim_start_seconds" in audio_clip_meta and "trim_end_seconds" in audio_clip_meta:
         trim_start_minutes = int(audio_clip_meta["trim_start_minutes"])
         trim_start_seconds = float(audio_clip_meta["trim_start_seconds"])

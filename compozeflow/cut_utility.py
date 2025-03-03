@@ -56,8 +56,8 @@ def generate_html_from_video_assembly(data: dict, output_html_path: str) -> None
                 <tr>
                     <th>Sequence</th>
                     <th>Clip File Pathname</th>
-                    <th>Start (min:sec)</th>
-                    <th>End (min:sec)</th>
+                    <th>Trim Start (min:sec)</th>
+                    <th>Trim End (min:sec)</th>
                 </tr>
             """
 

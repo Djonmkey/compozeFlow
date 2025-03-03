@@ -24,7 +24,7 @@ def load_video_clip(video_clip_meta, aspect_ratio, quick_and_dirty, video_clips_
     if video_clip.fps is None:
         raise ValueError("Error: FPS could not be determined. Check your video file.")
 
-    return_video_clip, watermark = process_time_codes(video_clip_meta, video_clips_to_close, watermark, video_clip)
+    return_video_clip, watermark = process_video_time_codes(video_clip_meta, video_clips_to_close, watermark, video_clip)
     
     #if playback_speed != 1:
     #    speen_updated_video_clip = speedx(video_clip, factor=playback_speed)
@@ -46,7 +46,7 @@ def load_video_clip(video_clip_meta, aspect_ratio, quick_and_dirty, video_clips_
 
     return return_video_clip
 
-def process_time_codes(video_clip_meta, video_clips_to_close, watermark, video_clip):
+def process_video_time_codes(video_clip_meta, video_clips_to_close, watermark, video_clip):
     if "trim_start_seconds" in video_clip_meta and "trim_end_seconds" in video_clip_meta:
         trim_start_minutes = int(video_clip_meta["trim_start_minutes"])
         trim_start_seconds = float(video_clip_meta["trim_start_seconds"])
