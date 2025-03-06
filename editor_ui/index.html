@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>compozeFlow Editor UI</title>
+  <style>
+    /* Root layout: full height, a row-based flex container for the entire app. */
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: sans-serif;
+      overflow: hidden; /* Prevent scrollbars on smaller windows */
+    }
+
+    #app {
+      display: flex;
+      flex-direction: row;
+      height: 100%;
+    }
+
+    /* Left Icon bar */
+    #icon-bar {
+      width: 50px;
+      background-color: #333;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 10px;
+    }
+    .icon {
+      margin: 10px 0;
+      cursor: pointer;
+      font-size: 1.2rem;
+      user-select: none;
+    }
+    .icon:hover {
+      background-color: #444;
+      width: 100%;
+      text-align: center;
+    }
+
+    /* Explorer Section */
+    #explorer {
+      width: 250px;
+      background-color: #f3f3f3;
+      border-right: 1px solid #ccc;
+      overflow: auto;
+    }
+
+    /* Main Editor area with vertical layout of tabs + terminal below */
+    #main-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Tabs container (top part of main section) */
+    #tabs-container {
+      display: flex;
+      background-color: #eee;
+      border-bottom: 1px solid #ccc;
+    }
+    .tab {
+      padding: 10px;
+      border-right: 1px solid #ccc;
+      cursor: pointer;
+    }
+    .tab:hover {
+      background-color: #ddd;
+    }
+
+    /* Editor / Content area (between tabs and terminal) */
+    #editor-content {
+      flex: 1;
+      padding: 20px;
+      overflow: auto;
+    }
+
+    /* Terminal section (bottom) */
+    #terminal {
+      height: 150px;
+      border-top: 1px solid #ccc;
+      background-color: #111;
+      color: #eee;
+      font-family: monospace;
+      overflow: auto;
+      padding: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- Icon Bar -->
+    <div id="icon-bar">
+      <div class="icon">☰</div>
+      <div class="icon">✎</div>
+      <div class="icon">⚙</div>
+    </div>
+
+    <!-- Explorer -->
+    <div id="explorer">
+      <ul>
+        <li>File1.txt</li>
+        <li>File2.js</li>
+        <li>File3.html</li>
+        <li>Folder1
+          <ul>
+            <li>NestedFile.js</li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+
+    <!-- Main section -->
+    <div id="main-section">
+      <!-- Tabs -->
+      <div id="tabs-container">
+        <div class="tab">Tab1</div>
+        <div class="tab">Tab2</div>
+        <div class="tab">Tab3</div>
+      </div>
+
+      <!-- Editor content area -->
+      <div id="editor-content">
+        <h2>Welcome to compozeFlow Editor UI</h2>
+        <p>This is a placeholder for the central editing area, akin to the text editor in VS Code.</p>
+      </div>
+
+      <!-- Terminal section -->
+      <div id="terminal">
+        <p>Terminal output will appear here...</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{
+    "name": "compozeFlow-editor-ui",
+    "version": "1.0.0",
+    "description": "An Electron-based editor UI (similar to VS Code).",
+    "main": "main.js",
+    "scripts": {
+        "start": "electron ."
+    },
+    "dependencies": {
+        "electron": "^35.0.0"
+    }
+}
