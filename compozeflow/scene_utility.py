@@ -176,68 +176,6 @@ def load_audio_clips(audio_clip_list, clips_to_close):
     else:
         return None
     
-
-def process_parallel_clips(segment, scene, aspect_ratio, scene_video, quick_and_dirty):
-    # Write the output video
-    segment_title = segment["title"]
-    scene_title = scene.get("title", "default-scene")
-    scene_sequence = str(scene["sequence"])  # Explicit conversion
-
-    # Sanitize `segment_title` to remove problematic characters
-    safe_segment_title = re.sub(r'[^a-zA-Z0-9_-]', '_', segment_title)[:50]  # Keep it safe & under 50 chars
-
-    # Get the width and height
-    output_width, output_height = scene_video.size
-
-    # Load video clips
-    parallel_clips = scene.get("parallel_clips", [])
-
-    video1_meta = parallel_clips[0]
-    video1 = VideoFileClip(video1_meta["clip_file_pathname"])
-
-    video1, watermark = process_video_time_codes(video1_meta, [], "", video1)
-
-    output_path = f"temp_video_pipeline_clip_{safe_segment_title}_{scene_sequence}_{scene_title}_{aspect_ratio}.parallel_clips.video1.mp4"
-
-    write_video(video1, output_path, quick_and_dirty)
-
-    video1 = VideoFileClip(output_path)
-
-
-    video2_meta = parallel_clips[1]
-    video2 =  VideoFileClip(video2_meta["clip_file_pathname"])
-    video2, watermark = process_video_time_codes(video2_meta, [], "", video2)
-    video2 = video2.without_audio()
-
-    output_path = f"temp_video_pipeline_clip_{safe_segment_title}_{scene_sequence}_{scene_title}_{aspect_ratio}.parallel_clips.video2.mp4"
-
-    write_video(video2, output_path, quick_and_dirty)
-
-    video2 = VideoFileClip(output_path)
-
-    # Calculate the target height (keep videos' height equal to output height)
-    target_height = output_height
-
-    # Calculate widths based on desired proportions
-    video1_width = int(output_width * (2/3))  # 2/3 of the width
-    video2_width = int(output_width * (1/3))  # 1/3 of the width
-
-    # Resize both videos to maintain 4:3 aspect ratio while matching target height
-    #video1 = video1.resize(height=target_height).crop(x1=0, x2=video1_width)
-    #video2 = video2.resize(height=target_height).crop(x1=0, x2=video2_width)
-
-    # Positioning:
-    # - video1 at (0,0) (left-aligned)
-    # - video2 at (output_width - video2_width, 0) (right-aligned)
-    video1 = video1.with_position((0, 0))
-    video2 = video2.with_position((output_width - video2_width, 0))
-
-    # Create a composite video
-    final_video = CompositeVideoClip([video1, video2], size=(output_width, output_height))
-    
-    output_path = f"temp_video_pipeline_clip_{safe_segment_title}_{scene_sequence}_{scene_title}_{aspect_ratio}.parallel_clips.mp4"
-
-    write_video(final_video, output_path, quick_and_dirty)
     
 
 def generate_video_scene(segment, scene, quick_and_dirty, manifest_last_modified_timestamp, aspect_ratio, source_file_watermark = False):
@@ -258,12 +196,6 @@ def generate_video_scene(segment, scene, quick_and_dirty, manifest_last_modified
 
     if timeline_video_clip != None:
         scene_video = VideoFileClip(timeline_video_clip)
-
-    if "parallel_clips" in scene:
-        parallel_output = process_parallel_clips(segment, scene, aspect_ratio, scene_video, quick_and_dirty)
-
-        if parallel_output != None:
-            scene_video = VideoFileClip(parallel_output)
 
     return scene_video
     
