@@ -8,6 +8,11 @@
 const { app, BrowserWindow, Menu } = require('electron');
 const path = require('path');
 
+// Set the name BEFORE any other app code runs
+app.name = 'compozeFlow'
+// Or you can also use:
+app.setName('compozeFlow')
+
 // Keep a global reference of the window object, to prevent
 // garbage collection from closing the window automatically.
 let mainWindow;
@@ -138,9 +143,6 @@ function createMenu() {
 }
 
 app.whenReady().then(() => {
-  // Set the application name to be displayed in the menu
-  app.name = "compozeFlow";
-  
   createWindow();
   createMenu();
 
