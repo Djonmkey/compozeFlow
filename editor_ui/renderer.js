@@ -34,10 +34,10 @@ ipcRenderer.on('video-assembly-opened', (event, data) => {
   // Update the editor content with the generated HTML
   // We'll use an iframe to properly render the HTML content
   editorContent.innerHTML = `
-    <iframe 
-      id="video-assembly-frame" 
+    <iframe
+      id="video-assembly-frame"
       style="width: 100%; height: 100%; border: none;"
-      srcdoc="${encodeURIComponent(htmlContent)}"
+      srcdoc="${htmlContent.replace(/"/g, '&quot;')}"
     ></iframe>
   `;
   
