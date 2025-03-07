@@ -62,21 +62,27 @@ function createMenu() {
       label: 'File',
       submenu: [
         {
-          label: 'New',
+          label: 'New Video Assembly',
           click: () => {
-            console.log("New File Clicked");
+            console.log("New Video Assembly Clicked");
           }
         },
         {
-          label: 'Open',
+          label: 'Open Video Assembly',
           click: () => {
-            console.log("Open File Clicked");
+            console.log("Open Video Assembly Clicked");
           }
         },
         {
-          label: 'Save',
+          label: 'Save Video Assembly',
           click: () => {
-            console.log("Save File Clicked");
+            console.log("Save Video Assembly Clicked");
+          }
+        },
+        {
+          label: 'Save Video Assembly As',
+          click: () => {
+            console.log("Save Video Assembly As Clicked");
           }
         },
         { type: 'separator' },
