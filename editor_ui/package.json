@@ -1,7 +1,8 @@
 {
     "name": "compozeFlow-editor-ui",
+    "productName": "compozeFlow",
     "version": "1.0.0",
-    "description": "An Electron-based editor UI (similar to VS Code).",
+    "description": "compozeFlow Video Assembly Editor.",
     "main": "main.js",
     "scripts": {
         "start": "electron ."

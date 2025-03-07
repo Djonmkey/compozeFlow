@@ -16,7 +16,7 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
-    title: "compozeFlow Editor UI",
+    title: "compozeFlow",
     webPreferences: {
       nodeIntegration: true
     }
@@ -41,7 +41,7 @@ function createMenu() {
     ...(isMac ? [{
       label: app.name,
       submenu: [
-        { role: 'about', label: "About compozeFlow Editor UI" },
+        { role: 'about', label: "About compozeFlow" },
         { type: 'separator' },
         { role: 'services' },
         { type: 'separator' },
@@ -138,6 +138,9 @@ function createMenu() {
 }
 
 app.whenReady().then(() => {
+  // Set the application name to be displayed in the menu
+  app.name = "compozeFlow";
+  
   createWindow();
   createMenu();
 
