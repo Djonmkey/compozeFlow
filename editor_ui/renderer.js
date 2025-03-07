@@ -83,6 +83,25 @@ window.addEventListener('message', (event) => {
       });
     }
   }
+  // Check if the message is a subtitle update
+  else if (event.data && event.data.type === 'subtitle-updated') {
+    const newSubtitle = event.data.newSubtitle;
+    
+    // Update the subtitle in the current data
+    if (currentVideoAssemblyData && currentVideoAssemblyData.cut) {
+      currentVideoAssemblyData.cut.subtitle = newSubtitle;
+      
+      // Get the current file path from the main process
+      ipcRenderer.invoke('get-current-file-path').then((filePath) => {
+        if (filePath) {
+          // Save the updated data to the file
+          saveVideoAssemblyToFile(filePath, currentVideoAssemblyData);
+        } else {
+          console.error('No file path available for saving');
+        }
+      });
+    }
+  }
 });
 
 // Function to save video assembly data to a file

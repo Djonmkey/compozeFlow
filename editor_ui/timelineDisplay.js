@@ -20,7 +20,7 @@ function generateHtmlFromVideoAssembly(data) {
         <style>
             body { font-family: Arial, sans-serif; line-height: 1.6; }
             h1 { text-align: center; display: inline-block; margin-right: 10px; }
-            h2 { text-align: center; color: gray; }
+            h2 { text-align: center; color: gray; display: inline-block; margin-right: 10px; }
             h3 { margin-top: 20px; }
             h4 { margin-top: 10px; font-style: italic; }
             table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
@@ -80,8 +80,56 @@ function generateHtmlFromVideoAssembly(data) {
                 });
             }
             
+            // Function to handle subtitle editing
+            function setupSubtitleEditing() {
+                const subtitleContainer = document.getElementById('subtitle-container');
+                const subtitleElement = document.getElementById('subtitle-element');
+                const editIcon = document.getElementById('edit-subtitle-icon');
+                const editControls = document.getElementById('subtitle-edit-controls');
+                const editInput = document.getElementById('subtitle-edit-input');
+                const saveButton = document.getElementById('subtitle-save-button');
+                const cancelButton = document.getElementById('subtitle-cancel-button');
+                
+                // Show edit input when pencil icon is clicked
+                editIcon.addEventListener('click', () => {
+                    editInput.value = subtitleElement.textContent;
+                    subtitleElement.style.display = 'none';
+                    editIcon.style.display = 'none';
+                    editControls.style.display = 'block';
+                    editInput.focus();
+                });
+                
+                // Handle cancel button
+                cancelButton.addEventListener('click', () => {
+                    subtitleElement.style.display = 'inline-block';
+                    editIcon.style.display = 'inline-block';
+                    editControls.style.display = 'none';
+                });
+                
+                // Handle save button
+                saveButton.addEventListener('click', () => {
+                    const newSubtitle = editInput.value.trim();
+                    if (newSubtitle !== undefined) {
+                        subtitleElement.textContent = newSubtitle;
+                        
+                        // Send message to parent window (renderer process)
+                        window.parent.postMessage({
+                            type: 'subtitle-updated',
+                            newSubtitle: newSubtitle
+                        }, '*');
+                    }
+                    
+                    subtitleElement.style.display = 'inline-block';
+                    editIcon.style.display = 'inline-block';
+                    editControls.style.display = 'none';
+                });
+            }
+            
             // Initialize when DOM is loaded
-            document.addEventListener('DOMContentLoaded', setupTitleEditing);
+            document.addEventListener('DOMContentLoaded', () => {
+                setupTitleEditing();
+                setupSubtitleEditing();
+            });
         </script>
     </head>
     <body>
@@ -96,7 +144,17 @@ function generateHtmlFromVideoAssembly(data) {
                 </div>
             </div>
         </div>
-        <h2>${subtitle}</h2>
+        <div class="title-container" id="subtitle-container">
+            <h2 id="subtitle-element">${subtitle}</h2>
+            <span class="edit-icon" id="edit-subtitle-icon" title="Edit subtitle">✏️</span>
+            <div class="edit-controls" id="subtitle-edit-controls">
+                <input type="text" class="edit-input" id="subtitle-edit-input" value="${subtitle}">
+                <div>
+                    <button id="subtitle-save-button">Save</button>
+                    <button id="subtitle-cancel-button">Cancel</button>
+                </div>
+            </div>
+        </div>
     `;
 
     // Process segments
