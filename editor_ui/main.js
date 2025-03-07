@@ -7,6 +7,10 @@
 
 const { app, BrowserWindow, Menu } = require('electron');
 const path = require('path');
+const fileOps = require('./fileOperations');
+
+// Store the current file path
+let currentFilePath = null;
 
 // Set the name BEFORE any other app code runs
 app.name = 'compozeFlow'
@@ -69,20 +73,50 @@ function createMenu() {
         },
         {
           label: 'Open Video Assembly',
-          click: () => {
-            console.log("Open Video Assembly Clicked");
+          click: async () => {
+            const result = await fileOps.openVideoAssembly(mainWindow);
+            if (result) {
+              currentFilePath = result.filePath;
+              // Send the loaded content to the renderer process
+              mainWindow.webContents.send('video-assembly-opened', result.content);
+              console.log("Video assembly opened:", currentFilePath);
+            }
           }
         },
         {
           label: 'Save Video Assembly',
-          click: () => {
-            console.log("Save Video Assembly Clicked");
+          click: async () => {
+            // Get the current content from the renderer process
+            // For now, we'll use a placeholder object
+            const content = { placeholder: "Video Assembly Data" };
+            
+            if (currentFilePath) {
+              // Use existing path for Save
+              await fileOps.saveVideoAssembly(mainWindow, content, currentFilePath);
+              console.log("Video assembly saved to:", currentFilePath);
+            } else {
+              // No current file, behave like Save As
+              const filePath = await fileOps.saveVideoAssembly(mainWindow, content);
+              if (filePath) {
+                currentFilePath = filePath;
+                console.log("Video assembly saved to:", currentFilePath);
+              }
+            }
           }
         },
         {
           label: 'Save Video Assembly As',
-          click: () => {
-            console.log("Save Video Assembly As Clicked");
+          click: async () => {
+            // Get the current content from the renderer process
+            // For now, we'll use a placeholder object
+            const content = { placeholder: "Video Assembly Data" };
+            
+            // Always prompt for location with Save As
+            const filePath = await fileOps.saveVideoAssembly(mainWindow, content);
+            if (filePath) {
+              currentFilePath = filePath;
+              console.log("Video assembly saved to:", filePath);
+            }
           }
         },
         { type: 'separator' },
