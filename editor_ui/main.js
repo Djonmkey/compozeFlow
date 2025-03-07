@@ -5,7 +5,7 @@
  * and sets up the top-level application menu.
  */
 
-const { app, BrowserWindow, Menu } = require('electron');
+const { app, BrowserWindow, Menu, ipcMain } = require('electron');
 const path = require('path');
 const fileOps = require('./fileOperations');
 
@@ -81,6 +81,8 @@ function createMenu() {
               currentFilePath = result.filePath;
               // Send the loaded content to the renderer process
               mainWindow.webContents.send('video-assembly-opened', result.content);
+              // Also send the file path
+              mainWindow.webContents.send('current-file-path', currentFilePath);
               console.log("Video assembly opened:", currentFilePath);
             }
           }
@@ -202,4 +204,9 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
   }
+});
+
+// Set up IPC handlers
+ipcMain.handle('get-current-file-path', () => {
+  return currentFilePath;
 });
