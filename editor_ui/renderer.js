@@ -14,7 +14,7 @@ const tabs = document.querySelectorAll('.tab');
 const tab1 = document.querySelector('.tab:nth-child(1)');
 
 // Keep track of the currently active tab
-let activeTab = 'Tab1';
+let activeTab = 'Timeline';
 
 // Initialize tab click handlers
 tabs.forEach(tab => {
@@ -41,17 +41,17 @@ ipcRenderer.on('video-assembly-opened', (event, data) => {
     ></iframe>
   `;
   
-  // Make sure Tab1 is active
+  // Make sure Timeline tab is active
   tabs.forEach(tab => {
-    tab.style.backgroundColor = tab.textContent === 'Tab1' ? '#ddd' : '';
-    tab.style.fontWeight = tab.textContent === 'Tab1' ? 'bold' : 'normal';
+    tab.style.backgroundColor = tab.textContent === 'Timeline' ? '#ddd' : '';
+    tab.style.fontWeight = tab.textContent === 'Timeline' ? 'bold' : 'normal';
   });
   
-  activeTab = 'Tab1';
+  activeTab = 'Timeline';
   
   // Update the terminal with a message
   const terminal = document.getElementById('terminal');
-  terminal.innerHTML += `<p>Video assembly loaded and displayed in Tab1</p>`;
+  terminal.innerHTML += `<p>Video assembly loaded and displayed in Timeline tab</p>`;
 });
 
 // Initialize the UI
