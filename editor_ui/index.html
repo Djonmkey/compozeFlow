@@ -42,6 +42,12 @@
       flex-direction: column;
       align-items: center;
     }
+    /* Container for bottom icons */
+    #bottom-icons {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
     .icon {
       margin: 10px 0;
       cursor: pointer;
@@ -112,8 +118,13 @@
         <div class="icon">☰</div>
         <div class="icon">✎</div>
       </div>
-      <!-- Bottom icon (settings) -->
-      <div class="icon" id="settings-icon">⚙</div>
+      <!-- Bottom icons group -->
+      <div id="bottom-icons">
+        <!-- Account icon -->
+        <div class="icon" id="account-icon">👤</div>
+        <!-- Settings icon -->
+        <div class="icon" id="settings-icon">⚙</div>
+      </div>
     </div>
 
     <!-- Explorer -->
