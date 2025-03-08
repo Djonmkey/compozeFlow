@@ -112,7 +112,63 @@ async function saveVideoAssembly(window, content, filePath = null) {
   }
 }
 
+/**
+ * Saves a video assembly as a template
+ * @param {BrowserWindow} window - The parent window for the dialog
+ * @param {Object} content - The content to save
+ * @returns {Promise<string|null>} The file path where the template was saved, or null if canceled
+ */
+async function saveVideoAssemblyAsTemplate(window, content) {
+  try {
+    // Create templates directory if it doesn't exist
+    const templatesDir = path.join(__dirname, 'templates');
+    if (!fs.existsSync(templatesDir)) {
+      fs.mkdirSync(templatesDir, { recursive: true });
+    }
+
+    // Show save dialog with templates directory as default path
+    const { canceled, filePath: selectedPath } = await dialog.showSaveDialog(window, {
+      title: 'Save Video Assembly As Template',
+      defaultPath: path.join(templatesDir, 'template.json'),
+      filters: [
+        { name: 'Template Files', extensions: ['json'] },
+        { name: 'All Files', extensions: ['*'] }
+      ],
+      properties: ['createDirectory', 'showOverwriteConfirmation']
+    });
+
+    if (canceled || !selectedPath) {
+      console.log('Save template was canceled');
+      return null;
+    }
+
+    let filePath = selectedPath;
+    
+    // Ensure the file has a .json extension
+    if (!filePath.toLowerCase().endsWith('.json')) {
+      filePath += '.json';
+    }
+
+    // Convert content to JSON string
+    const jsonContent = JSON.stringify(content, null, 2);
+    
+    // Write to file
+    fs.writeFileSync(filePath, jsonContent, 'utf-8');
+    console.log(`Template saved to: ${filePath}`);
+    
+    return filePath;
+  } catch (error) {
+    console.error('Error saving template:', error);
+    dialog.showErrorBox(
+      'Error Saving Template',
+      `An error occurred while saving the template: ${error.message}`
+    );
+    return null;
+  }
+}
+
 module.exports = {
   openVideoAssembly,
-  saveVideoAssembly
+  saveVideoAssembly,
+  saveVideoAssemblyAsTemplate
 };

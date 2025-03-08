@@ -123,6 +123,20 @@ function createMenu() {
             }
           }
         },
+        {
+          label: 'Save Video Assembly As Template',
+          click: async () => {
+            // Get the current content from the renderer process
+            // For now, we'll use a placeholder object
+            const content = { placeholder: "Video Assembly Data" };
+            
+            // Save as template
+            const filePath = await fileOps.saveVideoAssemblyAsTemplate(mainWindow, content);
+            if (filePath) {
+              console.log("Video assembly template saved to:", filePath);
+            }
+          }
+        },
         { type: 'separator' },
         isMac ? { role: 'close' } : { role: 'quit' }
       ]
