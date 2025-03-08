@@ -28,6 +28,19 @@
       flex-direction: column;
       align-items: center;
       padding-top: 10px;
+      /* Add justify-content to create space between top and bottom sections */
+      justify-content: space-between;
+      /* Add padding at the bottom to match the top padding */
+      padding-bottom: 10px;
+      /* Ensure the icon bar takes full height */
+      height: 100%;
+      box-sizing: border-box;
+    }
+    /* Container for top icons */
+    #top-icons {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
     .icon {
       margin: 10px 0;
@@ -94,9 +107,13 @@
   <div id="app">
     <!-- Icon Bar -->
     <div id="icon-bar">
-      <div class="icon">☰</div>
-      <div class="icon">✎</div>
-      <div class="icon">⚙</div>
+      <!-- Top icons group -->
+      <div id="top-icons">
+        <div class="icon">☰</div>
+        <div class="icon">✎</div>
+      </div>
+      <!-- Bottom icon (settings) -->
+      <div class="icon" id="settings-icon">⚙</div>
     </div>
 
     <!-- Explorer -->
