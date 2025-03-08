@@ -8,6 +8,7 @@
 const { ipcRenderer } = require('electron');
 const fs = require('fs');
 const generateHtmlFromVideoAssembly = require('./timelineDisplay');
+const generateOverlayImagesHtml = require('./overlayImagesDisplay');
 
 // DOM elements
 const editorContent = document.getElementById('editor-content');
@@ -21,11 +22,46 @@ let activeTab = 'Timeline';
 let currentVideoAssemblyData = null;
 let currentVideoAssemblyPath = null;
 
+// Function to update the editor content based on the active tab
+function updateEditorContent() {
+  if (!currentVideoAssemblyData) return;
+  
+  let htmlContent = '';
+  
+  if (activeTab === 'Timeline') {
+    htmlContent = generateHtmlFromVideoAssembly(currentVideoAssemblyData);
+  } else if (activeTab === 'Overlay Images') {
+    htmlContent = generateOverlayImagesHtml(currentVideoAssemblyData);
+  } else {
+    // For other tabs, show a placeholder
+    htmlContent = `<h2>Content for ${activeTab} tab</h2><p>This tab is not yet implemented.</p>`;
+  }
+  
+  // Update the editor content with the generated HTML
+  editorContent.innerHTML = `
+    <iframe
+      id="video-assembly-frame"
+      style="width: 100%; height: 100%; border: none;"
+      srcdoc="${htmlContent.replace(/"/g, '&quot;')}"
+    ></iframe>
+  `;
+  
+  // Update the terminal with a message
+  const terminal = document.getElementById('terminal');
+  terminal.innerHTML += `<p>Displaying ${activeTab} view</p>`;
+}
+
 // Initialize tab click handlers
 tabs.forEach(tab => {
   tab.addEventListener('click', () => {
+    // Update active tab styling
+    tabs.forEach(t => {
+      t.style.backgroundColor = t.textContent === tab.textContent ? '#ddd' : '';
+      t.style.fontWeight = t.textContent === tab.textContent ? 'bold' : 'normal';
+    });
+    
     activeTab = tab.textContent;
-    // Handle tab switching logic here if needed
+    updateEditorContent();
   });
 });
 
@@ -36,19 +72,6 @@ ipcRenderer.on('video-assembly-opened', (event, data) => {
   // Store the current data
   currentVideoAssemblyData = data;
   
-  // Generate HTML from the video assembly data
-  const htmlContent = generateHtmlFromVideoAssembly(data);
-  
-  // Update the editor content with the generated HTML
-  // We'll use an iframe to properly render the HTML content
-  editorContent.innerHTML = `
-    <iframe
-      id="video-assembly-frame"
-      style="width: 100%; height: 100%; border: none;"
-      srcdoc="${htmlContent.replace(/"/g, '&quot;')}"
-    ></iframe>
-  `;
-  
   // Make sure Timeline tab is active
   tabs.forEach(tab => {
     tab.style.backgroundColor = tab.textContent === 'Timeline' ? '#ddd' : '';
@@ -56,6 +79,9 @@ ipcRenderer.on('video-assembly-opened', (event, data) => {
   });
   
   activeTab = 'Timeline';
+  
+  // Update the editor content based on the active tab
+  updateEditorContent();
   
   // Update the terminal with a message
   const terminal = document.getElementById('terminal');
