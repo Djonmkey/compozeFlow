@@ -4,7 +4,8 @@
             "id": "color-grading-pro",
             "version": "2.4.1",
             "installDate": "2025-03-08T12:15:00Z",
-            "active": true
+            "active": true,
+            "iconUrl": "https://example.com/icons/audio-enhancer.png"
         },
         {
             "id": "audio-enhancer",
@@ -16,7 +17,8 @@
             "id": "animated-title-pack",
             "version": "1.9.8",
             "installDate": "2025-03-05T14:30:00Z",
-            "active": false
+            "active": false,
+            "iconUrl": ""
         }
     ]
 }

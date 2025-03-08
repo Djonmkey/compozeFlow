@@ -42,6 +42,39 @@
       flex-direction: column;
       align-items: center;
     }
+    /* Container for installed plugins icons */
+    #installed-plugins-icons {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: 15px;
+      max-height: 40%;
+      overflow-y: auto;
+      /* Add a subtle separator */
+      border-top: 1px solid #555;
+      padding-top: 10px;
+    }
+    /* Style for plugin icons */
+    .plugin-icon {
+      margin: 8px 0;
+      cursor: pointer;
+      font-size: 1.6rem;
+      user-select: none;
+      color: #ccc; /* Slightly lighter than regular icons */
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .plugin-icon.inactive {
+      color: #666; /* Dimmed for inactive plugins */
+      opacity: 0.7;
+    }
+    /* Blue puzzle piece for plugins without icons */
+    .plugin-icon.default-icon {
+      color: #4a86e8; /* Blue color */
+    }
     /* Container for bottom icons */
     #bottom-icons {
       display: flex;
@@ -118,6 +151,10 @@
         <div class="icon">☰</div>
         <div class="icon">✎</div>
         <div class="icon" id="plugins-icon">🧩</div>
+      </div>
+      <!-- Installed plugins icons -->
+      <div id="installed-plugins-icons">
+        <!-- Dynamically populated from installed_plugins.json -->
       </div>
       <!-- Bottom icons group -->
       <div id="bottom-icons">

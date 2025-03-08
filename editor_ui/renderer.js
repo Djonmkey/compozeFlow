@@ -156,9 +156,93 @@ function saveVideoAssemblyToFile(filePath, data) {
   }
 }
 
+// Function to load and display installed plugins
+async function loadInstalledPlugins() {
+  try {
+    // Read the installed plugins JSON file
+    const installedPluginsData = fs.readFileSync('./plugins/installed_plugins.json', 'utf-8');
+    const installedPlugins = JSON.parse(installedPluginsData).installedPlugins;
+    
+    // Read the available plugins JSON file to get icon URLs
+    const availablePluginsData = fs.readFileSync('./plugins/available_plugins.json', 'utf-8');
+    const availablePlugins = JSON.parse(availablePluginsData).plugins;
+    
+    // Create a map of plugin IDs to their details for quick lookup
+    const pluginDetailsMap = {};
+    availablePlugins.forEach(plugin => {
+      pluginDetailsMap[plugin.id] = plugin;
+    });
+    
+    // Get the container for installed plugin icons
+    const installedPluginsContainer = document.getElementById('installed-plugins-icons');
+    
+    // Clear any existing content
+    installedPluginsContainer.innerHTML = '';
+    
+    // Create an icon for each installed plugin
+    installedPlugins.forEach(plugin => {
+      const pluginIcon = document.createElement('div');
+      pluginIcon.className = `plugin-icon ${plugin.active ? 'active' : 'inactive'}`;
+      
+      // Get the plugin details from the available plugins
+      const pluginDetails = pluginDetailsMap[plugin.id];
+      
+      // Check if we have details and an icon URL
+      if (pluginDetails && pluginDetails.iconUrl) {
+        // Use the actual icon URL
+        // In a real implementation, you would load the image from the URL
+        // For this example, we'll use a placeholder
+        pluginIcon.textContent = '🖼️'; // Image icon as placeholder
+        pluginIcon.title = `${pluginDetails.displayName} (v${plugin.version})${plugin.active ? '' : ' - Inactive'}`;
+      } else {
+        // Use a blue puzzle piece for plugins without icons
+        pluginIcon.textContent = '🧩'; // Puzzle piece
+        pluginIcon.classList.add('default-icon'); // Add class for blue color
+        
+        // Use the plugin ID for the title if we don't have display name
+        const displayName = pluginDetails ? pluginDetails.displayName : plugin.id;
+        pluginIcon.title = `${displayName} (v${plugin.version})${plugin.active ? '' : ' - Inactive'}`;
+      }
+      
+      // Add click event to toggle plugin active state
+      pluginIcon.addEventListener('click', () => {
+        // Toggle the active state in the UI
+        plugin.active = !plugin.active;
+        pluginIcon.classList.toggle('active');
+        pluginIcon.classList.toggle('inactive');
+        
+        // Update the title
+        const displayName = pluginDetails ? pluginDetails.displayName : plugin.id;
+        pluginIcon.title = `${displayName} (v${plugin.version})${plugin.active ? '' : ' - Inactive'}`;
+        
+        // In a real implementation, you would also update the JSON file
+        // and possibly notify the main process about the change
+        
+        // Update the terminal with a message
+        const terminal = document.getElementById('terminal');
+        terminal.innerHTML += `<p>Plugin ${displayName} ${plugin.active ? 'activated' : 'deactivated'}</p>`;
+      });
+      
+      // Add the plugin icon to the container
+      installedPluginsContainer.appendChild(pluginIcon);
+    });
+    
+    console.log('Installed plugins loaded successfully');
+  } catch (error) {
+    console.error('Error loading installed plugins:', error);
+    
+    // Update the terminal with an error message
+    const terminal = document.getElementById('terminal');
+    terminal.innerHTML += `<p>Error loading installed plugins: ${error.message}</p>`;
+  }
+}
+
 // Initialize the UI
 document.addEventListener('DOMContentLoaded', () => {
   console.log('Renderer process initialized');
+  
+  // Load and display installed plugins
+  loadInstalledPlugins();
 });
 
 // Listen for the current file path from the main process
