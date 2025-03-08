@@ -19,8 +19,8 @@ function generateHtmlFromVideoAssembly(data) {
         <title>${title}</title>
         <style>
             body { font-family: Arial, sans-serif; line-height: 1.6; }
-            h1 { text-align: center; display: inline-block; margin-right: 10px; }
-            h2 { text-align: center; color: gray; display: inline-block; margin-right: 10px; }
+            h1 { text-align: center; margin-bottom: 5px; }
+            h2 { text-align: center; color: gray; margin-top: 5px; margin-bottom: 20px; }
             h3 { margin-top: 20px; }
             h4 { margin-top: 10px; font-style: italic; }
             table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
@@ -29,131 +29,17 @@ function generateHtmlFromVideoAssembly(data) {
             .clip-path { font-size: 8pt; color: gray; }
             .clip-name { font-weight: bold; }
             .title-container { text-align: center; margin-bottom: 10px; }
-            .edit-icon { cursor: pointer; font-size: 1.2em; vertical-align: middle; }
-            .edit-controls { display: none; margin-top: 10px; }
-            .edit-controls button { margin-right: 10px; padding: 5px 10px; cursor: pointer; }
-            .edit-input { font-size: 1.8em; width: 80%; padding: 5px; margin-bottom: 10px; font-weight: bold; text-align: center; }
         </style>
         <script>
-            // Function to handle title editing
-            function setupTitleEditing() {
-                const titleContainer = document.getElementById('title-container');
-                const titleElement = document.getElementById('title-element');
-                const editIcon = document.getElementById('edit-title-icon');
-                const editControls = document.getElementById('edit-controls');
-                const editInput = document.getElementById('edit-input');
-                const saveButton = document.getElementById('save-button');
-                const cancelButton = document.getElementById('cancel-button');
-                
-                // Show edit input when pencil icon is clicked
-                editIcon.addEventListener('click', () => {
-                    editInput.value = titleElement.textContent;
-                    titleElement.style.display = 'none';
-                    editIcon.style.display = 'none';
-                    editControls.style.display = 'block';
-                    editInput.focus();
-                });
-                
-                // Handle cancel button
-                cancelButton.addEventListener('click', () => {
-                    titleElement.style.display = 'inline-block';
-                    editIcon.style.display = 'inline-block';
-                    editControls.style.display = 'none';
-                });
-                
-                // Handle save button
-                saveButton.addEventListener('click', () => {
-                    const newTitle = editInput.value.trim();
-                    if (newTitle) {
-                        titleElement.textContent = newTitle;
-                        
-                        // Send message to parent window (renderer process)
-                        window.parent.postMessage({
-                            type: 'title-updated',
-                            newTitle: newTitle
-                        }, '*');
-                    }
-                    
-                    titleElement.style.display = 'inline-block';
-                    editIcon.style.display = 'inline-block';
-                    editControls.style.display = 'none';
-                });
-            }
-            
-            // Function to handle subtitle editing
-            function setupSubtitleEditing() {
-                const subtitleContainer = document.getElementById('subtitle-container');
-                const subtitleElement = document.getElementById('subtitle-element');
-                const editIcon = document.getElementById('edit-subtitle-icon');
-                const editControls = document.getElementById('subtitle-edit-controls');
-                const editInput = document.getElementById('subtitle-edit-input');
-                const saveButton = document.getElementById('subtitle-save-button');
-                const cancelButton = document.getElementById('subtitle-cancel-button');
-                
-                // Show edit input when pencil icon is clicked
-                editIcon.addEventListener('click', () => {
-                    editInput.value = subtitleElement.textContent;
-                    subtitleElement.style.display = 'none';
-                    editIcon.style.display = 'none';
-                    editControls.style.display = 'block';
-                    editInput.focus();
-                });
-                
-                // Handle cancel button
-                cancelButton.addEventListener('click', () => {
-                    subtitleElement.style.display = 'inline-block';
-                    editIcon.style.display = 'inline-block';
-                    editControls.style.display = 'none';
-                });
-                
-                // Handle save button
-                saveButton.addEventListener('click', () => {
-                    const newSubtitle = editInput.value.trim();
-                    if (newSubtitle !== undefined) {
-                        subtitleElement.textContent = newSubtitle;
-                        
-                        // Send message to parent window (renderer process)
-                        window.parent.postMessage({
-                            type: 'subtitle-updated',
-                            newSubtitle: newSubtitle
-                        }, '*');
-                    }
-                    
-                    subtitleElement.style.display = 'inline-block';
-                    editIcon.style.display = 'inline-block';
-                    editControls.style.display = 'none';
-                });
-            }
-            
-            // Initialize when DOM is loaded
-            document.addEventListener('DOMContentLoaded', () => {
-                setupTitleEditing();
-                setupSubtitleEditing();
-            });
+            // No script needed for timeline display
         </script>
     </head>
     <body>
-        <div class="title-container" id="title-container">
-            <h1 id="title-element">${title}</h1>
-            <span class="edit-icon" id="edit-title-icon" title="Edit title">✏️</span>
-            <div class="edit-controls" id="edit-controls">
-                <input type="text" class="edit-input" id="edit-input" value="${title}">
-                <div>
-                    <button id="save-button">Save</button>
-                    <button id="cancel-button">Cancel</button>
-                </div>
-            </div>
+        <div class="title-container">
+            <h1>${title}</h1>
         </div>
-        <div class="title-container" id="subtitle-container">
-            <h2 id="subtitle-element">${subtitle}</h2>
-            <span class="edit-icon" id="edit-subtitle-icon" title="Edit subtitle">✏️</span>
-            <div class="edit-controls" id="subtitle-edit-controls">
-                <input type="text" class="edit-input" id="subtitle-edit-input" value="${subtitle}">
-                <div>
-                    <button id="subtitle-save-button">Save</button>
-                    <button id="subtitle-cancel-button">Cancel</button>
-                </div>
-            </div>
+        <div class="title-container">
+            <h2>${subtitle}</h2>
         </div>
     `;
 

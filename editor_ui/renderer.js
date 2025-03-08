@@ -10,6 +10,7 @@ const fs = require('fs');
 const generateHtmlFromVideoAssembly = require('./timelineDisplay');
 const generateOverlayImagesHtml = require('./overlayImagesDisplay');
 const generateMixedAudioHtml = require('./mixedAudioDisplay');
+const generateGeneralHtml = require('./generalDisplay');
 
 // DOM elements
 const editorContent = document.getElementById('editor-content');
@@ -35,6 +36,8 @@ function updateEditorContent() {
     htmlContent = generateOverlayImagesHtml(currentVideoAssemblyData);
   } else if (activeTab === 'Mixed Audio') {
     htmlContent = generateMixedAudioHtml(currentVideoAssemblyData);
+  } else if (activeTab === 'General') {
+    htmlContent = generateGeneralHtml(currentVideoAssemblyData);
   } else {
     // For other tabs, show a placeholder
     htmlContent = `<h2>Content for ${activeTab} tab</h2><p>This tab is not yet implemented.</p>`;
