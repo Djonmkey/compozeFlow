@@ -75,6 +75,13 @@ ipcRenderer.on('video-assembly-opened', (event, data) => {
   // Store the current data
   currentVideoAssemblyData = data;
   
+  // Update the application title with the video assembly title
+  if (data && data.cut && data.cut.title) {
+    document.title = `compozeFlow - ${data.cut.title}`;
+  } else {
+    document.title = 'compozeFlow';
+  }
+  
   // Make sure Timeline tab is active
   tabs.forEach(tab => {
     tab.style.backgroundColor = tab.textContent === 'Timeline' ? '#ddd' : '';
@@ -100,6 +107,9 @@ window.addEventListener('message', (event) => {
     // Update the title in the current data
     if (currentVideoAssemblyData && currentVideoAssemblyData.cut) {
       currentVideoAssemblyData.cut.title = newTitle;
+      
+      // Update the application title
+      document.title = `compozeFlow - ${newTitle}`;
       
       // Get the current file path from the main process
       ipcRenderer.invoke('get-current-file-path').then((filePath) => {
