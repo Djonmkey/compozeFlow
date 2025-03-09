@@ -22,9 +22,17 @@ if (isElectron) {
     generateOverlayImagesHtml = require('./overlayImagesDisplay');
     generateMixedAudioHtml = require('./mixedAudioDisplay');
     generateGeneralHtml = require('./generalDisplay');
+    
+    // Load explorer modules
     const explorerModule = require('./explorerDisplay');
     generateExplorerHtml = explorerModule.generateExplorerHtml;
     initializeExplorer = explorerModule.initializeExplorer;
+    switchExplorerMode = explorerModule.switchMode;
+    
+    // Make sure the content sources, search, and plugins modules are loaded
+    require('./contentSourcesDisplay');
+    require('./searchDisplay');
+    require('./pluginsDisplay');
   } catch (error) {
     console.error('Error loading modules:', error);
   }
