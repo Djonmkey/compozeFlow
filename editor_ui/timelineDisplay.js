@@ -35,12 +35,6 @@ function generateHtmlFromVideoAssembly(data) {
         </script>
     </head>
     <body>
-        <div class="title-container">
-            <h1>${title}</h1>
-        </div>
-        <div class="title-container">
-            <h2>${subtitle}</h2>
-        </div>
     `;
 
     // Process segments
