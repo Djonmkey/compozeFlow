@@ -70,7 +70,7 @@ function generateMixedAudioHtml(data) {
 
                 sequentialAudioClips.forEach(audio => {
                     const sequence = audio.sequence || "N/A";
-                    const audioPath = audio.clip_file_pathname || "Unknown Path";
+                    const audioPath = audio.path || "Unknown Path";
                     const filePath = path.dirname(audioPath);
                     const fileName = path.basename(audioPath);
 

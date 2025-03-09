@@ -56,7 +56,7 @@ function generateOverlayImagesHtml(data) {
             `;
 
             overlayImages.forEach(image => {
-                const imagePath = image.image_file_pathname || "Unknown Path";
+                const imagePath = image.path || "Unknown Path";
                 const filePath = path.dirname(imagePath);
                 const fileName = path.basename(imagePath);
                 
