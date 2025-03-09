@@ -400,7 +400,9 @@ function initializeResizeHandle() {
   
   // Update the resize handle position to match the explorer width
   function updateResizeHandlePosition() {
-    resizeHandle.style.left = `${explorer.offsetWidth}px`;
+    // Position the handle at the right edge of the explorer
+    // Subtract the width of the handle (8px) to align it with the right edge
+    resizeHandle.style.left = `${explorer.offsetWidth + 42}px`;
   }
   
   // Initialize the resize handle position
