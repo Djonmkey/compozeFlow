@@ -199,8 +199,16 @@ function initializeContentSources(videoAssemblyData) {
         file.addEventListener('click', () => {
             const filePath = file.getAttribute('data-path');
             console.log(`File clicked: ${filePath}`);
-            // Here you would typically dispatch an event or call a function
-            // to handle the file selection
+            
+            // Import the fileTabsDisplay module
+            const fileTabsDisplay = require('./fileTabsDisplay');
+            
+            // Add a tab for the selected file
+            fileTabsDisplay.addFileTab(filePath, videoAssemblyData);
+            
+            // Update the terminal with a message
+            const terminal = document.getElementById('terminal');
+            terminal.innerHTML += `<p>File selected: ${filePath}</p>`;
         });
     });
     
@@ -325,8 +333,16 @@ function initializeExplorerContent(section) {
         file.addEventListener('click', () => {
             const filePath = file.getAttribute('data-path');
             console.log(`File clicked: ${filePath}`);
-            // Here you would typically dispatch an event or call a function
-            // to handle the file selection
+            
+            // Import the fileTabsDisplay module
+            const fileTabsDisplay = require('./fileTabsDisplay');
+            
+            // Add a tab for the selected file
+            fileTabsDisplay.addFileTab(filePath, videoAssemblyData);
+            
+            // Update the terminal with a message
+            const terminal = document.getElementById('terminal');
+            terminal.innerHTML += `<p>File selected: ${filePath}</p>`;
         });
     });
     

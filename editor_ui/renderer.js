@@ -10,7 +10,8 @@ const isElectron = typeof window !== 'undefined' && window.process && window.pro
 
 // Initialize variables that would normally come from required modules
 let ipcRenderer, fs, generateHtmlFromVideoAssembly, generateOverlayImagesHtml,
-    generateMixedAudioHtml, generateGeneralHtml, generateExplorerHtml, initializeExplorer;
+    generateMixedAudioHtml, generateGeneralHtml, generateExplorerHtml, initializeExplorer,
+    fileTabsDisplay;
 
 // Only try to require modules if we're in Electron
 if (isElectron) {
@@ -33,6 +34,9 @@ if (isElectron) {
     require('./contentSourcesDisplay');
     require('./searchDisplay');
     require('./pluginsDisplay');
+    
+    // Load the file tabs display module
+    fileTabsDisplay = require('./fileTabsDisplay');
   } catch (error) {
     console.error('Error loading modules:', error);
   }
