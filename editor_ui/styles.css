@@ -179,6 +179,46 @@ body.resizing {
   font-size: 12px;
 }
 
+/* Explorer search container */
+.explorer-search-container {
+  padding: 5px 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+/* Explorer search bar */
+.explorer-search-bar {
+  display: flex;
+  align-items: center;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 2px 6px;
+  transition: border-color 0.2s;
+}
+
+.explorer-search-bar:focus-within {
+  border-color: #4a86e8;
+  box-shadow: 0 0 3px rgba(74, 134, 232, 0.3);
+}
+
+/* Search icon */
+.search-icon {
+  font-size: 14px;
+  color: #777;
+  margin-right: 5px;
+}
+
+/* Explorer search input */
+.explorer-search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 12px;
+  padding: 4px 0;
+  width: 100%;
+}
+
 /* Supported and unsupported file styling */
 .explorer-file.supported-file .explorer-name {
   font-weight: normal;
