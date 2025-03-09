@@ -1,32 +1,26 @@
 /**
  * fileTabsDisplay.js
- * 
+ *
  * Handles the display of file tabs when files are selected in the Explorer.
- * Each tab shows file details including path, created date, last modified date,
- * file size, and file type.
+ * Uses a single "File" tab that shows details of the currently selected file.
  */
 
 const fs = require('fs');
 const path = require('path');
 
-// Store currently open file tabs
-let openFileTabs = [];
+// Store the currently selected file
+let currentFile = null;
+
+// Flag to track if the File tab has been created
+let fileTabCreated = false;
 
 /**
- * Adds a new tab for a selected file
+ * Updates the File tab with the selected file
  * @param {string} filePath - The full path of the selected file
  * @param {Object} videoAssemblyData - The video assembly data (for file type detection)
- * @returns {boolean} - True if tab was added, false if it was already open
+ * @returns {boolean} - True if file was loaded successfully
  */
 function addFileTab(filePath, videoAssemblyData) {
-    // Check if tab for this file is already open
-    const existingTabIndex = openFileTabs.findIndex(tab => tab.path === filePath);
-    if (existingTabIndex !== -1) {
-        // Tab already exists, make it active
-        activateTab(existingTabIndex);
-        return false;
-    }
-
     try {
         // Get file stats
         const stats = fs.statSync(filePath);
@@ -35,8 +29,8 @@ function addFileTab(filePath, videoAssemblyData) {
         const fileExtension = path.extname(filePath).toLowerCase();
         const fileType = determineFileType(fileExtension, videoAssemblyData);
         
-        // Create new tab object
-        const newTab = {
+        // Create file object
+        currentFile = {
             path: filePath,
             name: path.basename(filePath),
             created: stats.birthtime,
@@ -45,18 +39,18 @@ function addFileTab(filePath, videoAssemblyData) {
             type: fileType
         };
         
-        // Add to open tabs array
-        openFileTabs.push(newTab);
+        // Update the tabs display if needed
+        if (!fileTabCreated) {
+            updateTabsDisplay();
+            fileTabCreated = true;
+        }
         
-        // Update the tabs display
-        updateTabsDisplay();
-        
-        // Make the new tab active
-        activateTab(openFileTabs.length - 1);
+        // Update the editor content with the file details
+        updateEditorContent();
         
         return true;
     } catch (error) {
-        console.error(`Error adding file tab for ${filePath}:`, error);
+        console.error(`Error loading file ${filePath}:`, error);
         return false;
     }
 }
@@ -106,50 +100,20 @@ function determineFileType(extension, videoAssemblyData) {
 }
 
 /**
- * Activates a tab at the specified index
- * @param {number} index - The index of the tab to activate
- */
-function activateTab(index) {
-    if (index < 0 || index >= openFileTabs.length) return;
-    
-    // Update the tabs display to highlight the active tab
-    updateTabsDisplay(index);
-    
-    // Update the editor content to show the file details
-    updateEditorContent(openFileTabs[index]);
-}
-
-/**
- * Closes a tab at the specified index
- * @param {number} index - The index of the tab to close
- */
-function closeTab(index) {
-    if (index < 0 || index >= openFileTabs.length) return;
-    
-    // Remove the tab from the array
-    openFileTabs.splice(index, 1);
-    
-    // Update the tabs display
-    updateTabsDisplay();
-    
-    // If there are still tabs open, activate the last one
-    if (openFileTabs.length > 0) {
-        activateTab(openFileTabs.length - 1);
-    } else {
-        // Clear the editor content if no tabs are open
-        clearEditorContent();
-    }
-}
-
-/**
  * Updates the tabs display in the UI
- * @param {number} activeIndex - The index of the active tab
+ * Creates a single "File" tab if it doesn't exist
  */
-function updateTabsDisplay(activeIndex = -1) {
+function updateTabsDisplay() {
     const tabsContainer = document.getElementById('tabs-container');
     
     // Keep the existing static tabs (Timeline, Overlay Images, etc.)
     const staticTabs = Array.from(tabsContainer.querySelectorAll('.tab:not(.file-tab)'));
+    const existingFileTab = tabsContainer.querySelector('.tab.file-tab');
+    
+    // If the File tab already exists, we don't need to recreate it
+    if (existingFileTab) {
+        return;
+    }
     
     // Clear the container
     tabsContainer.innerHTML = '';
@@ -159,65 +123,53 @@ function updateTabsDisplay(activeIndex = -1) {
         tabsContainer.appendChild(tab);
     });
     
-    // Add the file tabs
-    openFileTabs.forEach((tab, index) => {
-        const tabElement = document.createElement('div');
-        tabElement.className = 'tab file-tab';
-        if (index === activeIndex) {
-            tabElement.classList.add('active');
-        }
-        
-        // Create the tab content with a close button
-        tabElement.innerHTML = `
-            <span class="tab-name">${tab.name}</span>
-            <span class="tab-close">×</span>
-        `;
-        
-        // Add click event to activate the tab
-        tabElement.addEventListener('click', (event) => {
-            // Only activate if the click wasn't on the close button
-            if (!event.target.classList.contains('tab-close')) {
-                activateTab(index);
-            }
-        });
-        
-        // Add click event to the close button
-        const closeButton = tabElement.querySelector('.tab-close');
-        closeButton.addEventListener('click', (event) => {
-            event.stopPropagation(); // Prevent tab activation
-            closeTab(index);
-        });
-        
-        tabsContainer.appendChild(tabElement);
-    });
+    // Create the single File tab
+    const fileTabElement = document.createElement('div');
+    fileTabElement.className = 'tab file-tab active';
+    
+    // Create the tab content (no close button needed)
+    fileTabElement.innerHTML = `
+        <span class="tab-name">File</span>
+    `;
+    
+    tabsContainer.appendChild(fileTabElement);
+    
+    // Scroll the tab into view if needed
+    setTimeout(() => {
+        fileTabElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+    }, 0);
 }
 
 /**
  * Updates the editor content to show file details
- * @param {Object} tab - The tab object containing file details
  */
-function updateEditorContent(tab) {
+function updateEditorContent() {
+    if (!currentFile) {
+        clearEditorContent();
+        return;
+    }
+    
     const editorContent = document.getElementById('editor-content');
     
     // Format dates
-    const createdDate = formatDate(tab.created);
-    const modifiedDate = formatDate(tab.modified);
+    const createdDate = formatDate(currentFile.created);
+    const modifiedDate = formatDate(currentFile.modified);
     
     // Format file size
-    const fileSize = formatFileSize(tab.size);
+    const fileSize = formatFileSize(currentFile.size);
     
     // Create HTML for file details
     const html = `
         <div class="file-details">
-            <h2>${tab.name}</h2>
+            <h2>${currentFile.name}</h2>
             <div class="file-info">
                 <div class="file-info-item">
                     <span class="file-info-label">Path:</span>
-                    <span class="file-info-value">${tab.path}</span>
+                    <span class="file-info-value">${currentFile.path}</span>
                 </div>
                 <div class="file-info-item">
                     <span class="file-info-label">Type:</span>
-                    <span class="file-info-value">${tab.type}</span>
+                    <span class="file-info-value">${currentFile.type}</span>
                 </div>
                 <div class="file-info-item">
                     <span class="file-info-label">Size:</span>
@@ -240,7 +192,7 @@ function updateEditorContent(tab) {
     
     // Update the terminal with a message
     const terminal = document.getElementById('terminal');
-    terminal.innerHTML += `<p>Displaying file details for ${tab.name}</p>`;
+    terminal.innerHTML += `<p>Displaying file details for ${currentFile.name}</p>`;
 }
 
 /**
