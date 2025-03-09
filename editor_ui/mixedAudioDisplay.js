@@ -33,13 +33,6 @@ function generateMixedAudioHtml(data) {
         </style>
     </head>
     <body>
-        <div class="title-container">
-            <h1>${title}</h1>
-        </div>
-        <div class="title-container">
-            <h2>${subtitle}</h2>
-        </div>
-        <h2 style="text-align: center; display: block;">Mixed Audio</h2>
     `;
 
     // Process segments to extract sequential audio clips
