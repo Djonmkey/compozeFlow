@@ -55,7 +55,7 @@ function generateExplorerHtml(videoAssemblyData) {
                 <div class="explorer-section-header">
                     <span class="explorer-section-name">${sectionName}</span>
                     <button class="explorer-filter-toggle" title="Toggle between showing all files and only supported files">
-                        <span class="filter-icon">🔍</span>
+                        <span class="filter-icon">▼</span>
                         <span class="filter-text">Supported Only</span>
                     </button>
                 </div>
