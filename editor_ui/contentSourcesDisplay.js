@@ -6,6 +6,8 @@
 
 const fs = require('fs');
 const path = require('path');
+const electron = require('electron');
+const ipcRenderer = electron.ipcRenderer;
 
 /**
  * Generates HTML for the content sources mode in the explorer area
@@ -224,8 +226,8 @@ function initializeContentSources(videoAssemblyData) {
     // Add click event listener for the "Add Content Source" button
     const addContentSourceBtn = document.querySelector('.add-content-source-btn');
     if (addContentSourceBtn) {
-        addContentSourceBtn.addEventListener('click', () => {
-            addNewContentSource(videoAssemblyData);
+        addContentSourceBtn.addEventListener('click', async () => {
+            await addNewContentSource(videoAssemblyData);
         });
     }
     
@@ -436,53 +438,24 @@ function filterFilesBySearch(section, searchText) {
  * Adds a new content source to the video assembly data
  * @param {Object} videoAssemblyData - The video assembly data
  */
-function addNewContentSource(videoAssemblyData) {
-    // Create a dialog to get the path and include_subpaths
-    const dialogHtml = `
-        <div class="dialog-overlay">
-            <div class="dialog-content">
-                <h3>Add Content Source</h3>
-                <div class="dialog-form">
-                    <div class="form-group">
-                        <label for="content-source-path">Path:</label>
-                        <input type="text" id="content-source-path" placeholder="Enter path to content source">
-                    </div>
-                    <div class="form-group">
-                        <label for="include-subpaths">Include Subpaths:</label>
-                        <input type="checkbox" id="include-subpaths">
-                    </div>
-                    <div class="dialog-buttons">
-                        <button id="dialog-cancel">Cancel</button>
-                        <button id="dialog-add">Add</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    // Add the dialog to the DOM
-    const dialogElement = document.createElement('div');
-    dialogElement.innerHTML = dialogHtml;
-    document.body.appendChild(dialogElement);
-    
-    // Add event listeners for the dialog buttons
-    const cancelButton = document.getElementById('dialog-cancel');
-    const addButton = document.getElementById('dialog-add');
-    
-    // Cancel button closes the dialog
-    cancelButton.addEventListener('click', () => {
-        document.body.removeChild(dialogElement);
-    });
-    
-    // Add button adds the content source and closes the dialog
-    addButton.addEventListener('click', () => {
-        const pathInput = document.getElementById('content-source-path');
-        const includeSubpathsInput = document.getElementById('include-subpaths');
-        
-        const sourcePath = pathInput.value.trim();
-        const includeSubpaths = includeSubpathsInput.checked;
-        
-        if (sourcePath) {
+async function addNewContentSource(videoAssemblyData) {
+    try {
+        // Check if we're running in Electron
+        if (typeof window !== 'undefined' && window.process && window.process.type === 'renderer') {
+            // Use IPC to request the main process to show the open folder dialog
+            const result = await ipcRenderer.invoke('show-open-folder-dialog');
+            
+            if (result.canceled) {
+                console.log('Folder selection was canceled');
+                return;
+            }
+            
+            const sourcePath = result.folderPath;
+            console.log(`Selected folder: ${sourcePath}`);
+            
+            // Default include_subpaths to true
+            const includeSubpaths = true;
+            
             // Find the highest order value
             let maxOrder = 0;
             if (videoAssemblyData.cut && videoAssemblyData.cut.content_sources) {
@@ -518,11 +491,12 @@ function addNewContentSource(videoAssemblyData) {
             
             // Save the updated video assembly data
             saveVideoAssemblyData(videoAssemblyData);
+        } else {
+            console.log('Not running in Electron, cannot show folder dialog');
         }
-        
-        // Close the dialog
-        document.body.removeChild(dialogElement);
-    });
+    } catch (error) {
+        console.error('Error adding content source:', error);
+    }
 }
 
 /**

@@ -5,7 +5,7 @@
  * and sets up the top-level application menu.
  */
 
-const { app, BrowserWindow, Menu, ipcMain } = require('electron');
+const { app, BrowserWindow, Menu, ipcMain, dialog } = require('electron');
 const path = require('path');
 const fileOps = require('./fileOperations');
 
@@ -223,6 +223,26 @@ app.on('window-all-closed', () => {
 // Set up IPC handlers
 ipcMain.handle('get-current-file-path', () => {
   return currentFilePath;
+});
+
+// Handle showing open folder dialog for content sources
+ipcMain.handle('show-open-folder-dialog', async (event) => {
+  try {
+    const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
+      title: 'Add Content Source',
+      properties: ['openDirectory']
+    });
+    
+    if (canceled || filePaths.length === 0) {
+      console.log('Folder selection was canceled');
+      return { canceled: true };
+    }
+    
+    return { canceled: false, folderPath: filePaths[0] };
+  } catch (error) {
+    console.error('Error showing open folder dialog:', error);
+    return { canceled: true, error: error.message };
+  }
 });
 
 // Handle saving video assembly data
