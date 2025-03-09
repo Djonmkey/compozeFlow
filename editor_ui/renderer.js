@@ -105,7 +105,7 @@ function updateExplorer() {
     
     // Initialize explorer event handlers
     if (typeof initializeExplorer === 'function') {
-      initializeExplorer();
+      initializeExplorer(currentVideoAssemblyData);
     }
   } else {
     // In browser mode, show a placeholder
