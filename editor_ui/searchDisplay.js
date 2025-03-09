@@ -157,7 +157,7 @@ function performSearch(videoAssemblyData, searchText, options) {
         });
         
         // Display the results
-        displaySearchResults(searchResultsContainer, results, searchText);
+        displaySearchResults(searchResultsContainer, results, searchText, videoAssemblyData);
     }, 100); // Small delay to allow the UI to update
 }
 
@@ -325,8 +325,9 @@ function findMatches(content, pattern) {
  * @param {Element} container - The container element
  * @param {Array} results - The search results
  * @param {string} searchText - The search text
+ * @param {Object} videoAssemblyData - The video assembly data for file type detection
  */
-function displaySearchResults(container, results, searchText) {
+function displaySearchResults(container, results, searchText, videoAssemblyData) {
     if (results.length === 0) {
         container.innerHTML = `<div class="search-status">No results found for "${searchText}"</div>`;
         return;
@@ -417,8 +418,16 @@ function displaySearchResults(container, results, searchText) {
         item.addEventListener('click', () => {
             const filePath = item.getAttribute('data-path');
             console.log(`Search result clicked: ${filePath}`);
-            // Here you would typically dispatch an event or call a function
-            // to handle the file selection
+            
+            // Import the fileTabsDisplay module
+            const fileTabsDisplay = require('./fileTabsDisplay');
+            
+            // Add a tab for the selected file
+            fileTabsDisplay.addFileTab(filePath, videoAssemblyData);
+            
+            // Update the terminal with a message
+            const terminal = document.getElementById('terminal');
+            terminal.innerHTML += `<p>File selected from search: ${filePath}</p>`;
         });
     });
 }
