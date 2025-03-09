@@ -27,27 +27,7 @@ function generateSearchHtml() {
         </div>
     `;
     
-    // Add search options
-    html += `
-        <div class="search-options">
-            <div class="search-option">
-                <input type="checkbox" id="search-case-sensitive" />
-                <label for="search-case-sensitive">Case sensitive</label>
-            </div>
-            <div class="search-option">
-                <input type="checkbox" id="search-whole-word" />
-                <label for="search-whole-word">Whole word</label>
-            </div>
-            <div class="search-option">
-                <input type="checkbox" id="search-regex" />
-                <label for="search-regex">Use regular expression</label>
-            </div>
-            <div class="search-option">
-                <input type="checkbox" id="search-include-unsupported" />
-                <label for="search-include-unsupported">Include unsupported files</label>
-            </div>
-        </div>
-    `;
+    // No search options - simplified version
     
     // Add search results container
     html += `
@@ -84,50 +64,14 @@ function initializeSearch(videoAssemblyData) {
             return;
         }
         
-        // Get search options
-        const caseSensitive = document.getElementById('search-case-sensitive').checked;
-        const wholeWord = document.getElementById('search-whole-word').checked;
-        const useRegex = document.getElementById('search-regex').checked;
-        const includeUnsupported = document.getElementById('search-include-unsupported').checked;
-        
-        // Perform the search
+        // Perform the search with default options
         performSearch(videoAssemblyData, searchText, {
-            caseSensitive,
-            wholeWord,
-            useRegex,
-            includeUnsupported
+            caseSensitive: false,
+            wholeWord: false,
+            useRegex: false,
+            includeUnsupported: true
         });
     });
-    
-    // Add event listeners for search option changes
-    document.getElementById('search-case-sensitive').addEventListener('change', () => {
-        triggerSearch(searchInput);
-    });
-    
-    document.getElementById('search-whole-word').addEventListener('change', () => {
-        triggerSearch(searchInput);
-    });
-    
-    document.getElementById('search-regex').addEventListener('change', () => {
-        triggerSearch(searchInput);
-    });
-    
-    document.getElementById('search-include-unsupported').addEventListener('change', () => {
-        triggerSearch(searchInput);
-    });
-}
-
-/**
- * Triggers a search based on the current input value
- * @param {HTMLInputElement} searchInput - The search input element
- */
-function triggerSearch(searchInput) {
-    const searchText = searchInput.value.trim();
-    if (searchText.length >= 2) {
-        // Simulate an input event to trigger the search
-        const event = new Event('input', { bubbles: true });
-        searchInput.dispatchEvent(event);
-    }
 }
 
 /**
@@ -536,21 +480,6 @@ searchStyle.textContent = `
     
     .explorer-global-search {
         margin-bottom: 10px;
-    }
-    
-    .search-options {
-        padding: 10px;
-        border-bottom: 1px solid #ddd;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-    
-    .search-option {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        font-size: 12px;
     }
     
     .search-results-container {
