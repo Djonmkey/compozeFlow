@@ -3,10 +3,24 @@
  *
  * Handles the display of file tabs when files are selected in the Explorer.
  * Uses a single "File" tab that shows details of the currently selected file.
+ *
+ * @sourceMappingURL=fileTabsDisplay.js.map
  */
 
 const fs = require('fs');
 const path = require('path');
+
+// Install source map support for better debugging
+try {
+  require('source-map-support').install({
+    handleUncaughtExceptions: true,
+    environment: 'node',
+    hookRequire: true
+  });
+  console.log('Source map support installed in fileTabsDisplay');
+} catch (error) {
+  console.error('Failed to install source map support in fileTabsDisplay:', error);
+}
 
 // Store the currently selected file
 let currentFile = null;
@@ -46,7 +60,7 @@ function addFileTab(filePath, videoAssemblyData) {
         }
         
         // Update the editor content with the file details
-        updateEditorContent();
+        updateEditorContent(videoAssemblyData);
         
         return true;
     } catch (error) {
@@ -140,14 +154,21 @@ function updateTabsDisplay() {
     }, 0);
 }
 
+// Store the current video assembly data
+let currentVideoAssemblyData = null;
+
 /**
  * Updates the editor content to show file details
+ * @param {Object} videoAssemblyData - The video assembly data
  */
-function updateEditorContent() {
+function updateEditorContent(videoAssemblyData) {
     if (!currentFile) {
         clearEditorContent();
         return;
     }
+    
+    // Store the video assembly data for use in the add to timeline function
+    currentVideoAssemblyData = videoAssemblyData;
     
     const editorContent = document.getElementById('editor-content');
     
@@ -159,7 +180,7 @@ function updateEditorContent() {
     const fileSize = formatFileSize(currentFile.size);
     
     // Create HTML for file details
-    const html = `
+    let html = `
         <div class="file-details">
             <h2>${currentFile.name}</h2>
             <div class="file-info">
@@ -184,15 +205,285 @@ function updateEditorContent() {
                     <span class="file-info-value">${modifiedDate}</span>
                 </div>
             </div>
-        </div>
     `;
+    
+    // Add "Add to Timeline" section for video files
+    if (currentFile.type === 'Video' && videoAssemblyData && videoAssemblyData.cut && videoAssemblyData.cut.segments) {
+        html += `
+            <div class="add-to-timeline-section">
+                <h3>Add to Timeline</h3>
+                <div class="add-to-timeline-form">
+                    <div class="form-group">
+                        <label for="segment-select">Segment:</label>
+                        <select id="segment-select" class="form-control">
+                            <option value="">Select a segment</option>
+                            ${videoAssemblyData.cut.segments.map(segment =>
+                                `<option value="${segment.order}">${segment.order}. ${segment.title || 'Untitled Segment'}</option>`
+                            ).join('')}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="scene-select">Scene:</label>
+                        <select id="scene-select" class="form-control" disabled>
+                            <option value="">Select a segment first</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group half-width">
+                            <label for="trim-start-minutes">Trim Start Minutes:</label>
+                            <input type="number" id="trim-start-minutes" class="form-control" min="0" step="1" placeholder="Optional">
+                        </div>
+                        
+                        <div class="form-group half-width">
+                            <label for="trim-start-seconds">Trim Start Seconds:</label>
+                            <input type="number" id="trim-start-seconds" class="form-control" min="0" max="59.999" step="0.001" placeholder="Optional">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group half-width">
+                            <label for="trim-end-minutes">Trim End Minutes:</label>
+                            <input type="number" id="trim-end-minutes" class="form-control" min="0" step="1" placeholder="Optional">
+                        </div>
+                        
+                        <div class="form-group half-width">
+                            <label for="trim-end-seconds">Trim End Seconds:</label>
+                            <input type="number" id="trim-end-seconds" class="form-control" min="0" max="59.999" step="0.001" placeholder="Optional">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="clip-order">Order (defaults to 9999 if empty):</label>
+                        <input type="number" id="clip-order" class="form-control" min="1" step="1" placeholder="9999">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="clip-comments">Comments:</label>
+                        <textarea id="clip-comments" class="form-control" rows="3" placeholder="Optional comments"></textarea>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button id="add-to-timeline-btn" class="btn btn-primary" disabled>Add to Timeline</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    html += `</div>`;
     
     // Update the editor content
     editorContent.innerHTML = html;
     
+    // Add event listeners for the "Add to Timeline" functionality
+    if (currentFile.type === 'Video' && videoAssemblyData && videoAssemblyData.cut && videoAssemblyData.cut.segments) {
+        // Add event listener for segment selection
+        const segmentSelect = document.getElementById('segment-select');
+        const sceneSelect = document.getElementById('scene-select');
+        const addToTimelineBtn = document.getElementById('add-to-timeline-btn');
+        
+        segmentSelect.addEventListener('change', () => {
+            const segmentOrder = parseInt(segmentSelect.value);
+            
+            // Clear and disable scene select if no segment is selected
+            if (!segmentOrder) {
+                sceneSelect.innerHTML = '<option value="">Select a segment first</option>';
+                sceneSelect.disabled = true;
+                addToTimelineBtn.disabled = true;
+                return;
+            }
+            
+            // Find the selected segment
+            const selectedSegment = videoAssemblyData.cut.segments.find(segment => segment.order === segmentOrder);
+            
+            if (selectedSegment && selectedSegment.scenes) {
+                // Enable scene select and populate options
+                sceneSelect.disabled = false;
+                sceneSelect.innerHTML = '<option value="">Select a scene</option>';
+                
+                // Add scene options
+                selectedSegment.scenes.forEach(scene => {
+                    const sceneTitle = scene.title || `Scene ${scene.order}`;
+                    sceneSelect.innerHTML += `<option value="${scene.order}">${scene.order}. ${sceneTitle}</option>`;
+                });
+            } else {
+                // No scenes found
+                sceneSelect.innerHTML = '<option value="">No scenes available</option>';
+                sceneSelect.disabled = true;
+                addToTimelineBtn.disabled = true;
+            }
+        });
+        
+        // Add event listener for scene selection
+        sceneSelect.addEventListener('change', () => {
+            // Enable the Add to Timeline button if a scene is selected
+            addToTimelineBtn.disabled = !sceneSelect.value;
+        });
+        
+        // Add event listener for the Add to Timeline button
+        addToTimelineBtn.addEventListener('click', () => {
+            addClipToTimeline();
+        });
+    }
+    
     // Update the terminal with a message
     const terminal = document.getElementById('terminal');
     terminal.innerHTML += `<p>Displaying file details for ${currentFile.name}</p>`;
+}
+
+/**
+ * Adds the current file as a clip to the selected timeline
+ */
+function addClipToTimeline() {
+    if (!currentFile || !currentVideoAssemblyData) {
+        console.error('No file or video assembly data available');
+        return;
+    }
+    
+    // Get form values
+    const segmentOrder = parseInt(document.getElementById('segment-select').value);
+    const sceneOrder = parseInt(document.getElementById('scene-select').value);
+    
+    // Get trim values
+    const trimStartMinutes = document.getElementById('trim-start-minutes').value ?
+        parseInt(document.getElementById('trim-start-minutes').value) : undefined;
+    
+    const trimStartSeconds = document.getElementById('trim-start-seconds').value ?
+        parseFloat(document.getElementById('trim-start-seconds').value) : undefined;
+    
+    const trimEndMinutes = document.getElementById('trim-end-minutes').value ?
+        parseInt(document.getElementById('trim-end-minutes').value) : undefined;
+    
+    const trimEndSeconds = document.getElementById('trim-end-seconds').value ?
+        parseFloat(document.getElementById('trim-end-seconds').value) : undefined;
+    
+    // Get order and comments
+    const clipOrder = document.getElementById('clip-order').value ?
+        parseInt(document.getElementById('clip-order').value) : 9999;
+    
+    const comments = document.getElementById('clip-comments').value;
+    
+    // Find the segment and scene
+    const segment = currentVideoAssemblyData.cut.segments.find(s => s.order === segmentOrder);
+    if (!segment) {
+        console.error('Selected segment not found');
+        return;
+    }
+    
+    const scene = segment.scenes.find(s => s.order === sceneOrder);
+    if (!scene) {
+        console.error('Selected scene not found');
+        return;
+    }
+    
+    // Ensure timeline_clips array exists
+    if (!scene.timeline_clips) {
+        scene.timeline_clips = [];
+    }
+    
+    // Get the relative path from content sources
+    let relativePath = currentFile.path;
+    if (currentVideoAssemblyData.composeflow.org &&
+        currentVideoAssemblyData.composeflow.org.settings &&
+        currentVideoAssemblyData.composeflow.org.settings.common_base_file_path) {
+        const basePath = currentVideoAssemblyData.composeflow.org.settings.common_base_file_path;
+        if (relativePath.startsWith(basePath)) {
+            relativePath = relativePath.substring(basePath.length);
+        }
+    }
+    
+    // Create the new clip object
+    const newClip = {
+        order: clipOrder,
+        path: relativePath
+    };
+    
+    // Add optional fields if they exist
+    if (trimStartMinutes !== undefined) {
+        newClip.trim_start_minutes = trimStartMinutes;
+    }
+    
+    if (trimStartSeconds !== undefined) {
+        newClip.trim_start_seconds = trimStartSeconds;
+    }
+    
+    if (trimEndMinutes !== undefined) {
+        newClip.trim_end_minutes = trimEndMinutes;
+    }
+    
+    if (trimEndSeconds !== undefined) {
+        newClip.trim_end_seconds = trimEndSeconds;
+    }
+    
+    if (comments) {
+        newClip.comments = comments;
+    }
+    
+    // Add the clip to the timeline
+    scene.timeline_clips.push(newClip);
+    
+    // Save the updated video assembly data
+    saveVideoAssemblyData(currentVideoAssemblyData);
+    
+    // Switch to the Timeline tab
+    switchToTimelineTab();
+    
+    // Update the terminal with a message
+    const terminal = document.getElementById('terminal');
+    terminal.innerHTML += `<p>Added ${currentFile.name} to timeline in segment ${segmentOrder}, scene ${sceneOrder}</p>`;
+}
+
+/**
+ * Saves the video assembly data
+ * @param {Object} videoAssemblyData - The video assembly data to save
+ */
+function saveVideoAssemblyData(videoAssemblyData) {
+    // Check if we're running in Electron
+    if (typeof window !== 'undefined' && window.process && window.process.type === 'renderer') {
+        try {
+            // Get the electron module
+            const electron = require('electron');
+            const ipcRenderer = electron.ipcRenderer;
+            
+            // Send the data directly to the main process for saving
+            ipcRenderer.invoke('save-video-assembly-data', videoAssemblyData)
+                .then((result) => {
+                    if (result && result.success) {
+                        console.log(`Video assembly saved to: ${result.filePath}`);
+                        
+                        // Update the terminal with a message
+                        const terminal = document.getElementById('terminal');
+                        terminal.innerHTML += `<p>Video assembly saved with updated timeline</p>`;
+                    } else {
+                        console.error('Error saving video assembly data:', result ? result.error : 'Unknown error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error saving video assembly data:', error);
+                });
+        } catch (error) {
+            console.error('Error saving video assembly data:', error);
+        }
+    } else {
+        console.log('Not running in Electron, cannot save video assembly data');
+    }
+}
+
+/**
+ * Switches to the Timeline tab
+ */
+function switchToTimelineTab() {
+    const tabs = document.querySelectorAll('.tab');
+    
+    // Find the Timeline tab
+    tabs.forEach(tab => {
+        if (tab.textContent.trim() === 'Timeline') {
+            // Simulate a click on the Timeline tab
+            tab.click();
+        }
+    });
 }
 
 /**
@@ -287,6 +578,13 @@ fileTabsStyle.textContent = `
         padding-bottom: 10px;
     }
     
+    .file-details h3 {
+        margin-top: 30px;
+        margin-bottom: 15px;
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 8px;
+    }
+    
     .file-info {
         display: flex;
         flex-direction: column;
@@ -306,6 +604,70 @@ fileTabsStyle.textContent = `
     
     .file-info-value {
         word-break: break-all;
+    }
+    
+    /* Add to Timeline styling */
+    .add-to-timeline-section {
+        margin-top: 30px;
+    }
+    
+    .add-to-timeline-form {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .form-row {
+        display: flex;
+        gap: 15px;
+    }
+    
+    .half-width {
+        width: 50%;
+    }
+    
+    .form-control {
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+    
+    textarea.form-control {
+        resize: vertical;
+        min-height: 80px;
+    }
+    
+    .form-actions {
+        margin-top: 10px;
+    }
+    
+    .btn {
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        border: none;
+    }
+    
+    .btn-primary {
+        background-color: #4a86e8;
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background-color: #3a76d8;
+    }
+    
+    .btn-primary:disabled {
+        background-color: #a0b8e0;
+        cursor: not-allowed;
     }
 `;
 document.head.appendChild(fileTabsStyle);

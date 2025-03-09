@@ -3,10 +3,26 @@
  *
  * Handles communication between the main process and the renderer process,
  * and updates the UI accordingly.
+ *
+ * @sourceMappingURL=renderer.js.map
  */
 
 // Check if we're running in Electron or a browser
 const isElectron = typeof window !== 'undefined' && window.process && window.process.type === 'renderer';
+
+// Install source map support for better debugging
+if (isElectron) {
+  try {
+    require('source-map-support').install({
+      handleUncaughtExceptions: true,
+      environment: 'node',
+      hookRequire: true
+    });
+    console.log('Source map support installed in renderer process');
+  } catch (error) {
+    console.error('Failed to install source map support in renderer:', error);
+  }
+}
 
 // Initialize variables that would normally come from required modules
 let ipcRenderer, fs, generateHtmlFromVideoAssembly, generateOverlayImagesHtml,
@@ -251,7 +267,7 @@ function saveVideoAssemblyToFile(filePath, data) {
     
     // Update the terminal with a message
     const terminal = document.getElementById('terminal');
-    terminal.innerHTML += `<p>Video assembly saved with updated title</p>`;
+    terminal.innerHTML += `<p>Video assembly saved with updated data</p>`;
     
     console.log(`File saved to: ${filePath}`);
   } catch (error) {
@@ -262,6 +278,10 @@ function saveVideoAssemblyToFile(filePath, data) {
     terminal.innerHTML += `<p>Error saving file: ${error.message}</p>`;
   }
 }
+
+// Expose the saveVideoAssemblyToFile function to the window object
+// so it can be accessed from other modules
+window.saveVideoAssemblyToFile = saveVideoAssemblyToFile;
 
 // Function to load and display installed plugins
 async function loadInstalledPlugins() {

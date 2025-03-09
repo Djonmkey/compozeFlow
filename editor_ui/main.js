@@ -7,7 +7,31 @@
 
 const { app, BrowserWindow, Menu, ipcMain, dialog } = require('electron');
 const path = require('path');
-const fileOps = require('./fileOperations');
+const fs = require('fs');
+
+// Install source map support for better debugging
+try {
+  require('source-map-support').install({
+    handleUncaughtExceptions: true,
+    environment: 'node',
+    hookRequire: true
+  });
+  console.log('Source map support installed successfully');
+} catch (error) {
+  console.error('Failed to install source map support:', error);
+}
+
+// Determine if we're in development or production mode
+const isDev = process.env.NODE_ENV === 'development' || !fs.existsSync(path.join(__dirname, 'dist'));
+
+// Set the base path for loading files
+const basePath = isDev ? __dirname : path.join(__dirname, 'dist');
+
+// Load fileOperations from the appropriate location
+const fileOps = isDev ? require('./fileOperations') : require(path.join(basePath, 'fileOperations'));
+
+console.log(`Running in ${isDev ? 'development' : 'production'} mode`);
+console.log(`Base path: ${basePath}`);
 
 // Store the current file path
 let currentFilePath = null;
@@ -33,11 +57,11 @@ function createWindow() {
     }
   });
 
-  // Load the main HTML file
-  mainWindow.loadFile(path.join(__dirname, 'index.html'));
+  // Load the main HTML file from the appropriate location
+  mainWindow.loadFile(path.join(basePath, 'index.html'));
 
-  // Uncomment to open DevTools automatically
-  // mainWindow.webContents.openDevTools();
+  // Open DevTools automatically for debugging
+  mainWindow.webContents.openDevTools();
 
   mainWindow.on('closed', () => {
     mainWindow = null;
