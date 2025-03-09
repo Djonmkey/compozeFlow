@@ -99,6 +99,109 @@
       background-color: #f3f3f3;
       border-right: 1px solid #ccc;
       overflow: auto;
+      padding: 10px 0;
+      font-size: 14px;
+    }
+    
+    /* Explorer container */
+    .explorer-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    /* Explorer section */
+    .explorer-section {
+      margin-bottom: 10px;
+    }
+    
+    /* Explorer section header */
+    .explorer-section-header {
+      padding: 5px 10px;
+      font-weight: bold;
+      background-color: #e0e0e0;
+      border-bottom: 1px solid #ccc;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    
+    /* Explorer section name */
+    .explorer-section-name {
+      text-transform: uppercase;
+      font-size: 12px;
+      color: #555;
+    }
+    
+    /* Explorer file list */
+    .explorer-file-list {
+      list-style-type: none;
+      padding: 0;
+      margin: 0;
+    }
+    
+    /* Explorer item */
+    .explorer-item {
+      padding: 2px 0;
+    }
+    
+    /* Explorer item content */
+    .explorer-item-content {
+      display: flex;
+      align-items: center;
+      padding: 2px 10px;
+      cursor: pointer;
+    }
+    
+    .explorer-item-content:hover {
+      background-color: #e5e5e5;
+    }
+    
+    /* Explorer icon */
+    .explorer-icon {
+      margin-right: 5px;
+      font-size: 16px;
+    }
+    
+    /* Explorer name */
+    .explorer-name {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    /* Explorer directory */
+    .explorer-directory > .explorer-file-list {
+      display: none;
+      margin-left: 15px;
+    }
+    
+    .explorer-directory.expanded > .explorer-file-list {
+      display: block;
+    }
+    
+    /* Explorer empty directory */
+    .explorer-empty-dir {
+      padding: 2px 10px;
+      color: #999;
+      font-style: italic;
+    }
+    
+    /* Explorer error */
+    .explorer-error {
+      padding: 5px 10px;
+      color: #d32f2f;
+      font-style: italic;
+    }
+    
+    /* Explorer empty */
+    .explorer-empty {
+      padding: 10px;
+      color: #999;
+      font-style: italic;
+      text-align: center;
     }
 
     /* Main Editor area with vertical layout of tabs + terminal below */
@@ -167,16 +270,10 @@
 
     <!-- Explorer -->
     <div id="explorer">
-      <ul>
-        <li>File1.txt</li>
-        <li>File2.js</li>
-        <li>File3.html</li>
-        <li>Folder1
-          <ul>
-            <li>NestedFile.js</li>
-          </ul>
-        </li>
-      </ul>
+      <!-- This will be populated dynamically from content_sources -->
+      <div class="explorer-empty">
+        No content sources available. Open a video assembly file to display content sources.
+      </div>
     </div>
 
     <!-- Main section -->

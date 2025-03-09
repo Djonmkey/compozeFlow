@@ -11,6 +11,7 @@ const generateHtmlFromVideoAssembly = require('./timelineDisplay');
 const generateOverlayImagesHtml = require('./overlayImagesDisplay');
 const generateMixedAudioHtml = require('./mixedAudioDisplay');
 const generateGeneralHtml = require('./generalDisplay');
+const { generateExplorerHtml, initializeExplorer } = require('./explorerDisplay');
 
 // DOM elements
 const editorContent = document.getElementById('editor-content');
@@ -71,6 +72,26 @@ tabs.forEach(tab => {
   });
 });
 
+// Function to update the explorer with content sources from the video assembly
+function updateExplorer() {
+  if (!currentVideoAssemblyData) return;
+  
+  const explorer = document.getElementById('explorer');
+  
+  // Generate the explorer HTML
+  const explorerHtml = generateExplorerHtml(currentVideoAssemblyData);
+  
+  // Update the explorer content
+  explorer.innerHTML = explorerHtml;
+  
+  // Initialize explorer event handlers
+  initializeExplorer();
+  
+  // Update the terminal with a message
+  const terminal = document.getElementById('terminal');
+  terminal.innerHTML += `<p>Explorer updated with content sources</p>`;
+}
+
 // Listen for the 'video-assembly-opened' event from the main process
 ipcRenderer.on('video-assembly-opened', (event, data) => {
   console.log('Received video assembly data:', data);
@@ -95,6 +116,9 @@ ipcRenderer.on('video-assembly-opened', (event, data) => {
   
   // Update the editor content based on the active tab
   updateEditorContent();
+  
+  // Update the explorer with content sources
+  updateExplorer();
   
   // Update the terminal with a message
   const terminal = document.getElementById('terminal');
