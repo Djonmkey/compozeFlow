@@ -62,14 +62,14 @@ function generateMixedAudioHtml(data) {
                 segmentContent += `
                 <table>
                     <tr>
-                        <th>Sequence</th>
+                        <th>Order</th>
                         <th>Audio File</th>
                         <th>Volume</th>
                     </tr>
                 `;
 
                 sequentialAudioClips.forEach(audio => {
-                    const sequence = audio.sequence || "N/A";
+                    const sequence = audio.order || "N/A";
                     const audioPath = audio.path || "Unknown Path";
                     const filePath = path.dirname(audioPath);
                     const fileName = path.basename(audioPath);

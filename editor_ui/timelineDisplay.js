@@ -53,7 +53,7 @@ function generateHtmlFromVideoAssembly(data) {
             htmlContent += `
             <table>
                 <tr>
-                    <th>Sequence</th>
+                    <th>Order</th>
                     <th>File</th>
                     <th>Trim Start (min:sec)</th>
                     <th>Trim End (min:sec)</th>
@@ -66,7 +66,7 @@ function generateHtmlFromVideoAssembly(data) {
 
             if (timelineClipType === "video") {
                 timelineClips.forEach(clip => {
-                    const sequence = clip.sequence || "N/A";
+                    const sequence = clip.order || "N/A";
                     const clipPath = clip.path || "Unknown Path";
 
                     let clipStart = "";
@@ -132,7 +132,7 @@ function generateHtmlFromVideoAssembly(data) {
                 });
             } else if (timelineClipType === "image") {
                 timelineClips.forEach(image => {
-                    const sequence = image.sequence || "N/A";
+                    const sequence = image.order || "N/A";
                     const clipPath = image.path || "Unknown Path";
 
                     const clipStart = "Start of clip";

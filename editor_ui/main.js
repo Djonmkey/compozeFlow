@@ -224,3 +224,29 @@ app.on('window-all-closed', () => {
 ipcMain.handle('get-current-file-path', () => {
   return currentFilePath;
 });
+
+// Handle saving video assembly data
+ipcMain.handle('save-video-assembly-data', async (event, videoAssemblyData) => {
+  if (!currentFilePath) {
+    // If no current file path, prompt for a location
+    const filePath = await fileOps.saveVideoAssembly(mainWindow, videoAssemblyData);
+    if (filePath) {
+      currentFilePath = filePath;
+      console.log("Video assembly saved to:", currentFilePath);
+      return { success: true, filePath: currentFilePath };
+    } else {
+      console.log("Save was canceled");
+      return { success: false, error: "Save was canceled" };
+    }
+  } else {
+    // Use existing path for Save
+    try {
+      await fileOps.saveVideoAssembly(mainWindow, videoAssemblyData, currentFilePath);
+      console.log("Video assembly saved to:", currentFilePath);
+      return { success: true, filePath: currentFilePath };
+    } catch (error) {
+      console.error("Error saving video assembly:", error);
+      return { success: false, error: error.message };
+    }
+  }
+});

@@ -134,6 +134,62 @@ body.resizing {
   gap: 10px;
 }
 
+/* Explorer actions */
+.explorer-actions {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+/* Add content source button */
+.add-content-source-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background-color: #4a86e8;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.add-content-source-btn:hover {
+  background-color: #3a76d8;
+}
+
+.add-icon {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+/* Remove content source button */
+.remove-content-source-btn {
+  background-color: transparent;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-left: 5px;
+}
+
+.remove-content-source-btn:hover {
+  background-color: #ffdddd;
+  border-color: #ff6666;
+}
+
+.remove-icon {
+  font-size: 16px;
+  color: #ff6666;
+  font-weight: bold;
+}
+
 /* Explorer section */
 .explorer-section {
   margin-bottom: 10px;
@@ -149,6 +205,13 @@ body.resizing {
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+
+/* Explorer section actions container */
+.explorer-section-actions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 
 /* Explorer filter toggle button */

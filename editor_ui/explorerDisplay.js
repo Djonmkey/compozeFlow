@@ -42,22 +42,38 @@ function generateExplorerHtml(videoAssemblyData) {
     }
 
     let html = '<div class="explorer-container">';
+    
+    // Add a button to add new content sources
+    html += `
+        <div class="explorer-actions">
+            <button class="add-content-source-btn" title="Add new content source">
+                <span class="add-icon">+</span>
+                <span>Add Content Source</span>
+            </button>
+        </div>
+    `;
 
     // Process each content source
     contentSources.forEach(source => {
         const sourcePath = source.path;
         const includeSubpaths = source.include_subpaths;
+        const sourceOrder = source.order;
         
         // Create a section for this content source
         const sectionName = path.basename(sourcePath);
         html += `
-            <div class="explorer-section">
+            <div class="explorer-section" data-path="${sourcePath}" data-order="${sourceOrder}" data-include-subpaths="${includeSubpaths}">
                 <div class="explorer-section-header">
                     <span class="explorer-section-name">${sectionName}</span>
-                    <button class="explorer-filter-toggle" title="Toggle between showing all files and only supported files">
-                        <span class="filter-icon">▼</span>
-                        <span class="filter-text">Supported Only</span>
-                    </button>
+                    <div class="explorer-section-actions">
+                        <button class="explorer-filter-toggle" title="Toggle between showing all files and only supported files">
+                            <span class="filter-icon">▼</span>
+                            <span class="filter-text">Supported Only</span>
+                        </button>
+                        <button class="remove-content-source-btn" title="Remove this content source">
+                            <span class="remove-icon">×</span>
+                        </button>
+                    </div>
                 </div>
                 <div class="explorer-search-container">
                     <div class="explorer-search-bar">
@@ -195,6 +211,30 @@ function initializeExplorer(videoAssemblyData) {
             const searchText = event.target.value.toLowerCase();
             const section = input.closest('.explorer-section');
             filterFilesBySearch(section, searchText);
+        });
+    });
+    
+    // Add click event listener for the "Add Content Source" button
+    const addContentSourceBtn = document.querySelector('.add-content-source-btn');
+    if (addContentSourceBtn) {
+        addContentSourceBtn.addEventListener('click', () => {
+            addNewContentSource(videoAssemblyData);
+        });
+    }
+    
+    // Add click event listeners for the "Remove Content Source" buttons
+    document.querySelectorAll('.remove-content-source-btn').forEach(button => {
+        button.addEventListener('click', (event) => {
+            // Prevent the click from propagating to parent elements
+            event.stopPropagation();
+            
+            // Get the explorer section that contains this button
+            const section = button.closest('.explorer-section');
+            const sourcePath = section.getAttribute('data-path');
+            const sourceOrder = parseInt(section.getAttribute('data-order'));
+            
+            // Remove the content source
+            removeContentSource(videoAssemblyData, sourcePath, sourceOrder);
         });
     });
 
@@ -376,6 +416,263 @@ function filterFilesBySearch(section, searchText) {
         }
     });
 }
+
+/**
+ * Adds a new content source to the video assembly data
+ * @param {Object} videoAssemblyData - The video assembly data
+ */
+function addNewContentSource(videoAssemblyData) {
+    // Create a dialog to get the path and include_subpaths
+    const dialogHtml = `
+        <div class="dialog-overlay">
+            <div class="dialog-content">
+                <h3>Add Content Source</h3>
+                <div class="dialog-form">
+                    <div class="form-group">
+                        <label for="content-source-path">Path:</label>
+                        <input type="text" id="content-source-path" placeholder="Enter path to content source">
+                    </div>
+                    <div class="form-group">
+                        <label for="include-subpaths">Include Subpaths:</label>
+                        <input type="checkbox" id="include-subpaths">
+                    </div>
+                    <div class="dialog-buttons">
+                        <button id="dialog-cancel">Cancel</button>
+                        <button id="dialog-add">Add</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Add the dialog to the DOM
+    const dialogElement = document.createElement('div');
+    dialogElement.innerHTML = dialogHtml;
+    document.body.appendChild(dialogElement);
+    
+    // Add event listeners for the dialog buttons
+    const cancelButton = document.getElementById('dialog-cancel');
+    const addButton = document.getElementById('dialog-add');
+    
+    // Cancel button closes the dialog
+    cancelButton.addEventListener('click', () => {
+        document.body.removeChild(dialogElement);
+    });
+    
+    // Add button adds the content source and closes the dialog
+    addButton.addEventListener('click', () => {
+        const pathInput = document.getElementById('content-source-path');
+        const includeSubpathsInput = document.getElementById('include-subpaths');
+        
+        const sourcePath = pathInput.value.trim();
+        const includeSubpaths = includeSubpathsInput.checked;
+        
+        if (sourcePath) {
+            // Find the highest order value
+            let maxOrder = 0;
+            if (videoAssemblyData.cut && videoAssemblyData.cut.content_sources) {
+                videoAssemblyData.cut.content_sources.forEach(source => {
+                    if (source.order > maxOrder) {
+                        maxOrder = source.order;
+                    }
+                });
+            }
+            
+            // Create a new content source object
+            const newContentSource = {
+                order: maxOrder + 1,
+                path: sourcePath,
+                include_subpaths: includeSubpaths
+            };
+            
+            // Add the new content source to the video assembly data
+            if (!videoAssemblyData.cut) {
+                videoAssemblyData.cut = {};
+            }
+            
+            if (!videoAssemblyData.cut.content_sources) {
+                videoAssemblyData.cut.content_sources = [];
+            }
+            
+            videoAssemblyData.cut.content_sources.push(newContentSource);
+            
+            // Update the explorer
+            const explorer = document.getElementById('explorer');
+            explorer.innerHTML = generateExplorerHtml(videoAssemblyData);
+            initializeExplorer(videoAssemblyData);
+            
+            // Save the updated video assembly data
+            saveVideoAssemblyData(videoAssemblyData);
+        }
+        
+        // Close the dialog
+        document.body.removeChild(dialogElement);
+    });
+}
+
+/**
+ * Removes a content source from the video assembly data
+ * @param {Object} videoAssemblyData - The video assembly data
+ * @param {string} sourcePath - The path of the content source to remove
+ * @param {number} sourceOrder - The order of the content source to remove
+ */
+function removeContentSource(videoAssemblyData, sourcePath, sourceOrder) {
+    if (!videoAssemblyData.cut || !videoAssemblyData.cut.content_sources) {
+        return;
+    }
+    
+    // Create a confirmation dialog
+    const dialogHtml = `
+        <div class="dialog-overlay">
+            <div class="dialog-content">
+                <h3>Remove Content Source</h3>
+                <p>Are you sure you want to remove this content source?</p>
+                <p><strong>${sourcePath}</strong></p>
+                <div class="dialog-buttons">
+                    <button id="dialog-cancel">Cancel</button>
+                    <button id="dialog-remove">Remove</button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Add the dialog to the DOM
+    const dialogElement = document.createElement('div');
+    dialogElement.innerHTML = dialogHtml;
+    document.body.appendChild(dialogElement);
+    
+    // Add event listeners for the dialog buttons
+    const cancelButton = document.getElementById('dialog-cancel');
+    const removeButton = document.getElementById('dialog-remove');
+    
+    // Cancel button closes the dialog
+    cancelButton.addEventListener('click', () => {
+        document.body.removeChild(dialogElement);
+    });
+    
+    // Remove button removes the content source and closes the dialog
+    removeButton.addEventListener('click', () => {
+        // Remove the content source from the video assembly data
+        videoAssemblyData.cut.content_sources = videoAssemblyData.cut.content_sources.filter(source =>
+            source.path !== sourcePath || source.order !== sourceOrder
+        );
+        
+        // Update the explorer
+        const explorer = document.getElementById('explorer');
+        explorer.innerHTML = generateExplorerHtml(videoAssemblyData);
+        initializeExplorer(videoAssemblyData);
+        
+        // Save the updated video assembly data
+        saveVideoAssemblyData(videoAssemblyData);
+        
+        // Close the dialog
+        document.body.removeChild(dialogElement);
+    });
+}
+
+/**
+ * Saves the video assembly data to the file
+ * @param {Object} videoAssemblyData - The video assembly data to save
+ */
+function saveVideoAssemblyData(videoAssemblyData) {
+    // Check if we're running in Electron
+    if (typeof window !== 'undefined' && window.process && window.process.type === 'renderer') {
+        try {
+            // Get the electron module
+            const electron = require('electron');
+            const ipcRenderer = electron.ipcRenderer;
+            
+            // Send a message to the main process to save the data
+            ipcRenderer.invoke('save-video-assembly-data', videoAssemblyData)
+                .then(() => {
+                    console.log('Video assembly data saved successfully');
+                })
+                .catch(error => {
+                    console.error('Error saving video assembly data:', error);
+                });
+        } catch (error) {
+            console.error('Error saving video assembly data:', error);
+        }
+    } else {
+        console.log('Not running in Electron, cannot save video assembly data');
+    }
+}
+
+// Add CSS for the dialog
+const dialogStyle = document.createElement('style');
+dialogStyle.textContent = `
+    .dialog-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+    
+    .dialog-content {
+        background-color: white;
+        border-radius: 4px;
+        padding: 20px;
+        width: 400px;
+        max-width: 90%;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+    
+    .dialog-form {
+        margin-top: 15px;
+    }
+    
+    .form-group {
+        margin-bottom: 15px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+    
+    .form-group input[type="text"] {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+    
+    .dialog-buttons {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 20px;
+    }
+    
+    .dialog-buttons button {
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    
+    #dialog-cancel {
+        background-color: #f5f5f5;
+        border: 1px solid #ccc;
+    }
+    
+    #dialog-add, #dialog-remove {
+        background-color: #4a86e8;
+        color: white;
+        border: none;
+    }
+    
+    #dialog-remove {
+        background-color: #e84a4a;
+    }
+`;
+document.head.appendChild(dialogStyle);
 
 module.exports = {
     generateExplorerHtml,
