@@ -182,11 +182,14 @@ function updateEditorContent(videoAssemblyData) {
     // Create HTML for file details
     let html = `
         <div class="file-details">
-            <h2>${currentFile.name}</h2>
+            <h2>${currentFile.name} <button class="copy-icon-btn" title="Copy path to clipboard" onclick="copyToClipboard('${currentFile.name}')">📋 Copy</button></h2>
             <div class="file-info">
                 <div class="file-info-item">
                     <span class="file-info-label">Path:</span>
-                    <span class="file-info-value">${currentFile.path}</span>
+                    <div class="file-info-value-container">
+                        <span class="file-info-value">${currentFile.path}</span>
+                        <button class="copy-icon-btn" title="Copy path to clipboard" onclick="copyToClipboard('${currentFile.path.replace(/'/g, "\\'")}')">📋 Copy</button>
+                    </div>
                 </div>
                 <div class="file-info-item">
                     <span class="file-info-label">Type:</span>
@@ -602,8 +605,35 @@ fileTabsStyle.textContent = `
         flex-shrink: 0;
     }
     
+    .file-info-value-container {
+        display: flex;
+        align-items: center;
+        flex: 1;
+    }
+    
     .file-info-value {
         word-break: break-all;
+        margin-right: 10px;
+        flex: 1;
+    }
+    
+    .copy-icon-btn {
+        cursor: pointer;
+        font-size: 12px;
+        padding: 4px 8px;
+        border-radius: 4px;
+        background-color: #f0f0f0;
+        border: 1px solid #ccc;
+        color: #333;
+        transition: background-color 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        white-space: nowrap;
+    }
+    
+    .copy-icon-btn:hover {
+        background-color: #e0e0e0;
     }
     
     /* Add to Timeline styling */
@@ -671,6 +701,48 @@ fileTabsStyle.textContent = `
     }
 `;
 document.head.appendChild(fileTabsStyle);
+
+/**
+ * Copies the given text to the clipboard
+ * @param {string} text - The text to copy
+ */
+function copyToClipboard(text) {
+    // Check if we're running in Electron
+    if (typeof window !== 'undefined' && window.process && window.process.type === 'renderer') {
+        try {
+            // Get the electron module
+            const electron = require('electron');
+            const clipboard = electron.clipboard;
+            
+            // Copy the text to clipboard
+            clipboard.writeText(text);
+            
+            // Update the terminal with a message
+            const terminal = document.getElementById('terminal');
+            terminal.innerHTML += `<p>Copied path to clipboard: ${text}</p>`;
+        } catch (error) {
+            console.error('Error copying to clipboard:', error);
+        }
+    } else {
+        // Fallback for non-Electron environments
+        navigator.clipboard.writeText(text)
+            .then(() => {
+                console.log('Text copied to clipboard');
+                // Update the terminal with a message
+                const terminal = document.getElementById('terminal');
+                terminal.innerHTML += `<p>Copied path to clipboard: ${text}</p>`;
+            })
+            .catch(err => {
+                console.error('Failed to copy text: ', err);
+            });
+    }
+}
+
+// Expose the copyToClipboard function to the global scope
+// so it can be accessed from inline onclick handlers
+if (typeof window !== 'undefined') {
+    window.copyToClipboard = copyToClipboard;
+}
 
 module.exports = {
     addFileTab
