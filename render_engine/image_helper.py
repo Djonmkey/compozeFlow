@@ -11,7 +11,7 @@ def create_video_from_image(image_clip_meta, aspect_ratio, quick_and_dirty, clip
         duration (int): Duration of the video in seconds
     """
     duration_seconds = image_clip_meta.get("duration_seconds", 5)
-    source_image_file_pathname = image_clip_meta.get("clip_file_pathname", None)
+    source_image_file_pathname = image_clip_meta.get("path", None)
     image_clip = None
     
     # Create a clip from the image
@@ -45,7 +45,7 @@ def set_image_position(image_meta, image):
 def append_image(image_meta, video_clip, video_clips_to_close):
     auto_size = True
 
-    image_file_pathname = image_meta["image_file_pathname"]
+    image_file_pathname = image_meta["path"]
 
     # Load the transparent image
     image = ImageClip(image_file_pathname)

@@ -1,0 +1,154 @@
+{
+    "plugins": [
+        {
+            "id": "color-grading-pro",
+            "displayName": "Color Grading Pro",
+            "description": "Advanced color grading tools with cinematic LUTs.",
+            "version": "2.4.1",
+            "author": "CineColor Inc.",
+            "categories": ["Color Correction", "Visual Effects"],
+            "keywords": ["color grading", "LUT", "cinematic", "color correction"],
+            "iconUrl": "https://example.com/icons/color-grading-pro.png",
+            "documentationUrl": "https://example.com/docs/color-grading-pro",
+            "downloadUrl": "https://example.com/plugins/color-grading-pro.zip",
+            "compatibility": {
+                "appVersion": "^1.0.0"
+            }
+        },
+        {
+            "id": "motion-blur-effects",
+            "displayName": "Motion Blur Effects",
+            "description": "Professional-quality motion blur effects for smooth action scenes.",
+            "version": "1.7.3",
+            "author": "FX Dynamics",
+            "categories": ["Visual Effects"],
+            "keywords": ["motion blur", "effects", "action scenes"],
+            "iconUrl": "https://example.com/icons/motion-blur-effects.png",
+            "documentationUrl": "https://example.com/docs/motion-blur-effects",
+            "downloadUrl": "https://example.com/plugins/motion-blur-effects.zip",
+            "compatibility": {
+                "appVersion": "^1.0.0"
+            }
+        },
+        {
+            "id": "audio-enhancer",
+            "displayName": "Audio Enhancer",
+            "description": "Tools for noise reduction, audio leveling, and enhancement.",
+            "version": "3.2.5",
+            "author": "SoundForge",
+            "categories": ["Audio"],
+            "keywords": ["audio", "noise reduction", "enhancement", "audio leveling"],
+            "iconUrl": "https://example.com/icons/audio-enhancer.png",
+            "documentationUrl": "https://example.com/docs/audio-enhancer",
+            "downloadUrl": "https://example.com/plugins/audio-enhancer.zip",
+            "compatibility": {
+                "appVersion": "^1.0.0"
+            }
+        },
+        {
+            "id": "animated-title-pack",
+            "displayName": "Animated Title Pack",
+            "description": "Library of animated titles and lower thirds templates.",
+            "version": "1.9.8",
+            "author": "MotionMasters",
+            "categories": ["Titles", "Animation"],
+            "keywords": ["titles", "animation", "lower thirds", "text effects"],
+            "iconUrl": "https://example.com/icons/animated-title-pack.png",
+            "documentationUrl": "https://example.com/docs/animated-title-pack",
+            "downloadUrl": "https://example.com/plugins/animated-title-pack.zip",
+            "compatibility": {
+                "appVersion": "^1.0.0"
+            }
+        },
+        {
+            "id": "transition-library",
+            "displayName": "Transition Library",
+            "description": "Over 200 creative video transitions.",
+            "version": "4.0.0",
+            "author": "CutFX",
+            "categories": ["Transitions"],
+            "keywords": ["transitions", "cuts", "effects", "creative"],
+            "iconUrl": "https://example.com/icons/transition-library.png",
+            "documentationUrl": "https://example.com/docs/transition-library",
+            "downloadUrl": "https://example.com/plugins/transition-library.zip",
+            "compatibility": {
+                "appVersion": "^1.0.0"
+            }
+        },
+        {
+            "id": "subtitle-generator",
+            "displayName": "Subtitle Generator",
+            "description": "Automatic subtitle generation and editing.",
+            "version": "2.6.4",
+            "author": "SubtitleAI",
+            "categories": ["Subtitles", "Accessibility"],
+            "keywords": ["subtitles", "AI", "automatic captions", "accessibility"],
+            "iconUrl": "https://example.com/icons/subtitle-generator.png",
+            "documentationUrl": "https://example.com/docs/subtitle-generator",
+            "downloadUrl": "https://example.com/plugins/subtitle-generator.zip",
+            "compatibility": {
+                "appVersion": "^1.0.0"
+            }
+        },
+        {
+            "id": "video-stabilizer",
+            "displayName": "Video Stabilizer",
+            "description": "Smooth out shaky video footage automatically.",
+            "version": "1.3.2",
+            "author": "StableCam",
+            "categories": ["Stabilization"],
+            "keywords": ["stabilization", "shaky footage", "steady cam"],
+            "iconUrl": "https://example.com/icons/video-stabilizer.png",
+            "documentationUrl": "https://example.com/docs/video-stabilizer",
+            "downloadUrl": "https://example.com/plugins/video-stabilizer.zip",
+            "compatibility": {
+                "appVersion": "^1.0.0"
+            }
+        },
+        {
+            "id": "greenscreen-keyer",
+            "displayName": "Green Screen Keyer",
+            "description": "Effortless chroma key compositing.",
+            "version": "2.8.1",
+            "author": "KeyFrame Studios",
+            "categories": ["Compositing", "Visual Effects"],
+            "keywords": ["green screen", "chroma key", "compositing"],
+            "iconUrl": "https://example.com/icons/greenscreen-keyer.png",
+            "documentationUrl": "https://example.com/docs/greenscreen-keyer",
+            "downloadUrl": "https://example.com/plugins/greenscreen-keyer.zip",
+            "compatibility": {
+                "appVersion": "^1.0.0"
+            }
+        },
+        {
+            "id": "slow-motion-toolkit",
+            "displayName": "Slow Motion Toolkit",
+            "description": "Create smooth slow-motion clips with frame interpolation.",
+            "version": "1.5.7",
+            "author": "TimeWarp Labs",
+            "categories": ["Visual Effects"],
+            "keywords": ["slow motion", "frame interpolation", "high FPS"],
+            "iconUrl": "https://example.com/icons/slow-motion-toolkit.png",
+            "documentationUrl": "https://example.com/docs/slow-motion-toolkit",
+            "downloadUrl": "https://example.com/plugins/slow-motion-toolkit.zip",
+            "compatibility": {
+                "appVersion": "^1.0.0"
+            }
+        },
+        {
+            "id": "aspect-ratio-tool",
+            "displayName": "Aspect Ratio Tool",
+            "description": "Quickly adapt video to popular aspect ratios for social media.",
+            "version": "1.1.0",
+            "author": "AspectXpress",
+            "categories": ["Export", "Social Media"],
+            "keywords": ["aspect ratio", "social media", "export"],
+            "iconUrl": "https://example.com/icons/aspect-ratio-tool.png",
+            "documentationUrl": "https://example.com/docs/aspect-ratio-tool",
+            "downloadUrl": "https://example.com/plugins/aspect-ratio-tool.zip",
+            "compatibility": {
+                "appVersion": "^1.0.0"
+            }
+        }
+    ]
+}

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>compozeFlow</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Icon Bar -->
+    <div id="icon-bar">
+      <!-- Top icons group -->
+      <div id="top-icons">
+        <div class="icon">📁</div>
+        <div class="icon">🔍</div>
+        <div class="icon" id="plugins-icon">🧩</div>
+      </div>
+      <!-- Installed plugins icons -->
+      <div id="installed-plugins-icons">
+        <!-- Dynamically populated from installed_plugins.json -->
+      </div>
+      <!-- Bottom icons group -->
+      <div id="bottom-icons">
+        <!-- Account icon -->
+        <div class="icon" id="account-icon">👤</div>
+        <!-- Settings icon -->
+        <div class="icon" id="settings-icon">⚙</div>
+      </div>
+    </div>
+
+    <!-- Explorer -->
+    <div id="explorer">
+      <!-- This will be populated dynamically from content_sources -->
+      <div class="explorer-empty">
+        No content sources available. Open a video assembly file to display content sources.
+      </div>
+    </div>
+
+    <!-- Resize handle -->
+    <div id="resize-handle"></div>
+
+    <!-- Main section -->
+    <div id="main-section">
+      <!-- Tabs -->
+      <div id="tabs-container">
+        <div class="tab">Timeline</div>
+        <div class="tab">Overlay Images</div>
+        <div class="tab">Mixed Audio</div>
+        <div class="tab">Output</div>
+        <div class="tab">General</div>
+        <div class="tab">Raw</div>
+      </div>
+
+      <!-- Editor content area -->
+      <div id="editor-content">
+        <h2>Welcome to compozeFlow Editor UI</h2>
+        <p>This is a placeholder for the central editing area, akin to the text editor in VS Code.</p>
+      </div>
+
+      <!-- Terminal section -->
+      <div id="terminal">
+        <p>Terminal output will appear here...</p>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Include the renderer script -->
+  <script src="renderer.js"></script>
+</body>
+</html>

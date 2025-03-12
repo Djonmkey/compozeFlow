@@ -1,0 +1,415 @@
+/* Root layout: full height, a row-based flex container for the entire app. */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: sans-serif;
+  overflow: hidden; /* Prevent scrollbars on smaller windows */
+}
+
+#app {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+}
+
+/* Left Icon bar */
+#icon-bar {
+  width: 50px;
+  background-color: #333;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 10px;
+  /* Add justify-content to create space between top and bottom sections */
+  justify-content: space-between;
+  /* Add padding at the bottom to match the top padding */
+  padding-bottom: 10px;
+  /* Ensure the icon bar takes full height */
+  height: 100%;
+  box-sizing: border-box;
+}
+/* Container for top icons */
+#top-icons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+/* Container for installed plugins icons */
+#installed-plugins-icons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 15px;
+  max-height: 40%;
+  overflow-y: auto;
+  /* Add a subtle separator */
+  border-top: 1px solid #555;
+  padding-top: 10px;
+}
+/* Style for plugin icons */
+.plugin-icon {
+  margin: 8px 0;
+  cursor: pointer;
+  font-size: 1.6rem;
+  user-select: none;
+  color: #ccc; /* Slightly lighter than regular icons */
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.plugin-icon.inactive {
+  color: #666; /* Dimmed for inactive plugins */
+  opacity: 0.7;
+}
+/* Blue puzzle piece for plugins without icons */
+.plugin-icon.default-icon {
+  color: #4a86e8; /* Blue color */
+}
+/* Container for bottom icons */
+#bottom-icons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.icon {
+  margin: 10px 0;
+  cursor: pointer;
+  font-size: 1.8rem; /* Increased from 1.2rem to make icons 50% larger */
+  user-select: none;
+}
+.icon:hover, .icon.active-icon {
+  background-color: #444;
+  width: 100%;
+  text-align: center;
+}
+
+/* Active icon styling */
+.icon.active-icon {
+  border-left: 3px solid #4a86e8;
+}
+
+/* Explorer Section */
+#explorer {
+  width: 250px;
+  background-color: #f3f3f3;
+  border-right: 1px solid #ccc;
+  overflow: auto;
+  padding: 10px 0;
+  font-size: 14px;
+  /* Added to support resizing */
+  min-width: 150px;
+  max-width: 500px;
+  resize: horizontal;
+}
+
+/* Resize handle */
+#resize-handle {
+  width: 8px;
+  background-color: #ccc;
+  cursor: col-resize;
+  height: 100%;
+  position: absolute;
+  left: 250px; /* Initial position matching explorer width */
+  z-index: 10;
+  /* Add a subtle visual indicator */
+  background-image: linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.1) 50%, transparent 100%);
+  /* Add transition for smoother visual updates */
+  transition: background-color 0.2s;
+}
+
+#resize-handle:hover,
+#resize-handle:active {
+  background-color: #999;
+}
+
+/* Prevent text selection during resize */
+body.resizing {
+  cursor: col-resize;
+  user-select: none;
+}
+
+/* Explorer container */
+.explorer-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Explorer actions */
+.explorer-actions {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+/* Add content source button */
+.add-content-source-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background-color: #4a86e8;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.add-content-source-btn:hover {
+  background-color: #3a76d8;
+}
+
+.add-icon {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+/* Remove content source button */
+.remove-content-source-btn {
+  background-color: transparent;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-left: 5px;
+}
+
+.remove-content-source-btn:hover {
+  background-color: #ffdddd;
+  border-color: #ff6666;
+}
+
+.remove-icon {
+  font-size: 16px;
+  color: #ff6666;
+  font-weight: bold;
+}
+
+/* Explorer section */
+.explorer-section {
+  margin-bottom: 10px;
+}
+
+/* Explorer section header */
+.explorer-section-header {
+  padding: 5px 10px;
+  font-weight: bold;
+  background-color: #e0e0e0;
+  border-bottom: 1px solid #ccc;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Explorer section actions container */
+.explorer-section-actions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* Explorer filter toggle button */
+.explorer-filter-toggle {
+  background-color: transparent;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 11px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: background-color 0.2s;
+}
+
+.explorer-filter-toggle:hover {
+  background-color: #d0d0d0;
+}
+
+.explorer-filter-toggle.show-all-files {
+  background-color: #e8f0fe;
+  border-color: #4a86e8;
+  color: #4a86e8;
+}
+
+.filter-icon {
+  font-size: 12px;
+}
+
+/* Explorer search container */
+.explorer-search-container {
+  padding: 5px 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+/* Explorer search bar */
+.explorer-search-bar {
+  display: flex;
+  align-items: center;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 2px 6px;
+  transition: border-color 0.2s;
+}
+
+.explorer-search-bar:focus-within {
+  border-color: #4a86e8;
+  box-shadow: 0 0 3px rgba(74, 134, 232, 0.3);
+}
+
+/* Search icon */
+.search-icon {
+  font-size: 14px;
+  color: #777;
+  margin-right: 5px;
+}
+
+/* Explorer search input */
+.explorer-search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 12px;
+  padding: 4px 0;
+  width: 100%;
+}
+
+/* Supported and unsupported file styling */
+.explorer-file.supported-file .explorer-name {
+  font-weight: normal;
+}
+
+.explorer-file.unsupported-file .explorer-name {
+  font-style: italic;
+  color: #888;
+}
+
+/* Explorer section name */
+.explorer-section-name {
+  text-transform: uppercase;
+  font-size: 12px;
+  color: #555;
+}
+
+/* Explorer file list */
+.explorer-file-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* Explorer item */
+.explorer-item {
+  padding: 2px 0;
+}
+
+/* Explorer item content */
+.explorer-item-content {
+  display: flex;
+  align-items: center;
+  padding: 2px 10px;
+  cursor: pointer;
+}
+
+.explorer-item-content:hover {
+  background-color: #e5e5e5;
+}
+
+/* Explorer icon */
+.explorer-icon {
+  margin-right: 5px;
+  font-size: 16px;
+}
+
+/* Explorer name */
+.explorer-name {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Explorer directory */
+.explorer-directory > .explorer-file-list {
+  display: none;
+  margin-left: 15px;
+}
+
+.explorer-directory.expanded > .explorer-file-list {
+  display: block;
+}
+
+/* Explorer empty directory */
+.explorer-empty-dir {
+  padding: 2px 10px;
+  color: #999;
+  font-style: italic;
+}
+
+/* Explorer error */
+.explorer-error {
+  padding: 5px 10px;
+  color: #d32f2f;
+  font-style: italic;
+}
+
+/* Explorer empty */
+.explorer-empty {
+  padding: 10px;
+  color: #999;
+  font-style: italic;
+  text-align: center;
+}
+
+/* Main Editor area with vertical layout of tabs + terminal below */
+#main-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Tabs container (top part of main section) */
+#tabs-container {
+  display: flex;
+  background-color: #eee;
+  border-bottom: 1px solid #ccc;
+}
+.tab {
+  padding: 10px;
+  border-right: 1px solid #ccc;
+  cursor: pointer;
+}
+.tab:hover {
+  background-color: #ddd;
+}
+
+/* Editor / Content area (between tabs and terminal) */
+#editor-content {
+  flex: 1;
+  padding: 20px;
+  overflow: auto;
+}
+
+/* Terminal section (bottom) */
+#terminal {
+  height: 150px;
+  border-top: 1px solid #ccc;
+  background-color: #111;
+  color: #eee;
+  font-family: monospace;
+  overflow: auto;
+  padding: 10px;
+}

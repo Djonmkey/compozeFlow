@@ -5,32 +5,32 @@ import datetime
 
 from typing import List, Dict
 from video_utility import write_video, crop_video_to_aspect_ratio, video_file_exists
-from moviepy import VideoFileClip, concatenate_videoclips, AudioFileClip, concatenate_audioclips
+from moviepy import VideoFileClip, concatenate_videoclips, AudioFileClip, concatenate_audioclips, CompositeVideoClip
 #from moviepy.video.fx.speedx import speedx
-from clip_utility import load_video_clip
-from audio_helper import append_audio, process_time_codes
+from clip_utility import load_video_clip, process_video_time_codes
+from audio_helper import append_audio, process_audio_time_codes
 from image_helper import create_video_from_image
 
-def sort_parallel_clips_by_sequence(scene: Dict) -> List[Dict]:
+def sort_sequential_audio_clips_by_sequence(scene: Dict) -> List[Dict]:
     """
-    Sorts the parallel clips in a scene by their sequence value.
+    Sorts the sequential audio  clips in a scene by their sequence value.
 
-    :param scene: A dictionary containing a list of parallel clips under the key "parallel_clips".
-    :return: A sorted list of parallel clips by sequence.
+    :param scene: A dictionary containing a list of sequential audio clips under the key "sequential_audio_clips".
+    :return: A sorted list of sequential audio clips by sequence.
     """
-    return sorted(scene.get("parallel_clips", []), key=lambda clip: clip["sequence"])
+    return sorted(scene.get("sequential_audio_clips", []), key=lambda clip: clip["sequence"])
 
 
-def sort_master_clips_by_sequence(scene: Dict) -> List[Dict]:
+def sort_timeline_clips_by_sequence(scene: Dict) -> List[Dict]:
     """
-    Sorts the master clips in a scene by their sequence value.
+    Sorts the timeline clips in a scene by their sequence value.
 
-    :param scene: A dictionary containing a list of master clips under the key "master_clips".
-    :return: A sorted list of master clips by sequence.
+    :param scene: A dictionary containing a list of timeline clips under the key "timeline_clips".
+    :return: A sorted list of timeline clips by sequence.
     """
-    return sorted(scene.get("master_clips", []), key=lambda clip: clip["sequence"])
+    return sorted(scene.get("timeline_clips", []), key=lambda clip: clip["sequence"])
     
-def process_parallel_clips(scene, video_clips, audio_clips, aspect_ratio, clips_to_close, output_path, quick_and_dirty):
+def crop_and_process_sequential_audio_clips(scene, video_clips, audio_clips, aspect_ratio, clips_to_close, output_path, quick_and_dirty):
     if len(video_clips) > 0:
         cropped_video_clip = None 
 
@@ -43,21 +43,24 @@ def process_parallel_clips(scene, video_clips, audio_clips, aspect_ratio, clips_
 
         clips_to_close.append(cropped_video_clip)
 
-        if "parallel_clips" in scene:
-            parallel_audio_clip = load_audio_clips(audio_clips, clips_to_close)
+        if "sequential_audio_clips" in scene:
+            sequential_audio_clip = load_audio_clips(audio_clips, clips_to_close)
             
-            if parallel_audio_clip != None:
-                clips_to_close.append(parallel_audio_clip)
+            if sequential_audio_clip != None:
+                clips_to_close.append(sequential_audio_clip)
 
-                master_clips_type = scene.get("master_clips_type", "video").lower()
+                timeline_clip_type = scene.get("timeline_clip_type", "video").lower()
 
-                if master_clips_type == "image":
-                    parallel_clips_video_volume = scene.get("parallel_clips_master_clip_volume", 0)
+                sequential_audio_timeline_clips_volume = 1
+
+                if timeline_clip_type == "image":
+                    # No audio for image clips
+                    sequential_audio_timeline_clips_volume = 0
                 else:
-                    parallel_clips_video_volume = scene.get("parallel_clips_master_clip_volume", 1)
+                    sequential_audio_timeline_clips_volume = scene.get("sequential_audio_timeline_clips_volume", 1)
 
                 clips_to_close.append(cropped_video_clip)
-                cropped_video_clip = append_audio(parallel_audio_clip, cropped_video_clip, parallel_clips_video_volume, clips_to_close)
+                cropped_video_clip = append_audio(sequential_audio_clip, cropped_video_clip, sequential_audio_timeline_clips_volume, clips_to_close)
                 clips_to_close.append(cropped_video_clip)
 
         write_video(cropped_video_clip, output_path, quick_and_dirty)
@@ -93,7 +96,7 @@ def load_image_clips(segment, scene, image_list, audio_clips, aspect_ratio, quic
             video_clips.append(video_clip)
 
         # Concatenate video clips
-        output_path = process_parallel_clips(scene, video_clips, audio_clips, aspect_ratio, clips_to_close, output_path, quick_and_dirty)
+        output_path = crop_and_process_sequential_audio_clips(scene, video_clips, audio_clips, aspect_ratio, clips_to_close, output_path, quick_and_dirty)
         return output_path
     else:
         return output_path
@@ -115,17 +118,17 @@ def load_video_clips(segment, scene, video_clip_list, audio_clips, aspect_ratio,
     if video_file_exists(output_path) == False:
         for video in video_clip_list:
             # If we have an image defined at the scene, then copy it to the clip
-            if "images" in scene:
-                if "images" not in video:
-                    video["images"] = []
-                video["images"].extend(scene["images"])
+            if "overlay_images" in scene:
+                if "overlay_images" not in video:
+                    video["overlay_images"] = []
+                video["overlay_images"].extend(scene["overlay_images"])
 
             video_clip = load_video_clip(video, aspect_ratio, quick_and_dirty, clips_to_close, source_file_watermark)
             clips_to_close.append(video_clip)
             video_clips.append(video_clip)
 
         # Concatenate video clips
-        output_path = process_parallel_clips(scene, video_clips, audio_clips, aspect_ratio, clips_to_close, output_path, quick_and_dirty)
+        output_path = crop_and_process_sequential_audio_clips(scene, video_clips, audio_clips, aspect_ratio, clips_to_close, output_path, quick_and_dirty)
         return output_path
     else:
         return output_path
@@ -145,13 +148,13 @@ def load_audio_clips(audio_clip_list, clips_to_close):
     audio_clips = []
 
     for audio in audio_clip_list:
-        audio_path = audio["clip_file_pathname"]
+        audio_path = audio["path"]
 
         audio_clip = AudioFileClip(audio_path)
         clips_to_close.append(audio_clip)
 
         watermark = ""
-        audio_clip, watermark = process_time_codes(audio, clips_to_close, watermark, audio_clip)
+        audio_clip, watermark = process_audio_time_codes(audio, clips_to_close, watermark, audio_clip)
         clips_to_close.append(audio_clip)
 
         if "audio_volume" in audio:
@@ -173,30 +176,26 @@ def load_audio_clips(audio_clip_list, clips_to_close):
     else:
         return None
     
+    
 
 def generate_video_scene(segment, scene, quick_and_dirty, manifest_last_modified_timestamp, aspect_ratio, source_file_watermark = False):
-    master_clips_type = scene.get("master_clips_type", "video").lower()
-    sorted_master_clips = sort_master_clips_by_sequence(scene)
-    sorted_parallel_clips = sort_parallel_clips_by_sequence(scene)
+    timeline_clip_type = scene.get("timeline_clip_type", "video").lower()
+    sorted_timeline_clips = sort_timeline_clips_by_sequence(scene)
+    sorted_sequential_audio_clips = sort_sequential_audio_clips_by_sequence(scene)
     enabled = scene.get("enabled", True)
 
     scene_video = None 
-    master_video_clip = None 
+    timeline_video_clip = None 
 
     if enabled:
-        if master_clips_type == "audio":
-            # The timeline is bound by the audio length, parallel_clips should all be of type video
-            master_video_clip = load_audio_clips(sorted_master_clips)
-
-        elif master_clips_type == "image":
-            master_video_clip = load_image_clips(segment, scene, sorted_master_clips, sorted_parallel_clips, aspect_ratio, quick_and_dirty, source_file_watermark)
+        if timeline_clip_type == "image":
+            timeline_video_clip = load_image_clips(segment, scene, sorted_timeline_clips, sorted_sequential_audio_clips, aspect_ratio, quick_and_dirty, source_file_watermark)
 
         else:
-            # The timeline is bound by the video length, parallel_clips should all be of type audio
-            master_video_clip = load_video_clips(segment, scene, sorted_master_clips, sorted_parallel_clips, aspect_ratio, quick_and_dirty, source_file_watermark)
+            timeline_video_clip = load_video_clips(segment, scene, sorted_timeline_clips, sorted_sequential_audio_clips, aspect_ratio, quick_and_dirty, source_file_watermark)
 
-    if master_video_clip != None:
-        scene_video = VideoFileClip(master_video_clip)
+    if timeline_video_clip != None:
+        scene_video = VideoFileClip(timeline_video_clip)
 
     return scene_video
     

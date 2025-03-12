@@ -56,32 +56,32 @@ def generate_html_from_video_assembly(data: dict, output_html_path: str) -> None
                 <tr>
                     <th>Sequence</th>
                     <th>Clip File Pathname</th>
-                    <th>Start (min:sec)</th>
-                    <th>End (min:sec)</th>
+                    <th>Trim Start (min:sec)</th>
+                    <th>Trim End (min:sec)</th>
                 </tr>
             """
 
-            master_clips_type = scene.get("master_clips_type", "video")
+            timeline_clip_type = scene.get("timeline_clip_type", "video")
 
-            if master_clips_type == "video" or master_clips_type == "audio":
-                for clip in scene.get("master_clips", []):
+            if timeline_clip_type == "video":
+                for clip in scene.get("timeline_clips", []):
                     sequence = clip.get("sequence", "N/A")
                     clip_path = clip.get("clip_file_pathname", "Unknown Path")
 
                     clip_start = ""
                     clip_end = ""
                     # Extract optional values safely
-                    if "clip_start_seconds" in clip:
-                        clip_start_minutes = clip.get("clip_start_minutes", 0)
-                        clip_start_seconds = float(clip.get("clip_start_seconds", 0))
-                        clip_start = f"{clip_start_minutes}:{clip_start_seconds:05.2f}"
+                    if "trim_start_seconds" in clip:
+                        trim_start_minutes = clip.get("trim_start_minutes", 0)
+                        trim_start_seconds = float(clip.get("trim_start_seconds", 0))
+                        clip_start = f"{trim_start_minutes}:{trim_start_seconds:05.2f}"
                     else:
                         clip_start = "Start of clip"
 
-                    if "clip_end_seconds" in clip:
-                        clip_end_minutes = clip.get("clip_end_minutes", 0)
-                        clip_end_seconds = float(clip.get("clip_end_seconds", 0))
-                        clip_end = f"{clip_end_minutes}:{clip_end_seconds:05.2f}"
+                    if "trim_end_seconds" in clip:
+                        trim_end_minutes = clip.get("trim_end_minutes", 0)
+                        trim_end_seconds = float(clip.get("trim_end_seconds", 0))
+                        clip_end = f"{trim_end_minutes}:{trim_end_seconds:05.2f}"
                     else:
                         clip_end = "End of clip"
 
@@ -98,8 +98,8 @@ def generate_html_from_video_assembly(data: dict, output_html_path: str) -> None
                         <td>{clip_end}</td>
                     </tr>
                     """
-            elif master_clips_type == "image":
-                for image in scene.get("master_clips", []):
+            elif timeline_clip_type == "image":
+                for image in scene.get("timeline_clips", []):
                     sequence = image.get("sequence", "N/A")
                     clip_path = image.get("clip_file_pathname", "Unknown Path")
 
@@ -143,7 +143,7 @@ def generate_video_cut(video_assembly, cut, video_assembly_last_modified_timesta
 
     # Loop through each aspect ratio
     for aspect_ratio in cut["aspect_ratios"]:
-        video_output_file_pathname = aspect_ratio["output_file_pathname"]
+        video_output_file_pathname = aspect_ratio["output_pathname"]
 
         if video_file_exists(video_output_file_pathname, video_assembly_last_modified_timestamp) == False:
             html_output_file_pathname = os.path.splitext(video_output_file_pathname)[0] + ".video_assembly_timeline.html"
@@ -158,12 +158,20 @@ def generate_video_cut(video_assembly, cut, video_assembly_last_modified_timesta
 
             video_clips_to_close = []
 
+            render_only = cut.get("render_only", {})
+            render_only_segment = render_only.get("segment_sequence")
+
             for segment in sorted_segments:
+                segment_sequence = segment["sequence"]
+
+                if render_only_segment and segment_sequence != render_only_segment:
+                    continue
+
                 print(f"  Segment Title: {segment['title']}")
                 print(f"  Min Length: {segment['min_len_seconds']} seconds")
                 print(f"  Max Length: {segment['max_len_seconds']} seconds") 
 
-                segment_video = generate_video_segment(video_assembly, segment, quick_and_dirty, video_assembly_last_modified_timestamp, aspect_ratio_text, source_file_watermark)
+                segment_video = generate_video_segment(video_assembly, cut, segment, quick_and_dirty, video_assembly_last_modified_timestamp, aspect_ratio_text, source_file_watermark)
 
                 if segment_video != None:
                     segments_for_aspect_ratio.append(segment_video)
