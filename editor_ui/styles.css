@@ -386,6 +386,7 @@ body.resizing {
   display: flex;
   background-color: #eee;
   border-bottom: 1px solid #ccc;
+  position: relative;
 }
 .tab {
   padding: 10px;
@@ -394,6 +395,39 @@ body.resizing {
 }
 .tab:hover {
   background-color: #ddd;
+}
+
+/* Render button styling */
+.render-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: #0078d7; /* Blue color similar to VSCode */
+  color: white;
+  cursor: pointer;
+  margin: auto 10px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.render-button:hover {
+  background-color: #106ebe;
+}
+
+.render-button.running {
+  background-color: #d83b01; /* Orange/red for stop button */
+}
+
+.render-button.failed {
+  background-color: #e81123; /* Red for failed state */
+}
+
+.render-button.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* Editor / Content area (between tabs and terminal) */

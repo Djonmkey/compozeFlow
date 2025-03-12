@@ -25,7 +25,7 @@ if (isElectron) {
 }
 
 // Initialize variables that would normally come from required modules
-let ipcRenderer, fs, generateHtmlFromVideoAssembly, generateOverlayImagesHtml,
+let ipcRenderer, fs, child_process, path, generateHtmlFromVideoAssembly, generateOverlayImagesHtml,
     generateMixedAudioHtml, generateGeneralHtml, generateExplorerHtml, initializeExplorer,
     fileTabsDisplay;
 
@@ -35,6 +35,8 @@ if (isElectron) {
     const electron = require('electron');
     ipcRenderer = electron.ipcRenderer;
     fs = require('fs');
+    child_process = require('child_process');
+    path = require('path');
     generateHtmlFromVideoAssembly = require('./timelineDisplay');
     generateOverlayImagesHtml = require('./overlayImagesDisplay');
     generateMixedAudioHtml = require('./mixedAudioDisplay');
@@ -69,6 +71,10 @@ let activeTab = 'Timeline';
 // Store the current video assembly data and file path
 let currentVideoAssemblyData = null;
 let currentVideoAssemblyPath = null;
+
+// Variables for render process
+let renderProcess = null;
+let isRendering = false;
 
 // Function to update the editor content based on the active tab
 function updateEditorContent() {
@@ -490,6 +496,135 @@ function initializeResizeHandle() {
   });
 }
 
+// Function to handle the render button click
+function handleRenderButtonClick() {
+  const renderButton = document.getElementById('render-button');
+  const terminal = document.getElementById('terminal');
+  
+  if (!isRendering) {
+    // Start rendering
+    startRender(renderButton, terminal);
+  } else {
+    // Stop rendering
+    stopRender(renderButton, terminal);
+  }
+}
+
+// Function to start the render process
+function startRender(renderButton, terminal) {
+  if (isRendering) return;
+  
+  isRendering = true;
+  
+  // Update button appearance
+  renderButton.textContent = '■'; // Square for stop
+  renderButton.classList.add('running');
+  renderButton.title = 'Stop Render';
+  
+  // Clear terminal
+  terminal.innerHTML = '<p>Starting render process...</p>';
+  
+  // Path to the Python script
+  const pythonScriptPath = '/Users/david/Documents/projects/compozeFlow.org/compozeFlow/render_engine/main.py';
+  
+  try {
+    // Spawn the Python process
+    renderProcess = child_process.spawn('python', [pythonScriptPath]);
+    
+    // Handle stdout data
+    renderProcess.stdout.on('data', (data) => {
+      const output = data.toString();
+      terminal.innerHTML += `<p>${output}</p>`;
+      // Auto-scroll to bottom
+      terminal.scrollTop = terminal.scrollHeight;
+    });
+    
+    // Handle stderr data
+    renderProcess.stderr.on('data', (data) => {
+      const output = data.toString();
+      terminal.innerHTML += `<p style="color: #ff6666;">${output}</p>`;
+      // Auto-scroll to bottom
+      terminal.scrollTop = terminal.scrollHeight;
+    });
+    
+    // Handle process completion
+    renderProcess.on('close', (code) => {
+      isRendering = false;
+      renderProcess = null;
+      
+      if (code === 0) {
+        // Success
+        terminal.innerHTML += '<p>Render completed successfully.</p>';
+        renderButton.classList.remove('running');
+        renderButton.classList.remove('failed');
+        renderButton.textContent = '▶';
+        renderButton.title = 'Render Video';
+      } else {
+        // Failure
+        terminal.innerHTML += `<p style="color: #ff6666;">Render process exited with code ${code}</p>`;
+        renderButton.classList.remove('running');
+        renderButton.classList.add('failed');
+        renderButton.textContent = '▶';
+        renderButton.title = 'Last render failed';
+      }
+      
+      // Auto-scroll to bottom
+      terminal.scrollTop = terminal.scrollHeight;
+    });
+    
+    // Handle process error
+    renderProcess.on('error', (err) => {
+      isRendering = false;
+      renderProcess = null;
+      terminal.innerHTML += `<p style="color: #ff6666;">Error starting render process: ${err.message}</p>`;
+      renderButton.classList.remove('running');
+      renderButton.classList.add('failed');
+      renderButton.textContent = '▶';
+      renderButton.title = 'Last render failed';
+      
+      // Auto-scroll to bottom
+      terminal.scrollTop = terminal.scrollHeight;
+    });
+    
+  } catch (error) {
+    isRendering = false;
+    terminal.innerHTML += `<p style="color: #ff6666;">Error: ${error.message}</p>`;
+    renderButton.classList.remove('running');
+    renderButton.classList.add('failed');
+    renderButton.textContent = '▶';
+    renderButton.title = 'Last render failed';
+  }
+}
+
+// Function to stop the render process
+function stopRender(renderButton, terminal) {
+  if (!isRendering || !renderProcess) return;
+  
+  try {
+    // Kill the process
+    if (process.platform === 'win32') {
+      // On Windows, we need to use taskkill to kill the process tree
+      child_process.exec(`taskkill /pid ${renderProcess.pid} /t /f`);
+    } else {
+      // On Unix-like systems, we can kill the process group
+      process.kill(-renderProcess.pid, 'SIGTERM');
+    }
+    
+    terminal.innerHTML += '<p>Render process stopped by user.</p>';
+    
+    // Update button state
+    renderButton.classList.remove('running');
+    renderButton.textContent = '▶';
+    renderButton.title = 'Render Video';
+    
+    isRendering = false;
+    renderProcess = null;
+    
+  } catch (error) {
+    terminal.innerHTML += `<p style="color: #ff6666;">Error stopping render process: ${error.message}</p>`;
+  }
+}
+
 // Initialize the UI
 document.addEventListener('DOMContentLoaded', () => {
   console.log('Renderer process initialized');
@@ -499,6 +634,12 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Initialize the resize handle for the explorer
   initializeResizeHandle();
+  
+  // Initialize render button
+  const renderButton = document.getElementById('render-button');
+  if (renderButton) {
+    renderButton.addEventListener('click', handleRenderButtonClick);
+  }
 });
 
 // Listen for the current file path from the main process (only in Electron)
