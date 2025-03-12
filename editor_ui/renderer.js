@@ -527,6 +527,11 @@ function startRender(renderButton, terminal) {
   // Path to the Python script (using relative path since both are in the same base path)
   const pythonScriptPath = '../render_engine/main.py';
   
+  // Path to the Python virtual environment
+  const pythonVenvPath = process.platform === 'win32'
+    ? '../render_engine/venv/Scripts/python.exe'  // Windows path
+    : '../render_engine/venv/bin/python';         // macOS/Linux path
+  
   try {
     // Check if we have a current video assembly path
     if (!currentVideoAssemblyPath) {
@@ -539,15 +544,25 @@ function startRender(renderButton, terminal) {
       return;
     }
     
+    // Check if the virtual environment exists
+    const venvExists = fs.existsSync(path.resolve(__dirname, pythonVenvPath));
+    
+    // Use the virtual environment Python if it exists, otherwise fall back to system Python
+    const pythonExecutable = venvExists ? pythonVenvPath : 'python';
+    
     // Display the command being executed
-    const command = `python ${pythonScriptPath} ${currentVideoAssemblyPath}`;
+    const command = `${pythonExecutable} ${pythonScriptPath} ${currentVideoAssemblyPath}`;
     terminal.innerHTML += `<p style="color: #88ccff;">Executing: ${command}</p>`;
+    terminal.innerHTML += venvExists
+      ? `<p>Using Python from virtual environment: ${pythonVenvPath}</p>`
+      : `<p style="color: #ffcc66;">Warning: Virtual environment not found, falling back to system Python</p>`;
     
     // Spawn the Python process with the current video assembly file path as argument
     // Use shell option to ensure proper path handling
-    renderProcess = child_process.spawn('python', [pythonScriptPath, currentVideoAssemblyPath], {
+    renderProcess = child_process.spawn(pythonExecutable, [pythonScriptPath, currentVideoAssemblyPath], {
       shell: process.platform === 'win32', // Use shell on Windows for better path handling
-      env: process.env // Pass environment variables
+      env: process.env, // Pass environment variables
+      cwd: path.resolve(__dirname) // Set current working directory to ensure relative paths work
     });
     
     // Handle stdout data
