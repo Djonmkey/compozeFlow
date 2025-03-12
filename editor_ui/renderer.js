@@ -524,12 +524,23 @@ function startRender(renderButton, terminal) {
   // Clear terminal
   terminal.innerHTML = '<p>Starting render process...</p>';
   
-  // Path to the Python script
-  const pythonScriptPath = '/Users/david/Documents/projects/compozeFlow.org/compozeFlow/render_engine/main.py';
+  // Path to the Python script (using relative path since both are in the same base path)
+  const pythonScriptPath = '../render_engine/main.py';
   
   try {
-    // Spawn the Python process
-    renderProcess = child_process.spawn('python', [pythonScriptPath]);
+    // Check if we have a current video assembly path
+    if (!currentVideoAssemblyPath) {
+      terminal.innerHTML += `<p style="color: #ff6666;">Error: No video assembly file is currently loaded.</p>`;
+      isRendering = false;
+      renderButton.classList.remove('running');
+      renderButton.classList.add('failed');
+      renderButton.textContent = '▶';
+      renderButton.title = 'Render failed - no file loaded';
+      return;
+    }
+    
+    // Spawn the Python process with the current video assembly file path as argument
+    renderProcess = child_process.spawn('python', [pythonScriptPath, currentVideoAssemblyPath]);
     
     // Handle stdout data
     renderProcess.stdout.on('data', (data) => {
