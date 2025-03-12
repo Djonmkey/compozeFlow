@@ -636,6 +636,65 @@ function stopRender(renderButton, terminal) {
   }
 }
 
+// Function to initialize the resize handle for the terminal section
+function initializeTerminalResizeHandle() {
+  const resizeHandle = document.getElementById('terminal-resize-handle');
+  const terminal = document.getElementById('terminal');
+  const editorContent = document.getElementById('editor-content');
+  
+  let isResizing = false;
+  let startY = 0;
+  let startHeight = 0;
+  
+  // Mouse down event on the resize handle
+  resizeHandle.addEventListener('mousedown', (e) => {
+    isResizing = true;
+    startY = e.clientY;
+    startHeight = terminal.offsetHeight;
+    
+    // Add a class to the body to indicate resizing is in progress
+    document.body.classList.add('resizing');
+    
+    // Prevent text selection during resize
+    e.preventDefault();
+  });
+  
+  // Mouse move event to handle resizing
+  document.addEventListener('mousemove', (e) => {
+    if (!isResizing) return;
+    
+    // Calculate the new height based on mouse movement (moving up decreases terminal height)
+    const newHeight = startHeight - (e.clientY - startY);
+    
+    // Apply min and max constraints
+    const minHeight = 50;
+    const maxHeight = window.innerHeight * 0.8; // 80% of viewport height
+    const constrainedHeight = Math.max(minHeight, Math.min(maxHeight, newHeight));
+    
+    // Update the terminal height
+    terminal.style.height = `${constrainedHeight}px`;
+  });
+  
+  // Mouse up event to stop resizing
+  document.addEventListener('mouseup', () => {
+    if (isResizing) {
+      isResizing = false;
+      document.body.classList.remove('resizing');
+      
+      // Update the terminal with a message
+      terminal.innerHTML += `<p>Terminal height adjusted to ${terminal.offsetHeight}px</p>`;
+      
+      // Auto-scroll to bottom
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+  });
+  
+  // Handle window resize to ensure the resize handle stays in the correct position
+  window.addEventListener('resize', () => {
+    // No position updates needed for the terminal resize handle as it's relatively positioned
+  });
+}
+
 // Initialize the UI
 document.addEventListener('DOMContentLoaded', () => {
   console.log('Renderer process initialized');
@@ -643,8 +702,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Load and display installed plugins
   loadInstalledPlugins();
   
-  // Initialize the resize handle for the explorer
-  initializeResizeHandle();
+  // Initialize the resize handles
+  initializeResizeHandle(); // For explorer
+  initializeTerminalResizeHandle(); // For terminal
   
   // Initialize render button
   const renderButton = document.getElementById('render-button');

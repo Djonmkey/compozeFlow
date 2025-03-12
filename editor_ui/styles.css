@@ -437,9 +437,30 @@ body.resizing {
   overflow: auto;
 }
 
+/* Terminal resize handle */
+#terminal-resize-handle {
+  height: 8px;
+  background-color: #ccc;
+  cursor: row-resize;
+  width: 100%;
+  position: relative;
+  z-index: 10;
+  /* Add a subtle visual indicator */
+  background-image: linear-gradient(0deg, transparent 0%, rgba(0,0,0,0.1) 50%, transparent 100%);
+  /* Add transition for smoother visual updates */
+  transition: background-color 0.2s;
+}
+
+#terminal-resize-handle:hover,
+#terminal-resize-handle:active {
+  background-color: #999;
+}
+
 /* Terminal section (bottom) */
 #terminal {
   height: 150px;
+  min-height: 50px;
+  max-height: 80vh; /* Limit to 80% of viewport height */
   border-top: 1px solid #ccc;
   background-color: #111;
   color: #eee;
