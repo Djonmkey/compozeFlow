@@ -539,21 +539,47 @@ function startRender(renderButton, terminal) {
       return;
     }
     
+    // Display the command being executed
+    const command = `python ${pythonScriptPath} ${currentVideoAssemblyPath}`;
+    terminal.innerHTML += `<p style="color: #88ccff;">Executing: ${command}</p>`;
+    
     // Spawn the Python process with the current video assembly file path as argument
-    renderProcess = child_process.spawn('python', [pythonScriptPath, currentVideoAssemblyPath]);
+    // Use shell option to ensure proper path handling
+    renderProcess = child_process.spawn('python', [pythonScriptPath, currentVideoAssemblyPath], {
+      shell: process.platform === 'win32', // Use shell on Windows for better path handling
+      env: process.env // Pass environment variables
+    });
     
     // Handle stdout data
     renderProcess.stdout.on('data', (data) => {
-      const output = data.toString();
-      terminal.innerHTML += `<p>${output}</p>`;
+      // Process the output to handle line breaks properly
+      const output = data.toString().trim();
+      const lines = output.split('\n');
+      
+      // Add each line as a separate paragraph for better readability
+      lines.forEach(line => {
+        if (line.trim()) {
+          terminal.innerHTML += `<p>${line}</p>`;
+        }
+      });
+      
       // Auto-scroll to bottom
       terminal.scrollTop = terminal.scrollHeight;
     });
     
     // Handle stderr data
     renderProcess.stderr.on('data', (data) => {
-      const output = data.toString();
-      terminal.innerHTML += `<p style="color: #ff6666;">${output}</p>`;
+      // Process the output to handle line breaks properly
+      const output = data.toString().trim();
+      const lines = output.split('\n');
+      
+      // Add each line as a separate paragraph with error styling
+      lines.forEach(line => {
+        if (line.trim()) {
+          terminal.innerHTML += `<p style="color: #ff6666;">${line}</p>`;
+        }
+      });
+      
       // Auto-scroll to bottom
       terminal.scrollTop = terminal.scrollHeight;
     });
@@ -565,14 +591,23 @@ function startRender(renderButton, terminal) {
       
       if (code === 0) {
         // Success
-        terminal.innerHTML += '<p>Render completed successfully.</p>';
+        terminal.innerHTML += '<p style="color: #88ff88;">Render completed successfully.</p>';
         renderButton.classList.remove('running');
         renderButton.classList.remove('failed');
         renderButton.textContent = '▶';
         renderButton.title = 'Render Video';
+      } else if (code === -2) {
+        // Process was terminated by a signal (likely SIGINT)
+        terminal.innerHTML += `<p style="color: #ffcc66;">Render process was terminated (code ${code}). This typically happens when the process is interrupted.</p>`;
+        terminal.innerHTML += `<p>Check that Python is installed correctly and the script path is valid.</p>`;
+        renderButton.classList.remove('running');
+        renderButton.classList.add('failed');
+        renderButton.textContent = '▶';
+        renderButton.title = 'Last render was interrupted';
       } else {
-        // Failure
+        // Other failure
         terminal.innerHTML += `<p style="color: #ff6666;">Render process exited with code ${code}</p>`;
+        terminal.innerHTML += `<p>This may indicate an error in the Python script or missing dependencies.</p>`;
         renderButton.classList.remove('running');
         renderButton.classList.add('failed');
         renderButton.textContent = '▶';
@@ -587,7 +622,23 @@ function startRender(renderButton, terminal) {
     renderProcess.on('error', (err) => {
       isRendering = false;
       renderProcess = null;
+      
+      // Display detailed error information
       terminal.innerHTML += `<p style="color: #ff6666;">Error starting render process: ${err.message}</p>`;
+      
+      // Add more helpful information based on the error
+      if (err.code === 'ENOENT') {
+        terminal.innerHTML += `<p>Python executable not found. Please ensure Python is installed and in your PATH.</p>`;
+        terminal.innerHTML += `<p>Command attempted: python ${pythonScriptPath}</p>`;
+      } else if (err.code === 'EACCES') {
+        terminal.innerHTML += `<p>Permission denied. Check that you have execute permissions for the Python script.</p>`;
+      } else {
+        terminal.innerHTML += `<p>Error code: ${err.code || 'unknown'}</p>`;
+      }
+      
+      // Suggest checking the script path
+      terminal.innerHTML += `<p>Verify that the script exists at: ${pythonScriptPath}</p>`;
+      
       renderButton.classList.remove('running');
       renderButton.classList.add('failed');
       renderButton.textContent = '▶';
