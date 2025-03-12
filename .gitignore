@@ -175,3 +175,4 @@ compozeflow/temp_video_pipeline_clip_*
 *.mp4
 editor_ui/node_modules/*
 editor_ui/video_assemblies/*
+render_engine/.vscode/launch.json

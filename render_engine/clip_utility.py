@@ -6,7 +6,7 @@ from text_helper import append_watermark
 def load_video_clip(video_clip_meta, aspect_ratio, quick_and_dirty, video_clips_to_close, source_file_watermark = False):
     return_video_clip = None
     
-    video_path = video_clip_meta["clip_file_pathname"]
+    video_path = video_clip_meta["path"]
 
     playback_speed = 1
 

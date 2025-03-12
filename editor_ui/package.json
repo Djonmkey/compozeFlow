@@ -5,7 +5,7 @@
     "description": "compozeFlow Video Assembly Editor.",
     "main": "main.js",
     "scripts": {
-        "start": "electron .",
+        "start": "cross-env NODE_ENV=development electron .",
         "build": "node build.js",
         "dev": "cross-env NODE_ENV=development npm run build && cross-env NODE_ENV=development npm start",
         "prod": "npm run build && cross-env NODE_ENV=production electron ."

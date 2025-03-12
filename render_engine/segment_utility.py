@@ -2,7 +2,7 @@ from scene_utility import generate_video_scene
 from moviepy import concatenate_videoclips
 
 def generate_video_segment(
-    manifest, segment, quick_and_dirty, manifest_last_modified_timestamp, aspect_ratio, source_file_watermark = False
+    video_assembly, cut, segment, quick_and_dirty, manifest_last_modified_timestamp, aspect_ratio, source_file_watermark = False
 ):
     # Sort scenes by sequence value before looping
     sorted_scenes = sorted(
@@ -12,7 +12,15 @@ def generate_video_segment(
 
     scene_video_clips = []
 
+    render_only = cut.get("render_only", {})
+    render_only_scene = render_only.get("scene_sequence")
+
     for scene in sorted_scenes:
+        scene_sequence = scene["sequence"]
+
+        if render_only_scene and scene_sequence != render_only_scene:
+            continue
+        
         # If we have an image defined at the segment, then copy it to the scene
         if "overlay_images" in segment:
             if "overlay_images" not in scene:

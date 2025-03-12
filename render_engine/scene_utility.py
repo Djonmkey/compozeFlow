@@ -148,7 +148,7 @@ def load_audio_clips(audio_clip_list, clips_to_close):
     audio_clips = []
 
     for audio in audio_clip_list:
-        audio_path = audio["clip_file_pathname"]
+        audio_path = audio["path"]
 
         audio_clip = AudioFileClip(audio_path)
         clips_to_close.append(audio_clip)

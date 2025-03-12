@@ -49,55 +49,121 @@ def get_video_assembly_file_pathname() -> str:
     return file_path
 
 
-def check_file_existence(video_assembly):
+def check_file_existence(video_assembly: Dict[str, Any]) -> bool:
+    """
+    Check if all files referenced in the video assembly exist.
+    
+    Args:
+        video_assembly: Dictionary containing the video assembly data
+        
+    Returns:
+        bool: True if all files exist, False if any files are missing
+    """
+    # Helper function to collect file paths from overlay images
+    def collect_image_paths(overlay_images):
+        paths = []
+        for image in overlay_images:
+            path = image.get("image_file_pathname")
+            if path:  # Only append if not None or empty
+                paths.append(path)
+        return paths
+    
+    # Helper function to collect file paths from timeline clips
+    def collect_clip_paths(timeline_clips):
+        paths = []
+        for clip in timeline_clips:
+            path = clip.get("clip_file_pathname")
+            if path:  # Only append if not None or empty
+                paths.append(path)
+        return paths
+    
     file_paths = []
-    all_exist = True  # Assume all files exist initially
-
-    # Collect all file paths
-    if "cut" in video_assembly and "segments" in video_assembly["cut"]:
-        for segment in video_assembly["cut"]["segments"]:
-            if "overlay_images" in segment:
-                for image in segment["overlay_images"]:
-                    file_paths.append(image.get("image_file_pathname"))
-            if "scenes" in segment:
-                for scene in segment["scenes"]:
-                    if "timeline_clips" in scene:
-                        for clip in scene["timeline_clips"]:
-                            file_paths.append(clip.get("clip_file_pathname"))
-
+    
+    # Safely access the cut dictionary
+    cut = video_assembly.get("cut", {})
+    segments = cut.get("segments", [])
+    
+    # Get render_only filters if they exist
+    render_only = cut.get("render_only", {})
+    target_segment = render_only.get("segment_sequence")
+    target_scene = render_only.get("scene_sequence")
+    
+    # Process each segment
+    for segment in segments:
+        segment_sequence = segment.get("sequence")
+        
+        # Skip segments that don't match the target segment (if filtering)
+        if target_segment and segment_sequence != target_segment:
+            continue
+            
+        # Add overlay image paths
+        file_paths.extend(collect_image_paths(segment.get("overlay_images", [])))
+        
+        # Process scenes in this segment
+        for scene in segment.get("scenes", []):
+            scene_sequence = scene.get("sequence")
+            
+            # Skip scenes that don't match the target scene (if filtering)
+            if target_scene and scene_sequence != target_scene:
+                continue
+                
+            # Add timeline clip paths
+            file_paths.extend(collect_clip_paths(scene.get("timeline_clips", [])))
+    
     # Check for missing files
+    missing_files = []
     for path in file_paths:
-        if path and not os.path.exists(path):
+        if not os.path.exists(path):
             print(f"File not found: {path}")
-            all_exist = False  # At least one file is missing
-
-    return all_exist
+            missing_files.append(path)
+    
+    # Return True if all files exist, False otherwise
+    return len(missing_files) == 0
 
 def update_file_pathnames_with_common_base_file_path(video_assembly: Dict[str, Any]) -> Dict[str, Any]:
     """
     Updates all *_file_pathname fields in the JSON structure by removing
-    the common base file path if the 'update_file_pathnames_with_common_base_file_path' 
-    setting is enabled.
+    the content source paths from the 'cut.content_sources' array.
 
-    :param json_data: The JSON data as a dictionary.
-    :return: The updated JSON dictionary.
+    :param video_assembly: The video assembly data as a dictionary.
+    :return: The updated video assembly dictionary.
     """
     settings = video_assembly.get("composeflow.org", {}).get("settings", {})
 
     # Check if the update setting is enabled
-    if not settings.get("update_file_pathnames_with_common_base_file_path", False):
+    if not settings.get("update_paths_with_content_source_paths", False):
         return video_assembly
 
-    common_base_path = settings.get("common_base_file_path", "").rstrip("/") + "/"
+    # Get content sources from the cut element
+    content_sources = video_assembly.get("cut", {}).get("content_sources", [])
+    
+    # If no content sources, return unchanged
+    if not content_sources:
+        return video_assembly
+    
+    # Collect all paths from content sources
+    source_paths = []
+    for source in content_sources:
+        if "path" in source and source["path"]:
+            # Ensure path ends with a slash for proper replacement
+            path = source["path"].rstrip("/") + "/"
+            source_paths.append(path)
+    
+    # Sort paths by length (descending) to ensure longer paths are processed first
+    # This prevents issues where a shorter path might be a prefix of a longer path
+    source_paths.sort(key=len, reverse=True)
 
     def process_paths(obj: Any):
         """ Recursively traverse JSON structure and update *_file_pathname fields. """
         if isinstance(obj, dict):
             for key, value in obj.items():
-                if isinstance(value, str) and key.endswith("_file_pathname"):
-                    if value.startswith(common_base_path):
-                        new_path = value[len(common_base_path):]
-                        obj[key] = new_path.lstrip("/")  # Ensure it does not start with '/'
+                if isinstance(value, str) and key == "path" and ',' not in value:
+                    # Try each content source path
+                    for path in source_paths:
+                        if value.startswith(path) and value != path and value.endswith("/") == False and value.endswith("\\") == False:
+                            new_path = value[len(path):]
+                            obj[key] = new_path.lstrip("/")  # Ensure it does not start with '/'
+                            break  # Stop after first match
                 else:
                     process_paths(value)
         elif isinstance(obj, list):
@@ -110,30 +176,60 @@ def update_file_pathnames_with_common_base_file_path(video_assembly: Dict[str, A
 
 def ensure_update_file_pathnames(video_assembly: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Updates all *_file_pathname elements in the JSON data by prefixing them with 
-    common_base_file_path if they contain a relative path.
+    Updates all *_file_pathname elements in the JSON data by prefixing them with
+    the appropriate content source path if they contain a relative path.
 
-    :param json_data: Dictionary containing JSON data with file paths.
-    :return: Updated JSON data with fully qualified file paths.
+    :param video_assembly: Dictionary containing video assembly data with file paths.
+    :return: Updated video assembly data with fully qualified file paths.
     """
-    common_base_file_path = video_assembly.get("composeflow.org", {}).get("settings", {}).get("common_base_file_path", "")
-
-    if not common_base_file_path:
-        return video_assembly  # No common base path, nothing to update.
-
+    # Get content sources from the cut element
+    content_sources = video_assembly.get("cut", {}).get("content_sources", [])
+    
+    # Create a mapping of file extensions to content source paths
+    # This helps determine which content source to use for each file type
+    extension_to_path = {}
+    default_path = None
+    
+    for source in content_sources:
+        if "path" not in source or not source["path"]:
+            continue
+            
+        path = source["path"]
+        
+        # If this is marked as the default source, save it
+        if source.get("is_default", False):
+            default_path = path
+            
+        # Map file extensions to this path
+        if "file_extensions" in source:
+            for ext in source["file_extensions"]:
+                if ext.startswith("."):
+                    extension_to_path[ext] = path
+                else:
+                    extension_to_path["." + ext] = path
+    
+    # If no default path was specified, use the first path
+    if not default_path and content_sources and "path" in content_sources[0]:
+        default_path = content_sources[0]["path"]
+    
     def update_paths(obj: Any):
-        """Recursively updates file path values in the JSON object."""
+        """Recursively updates file path values in the JSON object using content sources."""
         if isinstance(obj, dict):
             for key, value in obj.items():
                 if key.endswith("_file_pathname") and isinstance(value, str):
                     if not os.path.isabs(value):  # Only update relative paths
-                        obj[key] = os.path.normpath(os.path.join(common_base_file_path, value))
+                        # Determine which content source path to use based on file extension
+                        _, ext = os.path.splitext(value)
+                        source_path = extension_to_path.get(ext, default_path)
+                        
+                        if source_path:
+                            obj[key] = os.path.normpath(os.path.join(source_path, value))
                 else:
                     update_paths(value)
         elif isinstance(obj, list):
             for item in obj:
                 update_paths(item)
-
+    
     update_paths(video_assembly)
     return video_assembly
 
@@ -143,7 +239,7 @@ def main():
     video_assembly = load_json(video_assembly_file_pathname)
     video_assembly_original_json_text = json.dumps(video_assembly)
     
-    video_assembly = update_file_pathnames_with_common_base_file_path(video_assembly)
+    #video_assembly = update_file_pathnames_with_common_base_file_path(video_assembly)
     video_assembly_updated_json_text = json.dumps(video_assembly)
     
     # Check if the JSON was updated
@@ -155,7 +251,7 @@ def main():
     video_assembly_last_modified_timestamp = get_last_modified_timestamp(video_assembly_file_pathname)
 
     # Ensure all file paths are fully qualified
-    video_assembly = ensure_update_file_pathnames(video_assembly)
+    # video_assembly = ensure_update_file_pathnames(video_assembly)
 
     # Access the "cut"  safely
     cut = video_assembly.get("cut", {})

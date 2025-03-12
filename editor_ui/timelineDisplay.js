@@ -66,7 +66,8 @@ function generateHtmlFromVideoAssembly(data) {
 
             if (timelineClipType === "video") {
                 timelineClips.forEach(clip => {
-                    const sequence = clip.order || "N/A";
+                    // Ensure sequence is properly displayed as the Order value
+                    const sequence = clip.sequence !== undefined ? clip.sequence : "N/A";
                     const clipPath = clip.path || "Unknown Path";
 
                     let clipStart = "";
@@ -132,7 +133,8 @@ function generateHtmlFromVideoAssembly(data) {
                 });
             } else if (timelineClipType === "image") {
                 timelineClips.forEach(image => {
-                    const sequence = image.order || "N/A";
+                    // Ensure sequence is properly displayed as the Order value
+                    const sequence = image.sequence !== undefined ? image.sequence : "N/A";
                     const clipPath = image.path || "Unknown Path";
 
                     const clipStart = "Start of clip";

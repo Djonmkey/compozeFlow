@@ -143,7 +143,7 @@ def generate_video_cut(video_assembly, cut, video_assembly_last_modified_timesta
 
     # Loop through each aspect ratio
     for aspect_ratio in cut["aspect_ratios"]:
-        video_output_file_pathname = aspect_ratio["output_file_pathname"]
+        video_output_file_pathname = aspect_ratio["output_pathname"]
 
         if video_file_exists(video_output_file_pathname, video_assembly_last_modified_timestamp) == False:
             html_output_file_pathname = os.path.splitext(video_output_file_pathname)[0] + ".video_assembly_timeline.html"
@@ -158,12 +158,20 @@ def generate_video_cut(video_assembly, cut, video_assembly_last_modified_timesta
 
             video_clips_to_close = []
 
+            render_only = cut.get("render_only", {})
+            render_only_segment = render_only.get("segment_sequence")
+
             for segment in sorted_segments:
+                segment_sequence = segment["sequence"]
+
+                if render_only_segment and segment_sequence != render_only_segment:
+                    continue
+
                 print(f"  Segment Title: {segment['title']}")
                 print(f"  Min Length: {segment['min_len_seconds']} seconds")
                 print(f"  Max Length: {segment['max_len_seconds']} seconds") 
 
-                segment_video = generate_video_segment(video_assembly, segment, quick_and_dirty, video_assembly_last_modified_timestamp, aspect_ratio_text, source_file_watermark)
+                segment_video = generate_video_segment(video_assembly, cut, segment, quick_and_dirty, video_assembly_last_modified_timestamp, aspect_ratio_text, source_file_watermark)
 
                 if segment_video != None:
                     segments_for_aspect_ratio.append(segment_video)
