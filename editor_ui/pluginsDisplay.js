@@ -6,6 +6,8 @@
  */
 
 // Import functionality from other modules
+const { FEATURE_FLAGS } = require('./featureFlags');
+
 const {
     setupDependencies: setupUIDependencies,
     generatePluginsHtml,
@@ -38,6 +40,12 @@ setupDialogsDependencies(loadPluginsData, addPlaceholderPlugins);
  * Initializes the plugins mode with event handlers
  */
 function initializePlugins() {
+    // Check if plugins feature is enabled
+    if (!FEATURE_FLAGS.ENABLE_PLUGINS) {
+        console.log('Plugins feature is disabled by feature flag');
+        return;
+    }
+    
     // Add styles for plugins
     addPluginsStyles();
     

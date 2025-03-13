@@ -5,6 +5,7 @@
  */
 
 const fs = require('fs');
+const { FEATURE_FLAGS } = require('./featureFlags');
 
 // Data management functions (will be set via dependency injection)
 let loadPluginsDataFunc;
@@ -26,6 +27,12 @@ function setupDependencies(loadData, addPlaceholders) {
  * @param {string} pluginName - The display name of the plugin
  */
 function showUninstallPluginDialog(pluginId, pluginName) {
+    // Check if plugins feature is enabled
+    if (!FEATURE_FLAGS.ENABLE_PLUGINS) {
+        console.log('Plugins feature is disabled by feature flag');
+        return;
+    }
+    
     // Create a confirmation dialog
     const dialogHtml = `
         <div class="dialog-overlay">
@@ -121,6 +128,12 @@ function showUninstallPluginDialog(pluginId, pluginName) {
  * Shows a dialog to install a plugin from a URL or file
  */
 function showInstallPluginDialog() {
+    // Check if plugins feature is enabled
+    if (!FEATURE_FLAGS.ENABLE_PLUGINS) {
+        console.log('Plugins feature is disabled by feature flag');
+        return;
+    }
+    
     // Create a dialog
     const dialogHtml = `
         <div class="dialog-overlay">

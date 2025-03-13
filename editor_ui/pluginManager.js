@@ -6,11 +6,18 @@
 
 // Import required modules
 const electronSetup = require('./electronSetup');
+const { FEATURE_FLAGS } = require('./featureFlags');
 
 /**
  * Function to load and display installed plugins
  */
 async function loadInstalledPlugins() {
+  // Check if plugins feature is enabled
+  if (!FEATURE_FLAGS.ENABLE_PLUGINS) {
+    console.log('Plugins feature is disabled by feature flag');
+    return;
+  }
+
   // Get the container for installed plugin icons
   const installedPluginsContainer = document.getElementById('installed-plugins-icons');
   

@@ -6,6 +6,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { FEATURE_FLAGS } = require('./featureFlags');
 
 // UI display functions (will be set via dependency injection)
 let displayInstalledPluginsFunc;
@@ -25,6 +26,12 @@ function setupDependencies(displayInstalled, displayAvailable) {
  * Loads plugins data from JSON files
  */
 function loadPluginsData() {
+    // Check if plugins feature is enabled
+    if (!FEATURE_FLAGS.ENABLE_PLUGINS) {
+        console.log('Plugins feature is disabled by feature flag');
+        return;
+    }
+    
     // Check if we're running in Electron
     if (typeof window !== 'undefined' && window.process && window.process.type === 'renderer') {
         try {
@@ -126,6 +133,12 @@ function addPlaceholderPlugins() {
  * @param {Element} pluginItem - The plugin item element
  */
 function togglePluginActive(pluginId, pluginItem) {
+    // Check if plugins feature is enabled
+    if (!FEATURE_FLAGS.ENABLE_PLUGINS) {
+        console.log('Plugins feature is disabled by feature flag');
+        return;
+    }
+    
     // Check if we're running in Electron
     if (typeof window !== 'undefined' && window.process && window.process.type === 'renderer') {
         try {
@@ -201,6 +214,12 @@ function togglePluginActive(pluginId, pluginItem) {
  * @param {Array} availablePlugins - Array of available plugins
  */
 function installPlugin(pluginId, availablePlugins) {
+    // Check if plugins feature is enabled
+    if (!FEATURE_FLAGS.ENABLE_PLUGINS) {
+        console.log('Plugins feature is disabled by feature flag');
+        return;
+    }
+    
     // Find the plugin in available plugins
     const plugin = availablePlugins.find(p => p.id === pluginId);
     if (!plugin) return;

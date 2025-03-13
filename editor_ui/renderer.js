@@ -13,6 +13,7 @@ const uiManager = require('./uiManager');
 const videoAssemblyManager = require('./videoAssemblyManager');
 const renderProcessManager = require('./renderProcessManager');
 const pluginManager = require('./pluginManager');
+const { FEATURE_FLAGS } = require('./featureFlags');
 
 // DOM elements
 const editorContent = document.getElementById('editor-content');
@@ -67,8 +68,24 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize tabs
   uiManager.initializeTabs();
   
-  // Load and display installed plugins
-  pluginManager.loadInstalledPlugins();
+  // Load and display installed plugins if the feature is enabled
+  if (FEATURE_FLAGS.ENABLE_PLUGINS) {
+    pluginManager.loadInstalledPlugins();
+  } else {
+    console.log('Plugins feature is disabled by feature flag');
+    
+    // Hide the plugins icon and container when the feature is disabled
+    const pluginsIcon = document.getElementById('plugins-icon');
+    const installedPluginsContainer = document.getElementById('installed-plugins-icons');
+    
+    if (pluginsIcon) {
+      pluginsIcon.style.display = 'none';
+    }
+    
+    if (installedPluginsContainer) {
+      installedPluginsContainer.style.display = 'none';
+    }
+  }
   
   // Initialize the resize handles
   uiManager.initializeResizeHandle(); // For explorer

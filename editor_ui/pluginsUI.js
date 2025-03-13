@@ -4,6 +4,9 @@
  * Handles the UI generation and display for the plugins feature.
  */
 
+// Import feature flags
+const { FEATURE_FLAGS } = require('./featureFlags');
+
 // We'll use dependency injection to avoid circular dependencies
 let togglePluginActiveFunc;
 let installPluginFunc;
@@ -26,6 +29,12 @@ function setupDependencies(toggleActive, install, showUninstall) {
  * @returns {string} HTML content for the plugins explorer
  */
 function generatePluginsHtml() {
+    // Check if plugins feature is enabled
+    if (!FEATURE_FLAGS.ENABLE_PLUGINS) {
+        console.log('Plugins feature is disabled by feature flag');
+        return '<div class="explorer-container"><div class="explorer-empty">Plugins feature is currently disabled.</div></div>';
+    }
+    
     let html = '<div class="explorer-container plugins-mode">';
     
     // Add plugins header
@@ -85,6 +94,12 @@ function generatePluginsHtml() {
  * @param {Array} availablePlugins - Array of available plugins (for details)
  */
 function displayInstalledPlugins(installedPlugins, availablePlugins) {
+    // Check if plugins feature is enabled
+    if (!FEATURE_FLAGS.ENABLE_PLUGINS) {
+        console.log('Plugins feature is disabled by feature flag');
+        return;
+    }
+    
     const container = document.getElementById('installed-plugins-list');
     
     if (installedPlugins.length === 0) {
@@ -202,6 +217,12 @@ function displayInstalledPlugins(installedPlugins, availablePlugins) {
  * @param {Array} installedPlugins - Array of installed plugins (to check if already installed)
  */
 function displayAvailablePlugins(availablePlugins, installedPlugins) {
+    // Check if plugins feature is enabled
+    if (!FEATURE_FLAGS.ENABLE_PLUGINS) {
+        console.log('Plugins feature is disabled by feature flag');
+        return;
+    }
+    
     const container = document.getElementById('available-plugins-list');
     
     if (availablePlugins.length === 0) {
@@ -291,6 +312,12 @@ function displayAvailablePlugins(availablePlugins, installedPlugins) {
  * @param {string} searchText - The text to search for
  */
 function filterPlugins(searchText) {
+    // Check if plugins feature is enabled
+    if (!FEATURE_FLAGS.ENABLE_PLUGINS) {
+        console.log('Plugins feature is disabled by feature flag');
+        return;
+    }
+    
     // Filter installed plugins
     const installedPlugins = document.querySelectorAll('#installed-plugins-list .plugin-item');
     filterPluginItems(installedPlugins, searchText);
@@ -320,6 +347,12 @@ function filterPluginItems(pluginItems, searchText) {
 
 // Add CSS for plugins mode
 function addPluginsStyles() {
+    // Check if plugins feature is enabled
+    if (!FEATURE_FLAGS.ENABLE_PLUGINS) {
+        console.log('Plugins feature is disabled by feature flag');
+        return;
+    }
+    
     const pluginsStyle = document.createElement('style');
     pluginsStyle.textContent = `
         .plugins-mode {
