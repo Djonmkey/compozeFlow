@@ -25,6 +25,25 @@ try {
 let currentVideoAssemblyData = null;
 let currentVideoAssemblyPath = null;
 
+// Function to update the toggle visuals
+function updateToggleVisuals(isHighQuality) {
+  const qualityKnob = document.querySelector('.quality-toggle-knob');
+  const quickLabel = document.querySelector('.quality-toggle-quick');
+  const highLabel = document.querySelector('.quality-toggle-high');
+  
+  if (!qualityKnob || !quickLabel || !highLabel) return;
+  
+  if (isHighQuality) {
+    qualityKnob.style.transform = 'translateX(77px)';
+    quickLabel.style.color = 'white';
+    highLabel.style.color = '#666';
+  } else {
+    qualityKnob.style.transform = 'translateX(0)';
+    quickLabel.style.color = '#666';
+    highLabel.style.color = 'white';
+  }
+}
+
 /**
  * Initializes the render options display
  * Creates the UI elements and sets up event handlers
@@ -54,13 +73,16 @@ function createRenderOptionsUI() {
     <div class="render-options-content">
     <div id="render-button" class="render-button" title="Render Video">▶</div>
       <div class="render-option">
-        <label class="render-quality-label">Render Options:</label>
-        <div class="toggle-switch">
-          <input type="checkbox" id="render-quality-toggle" class="toggle-input">
-          <label for="render-quality-toggle" class="toggle-label">
-            <span class="toggle-inner" data-on="High Quality" data-off="Quick Render"></span>
-            <span class="toggle-switch-handle"></span>
-          </label>
+        <label class="render-quality-label">Render Quality:</label>
+        <div class="quality-toggle-container">
+          <div class="quality-toggle-wrapper">
+            <input type="checkbox" id="render-quality-toggle" class="quality-toggle-input">
+            <div class="quality-toggle-slider">
+              <div class="quality-toggle-option quality-toggle-quick">Quick</div>
+              <div class="quality-toggle-option quality-toggle-high">High</div>
+              <div class="quality-toggle-knob"></div>
+            </div>
+          </div>
         </div>
       </div>
       
@@ -120,8 +142,35 @@ function addRenderOptionsEventListeners() {
   }
   
   // Quality toggle (High Quality / Quick Render)
-  // Quality toggle (High Quality / Quick Render)
   const qualityToggle = document.getElementById('render-quality-toggle');
+  const qualitySlider = document.querySelector('.quality-toggle-slider');
+  
+  // Add click event to the entire slider area
+  qualitySlider.addEventListener('click', () => {
+    // Toggle the checkbox state
+    qualityToggle.checked = !qualityToggle.checked;
+    
+    // Update visuals immediately
+    updateToggleVisuals(qualityToggle.checked);
+    
+    // Handle the data changes
+    if (currentVideoAssemblyData) {
+      // Ensure the settings object exists
+      ensureSettingsExist();
+      
+      // Update the flag
+      currentVideoAssemblyData['composeflow.org'].settings.quick_and_dirty = !qualityToggle.checked;
+      
+      // Save the changes
+      saveVideoAssemblyData();
+      
+      // Update the terminal with a message
+      const terminal = document.getElementById('terminal');
+      terminal.innerHTML += `<p>Render quality set to ${qualityToggle.checked ? 'High Quality' : 'Quick Render'}</p>`;
+    }
+  });
+  
+  // Keep the original change event for compatibility
   qualityToggle.addEventListener('change', () => {
     if (!currentVideoAssemblyData) return;
     
@@ -238,6 +287,9 @@ function updateRenderOptions(videoAssemblyData, filePath) {
   const qualityToggle = document.getElementById('render-quality-toggle');
   qualityToggle.checked = settings.quick_and_dirty === undefined ? true : !settings.quick_and_dirty;
   
+  // Update the toggle appearance based on the checked state
+  updateToggleVisuals(qualityToggle.checked);
+  
   // Update the watermark checkbox
   const watermarkCheckbox = document.getElementById('watermark-checkbox');
   watermarkCheckbox.checked = settings.source_file_watermark === true;
@@ -347,82 +399,90 @@ function addRenderOptionsStyles() {
       gap: 8px;
     }
     
-    /* Toggle switch for render quality */
+    /* Modern toggle switch for render quality */
     .render-quality-label {
-      margin-right: 5px;
+      margin-right: 12px;
+      font-weight: 500;
+      color: #444;
     }
     
-    .toggle-switch {
+    .quality-toggle-container {
+      display: inline-flex;
+      align-items: center;
+    }
+    
+    .quality-toggle-wrapper {
       position: relative;
-      display: inline-block;
-      width: 140px;
-      height: 24px;
+      width: 160px;
+      height: 34px;
     }
     
-    .toggle-input {
+    .quality-toggle-input {
       opacity: 0;
       width: 0;
       height: 0;
-    }
-    
-    .toggle-label {
       position: absolute;
-      cursor: pointer;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: #f0f0f0;
-      border: 1px solid #ccc;
-      border-radius: 24px;
-      transition: .4s;
     }
     
-    .toggle-inner {
-      display: flex;
+    .quality-toggle-slider {
+      position: relative;
       width: 100%;
       height: 100%;
-      justify-content: space-between;
+      background: #f0f0f0;
+      border-radius: 17px;
+      display: flex;
       align-items: center;
-      font-size: 12px;
-      font-weight: bold;
-      transition: .4s;
+      cursor: pointer;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+      overflow: hidden;
     }
     
-    .toggle-inner:before {
-      content: attr(data-on);
-      padding-left: 10px;
-      color: #4a86e8;
+    .quality-toggle-option {
+      flex: 1;
+      text-align: center;
+      z-index: 1;
+      font-size: 13px;
+      font-weight: 600;
+      transition: color 0.3s ease;
+      user-select: none;
     }
     
-    .toggle-inner:after {
-      content: attr(data-off);
-      padding-right: 10px;
-      color: #888;
-      text-align: right;
+    .quality-toggle-quick {
+      color: #666;
     }
     
-    .toggle-switch-handle {
+    .quality-toggle-high {
+      color: #666;
+    }
+    
+    .quality-toggle-knob {
       position: absolute;
-      content: "";
-      height: 18px;
-      width: 18px;
+      width: 50%;
+      height: 28px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #4a86e8, #3a76d8);
       left: 3px;
-      bottom: 2px;
-      background-color: white;
-      border-radius: 50%;
-      transition: .4s;
+      top: 3px;
+      transition: transform 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     }
     
-    .toggle-input:checked + .toggle-label {
-      background-color: #e6f0ff;
-      border-color: #4a86e8;
+    .quality-toggle-input:checked + .quality-toggle-slider {
+      background: #e6f0ff;
     }
     
-    .toggle-input:checked + .toggle-label .toggle-switch-handle {
-      transform: translateX(116px);
-      background-color: #4a86e8;
+    .quality-toggle-input:checked + .quality-toggle-slider .quality-toggle-knob {
+      transform: translateX(77px);
+    }
+    
+    /* Fix the color states to match our JavaScript logic */
+    .quality-toggle-input:checked + .quality-toggle-slider .quality-toggle-high {
+      color: white;
+    }
+    
+    .quality-toggle-input:not(:checked) + .quality-toggle-slider .quality-toggle-quick {
+      color: white;
     }
     
     /* Checkboxes */
