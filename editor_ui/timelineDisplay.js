@@ -21,7 +21,7 @@ function generateHtmlFromVideoAssembly(data) {
             body { font-family: Arial, sans-serif; line-height: 1.6; }
             h1 { text-align: center; margin-bottom: 5px; }
             h2 { text-align: center; color: gray; margin-top: 5px; margin-bottom: 20px; }
-            h3 { margin-top: 20px; }
+            h3 { margin-top: 20px; display: inline-block; margin-right: 10px; }
             h4 { margin-top: 10px; font-style: italic; }
             table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
             th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
@@ -29,9 +29,34 @@ function generateHtmlFromVideoAssembly(data) {
             .clip-path { font-size: 8pt; color: gray; }
             .clip-name { font-weight: bold; }
             .title-container { text-align: center; margin-bottom: 10px; }
+            .segment-header { display: flex; align-items: center; margin-bottom: 10px; }
+            .segment-render-button {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 30px;
+                height: 30px;
+                border-radius: 50%;
+                background-color: #0078d7;
+                color: white;
+                cursor: pointer;
+                font-size: 14px;
+                transition: all 0.2s ease;
+                border: none;
+                margin-right: 10px;
+            }
+            .segment-render-button:hover {
+                background-color: #106ebe;
+            }
         </style>
         <script>
-            // No script needed for timeline display
+            function renderSegment(segmentSequence) {
+                // Send a message to the parent window to handle the render
+                window.parent.postMessage({
+                    type: 'render-segment',
+                    segmentSequence: segmentSequence
+                }, '*');
+            }
         </script>
     </head>
     <body>
@@ -41,7 +66,13 @@ function generateHtmlFromVideoAssembly(data) {
     const segments = cut.segments || [];
     segments.forEach(segment => {
         const segmentTitle = segment.title || "Unnamed Segment";
-        htmlContent += `<h3>${segmentTitle}</h3>\n`;
+        const segmentSequence = segment.sequence || segment.order || 0;
+        
+        htmlContent += `
+        <div class="segment-header">
+            <button class="segment-render-button" onclick="renderSegment(${segmentSequence})" title="Render/Plan this segment">▶</button>
+            <h3>${segmentTitle}</h3>
+        </div>\n`;
 
         const scenes = segment.scenes || [];
         scenes.forEach(scene => {

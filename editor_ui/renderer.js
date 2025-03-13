@@ -254,6 +254,42 @@ window.addEventListener('message', (event) => {
       }
     }
   }
+  // Check if the message is a render segment request
+  else if (event.data && event.data.type === 'render-segment') {
+    const segmentSequence = event.data.segmentSequence;
+    
+    // Update the video assembly data to render only this segment
+    if (currentVideoAssemblyData) {
+      // Create this_run_only if it doesn't exist
+      if (!currentVideoAssemblyData.this_run_only) {
+        currentVideoAssemblyData.this_run_only = {};
+      }
+      
+      // Set render_only to target this specific segment
+      currentVideoAssemblyData.this_run_only.render_only = {
+        segment_sequence: segmentSequence
+      };
+      
+      // Only try to save if we're in Electron
+      if (isElectron && ipcRenderer && currentVideoAssemblyPath) {
+        // Save the updated data to the file
+        saveVideoAssemblyToFile(currentVideoAssemblyPath, currentVideoAssemblyData);
+        
+        // Update the terminal with a message
+        const terminal = document.getElementById('terminal');
+        terminal.innerHTML += `<p>Set to render only segment with sequence ${segmentSequence}</p>`;
+        
+        // Trigger the render process
+        handleRenderButtonClick();
+      } else {
+        // In browser mode, just log the change
+        console.log('Would render segment:', segmentSequence);
+        // Update the terminal with a message
+        const terminal = document.getElementById('terminal');
+        terminal.innerHTML += `<p>Would render segment with sequence ${segmentSequence} (not available in browser mode)</p>`;
+      }
+    }
+  }
 });
 
 // Function to save video assembly data to a file

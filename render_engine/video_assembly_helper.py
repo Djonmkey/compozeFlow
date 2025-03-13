@@ -14,8 +14,9 @@ def get_render_only(video_assembly):
 
     this_run_only = get_this_run_only(video_assembly)
 
-    if "render_only" in this_run_only:
-        render_only = this_run_only["render_only"]
+    if this_run_only:
+        if "render_only" in this_run_only:
+            render_only = this_run_only["render_only"]
 
     return render_only
 
@@ -51,12 +52,14 @@ def skip_scene_render(video_assembly, segment, scene):
          skip_scene = True
     else:
         render_only = get_render_only(video_assembly)
-        render_only_scene_sequence = render_only.get("scene_sequence")
-        
-        scene_sequence = scene.get("sequence")
 
-        if render_only_scene_sequence and scene_sequence != render_only_scene_sequence:
-            skip_scene = True
+        if render_only:
+            render_only_scene_sequence = render_only.get("scene_sequence")
+            
+            scene_sequence = scene.get("sequence")
+
+            if render_only_scene_sequence and scene_sequence != render_only_scene_sequence:
+                skip_scene = True
 
     return  skip_scene
 
