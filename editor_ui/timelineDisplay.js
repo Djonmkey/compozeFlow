@@ -48,6 +48,30 @@ function generateHtmlFromVideoAssembly(data) {
             .segment-render-button:hover {
                 background-color: #106ebe;
             }
+            .scene-header {
+                display: flex;
+                align-items: center;
+                margin-bottom: 10px;
+                margin-left: 20px;
+            }
+            .scene-render-button {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 24px;
+                height: 24px;
+                border-radius: 50%;
+                background-color: #0078d7;
+                color: white;
+                cursor: pointer;
+                font-size: 12px;
+                transition: all 0.2s ease;
+                border: none;
+                margin-right: 10px;
+            }
+            .scene-render-button:hover {
+                background-color: #106ebe;
+            }
         </style>
         <script>
             function renderSegment(segmentSequence) {
@@ -55,6 +79,15 @@ function generateHtmlFromVideoAssembly(data) {
                 window.parent.postMessage({
                     type: 'render-segment',
                     segmentSequence: segmentSequence
+                }, '*');
+            }
+            
+            function renderScene(segmentSequence, sceneSequence) {
+                // Send a message to the parent window to handle the render
+                window.parent.postMessage({
+                    type: 'render-scene',
+                    segmentSequence: segmentSequence,
+                    sceneSequence: sceneSequence
                 }, '*');
             }
         </script>
@@ -78,9 +111,15 @@ function generateHtmlFromVideoAssembly(data) {
         scenes.forEach(scene => {
             const sceneTitle = scene.title;
             if (sceneTitle) {
-                htmlContent += `<h4>${sceneTitle}</h4>\n`;
+                const sceneSequence = scene.sequence || scene.order || 0;
+                
+                htmlContent += `
+                <div class="scene-header">
+                    <button class="scene-render-button" onclick="renderScene(${segmentSequence}, ${sceneSequence})" title="Render/Plan this scene">▶</button>
+                    <h4>${sceneTitle}</h4>
+                </div>\n`;
             }
-
+            
             htmlContent += `
             <table>
                 <tr>

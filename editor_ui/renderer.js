@@ -290,6 +290,44 @@ window.addEventListener('message', (event) => {
       }
     }
   }
+  // Check if the message is a render scene request
+  else if (event.data && event.data.type === 'render-scene') {
+    const segmentSequence = event.data.segmentSequence;
+    const sceneSequence = event.data.sceneSequence;
+    
+    // Update the video assembly data to render only this scene
+    if (currentVideoAssemblyData) {
+      // Create this_run_only if it doesn't exist
+      if (!currentVideoAssemblyData.this_run_only) {
+        currentVideoAssemblyData.this_run_only = {};
+      }
+      
+      // Set render_only to target this specific scene within the segment
+      currentVideoAssemblyData.this_run_only.render_only = {
+        segment_sequence: segmentSequence,
+        scene_sequence: sceneSequence
+      };
+      
+      // Only try to save if we're in Electron
+      if (isElectron && ipcRenderer && currentVideoAssemblyPath) {
+        // Save the updated data to the file
+        saveVideoAssemblyToFile(currentVideoAssemblyPath, currentVideoAssemblyData);
+        
+        // Update the terminal with a message
+        const terminal = document.getElementById('terminal');
+        terminal.innerHTML += `<p>Set to render only scene with sequence ${sceneSequence} in segment ${segmentSequence}</p>`;
+        
+        // Trigger the render process
+        handleRenderButtonClick();
+      } else {
+        // In browser mode, just log the change
+        console.log('Would render scene:', sceneSequence, 'in segment:', segmentSequence);
+        // Update the terminal with a message
+        const terminal = document.getElementById('terminal');
+        terminal.innerHTML += `<p>Would render scene with sequence ${sceneSequence} in segment ${segmentSequence} (not available in browser mode)</p>`;
+      }
+    }
+  }
 });
 
 // Function to save video assembly data to a file
