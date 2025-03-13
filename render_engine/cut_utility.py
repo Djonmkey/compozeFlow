@@ -4,6 +4,7 @@ from video_utility import write_video, resize_clips_to_max_resolution, video_fil
 from segment_utility import generate_video_segment
 from moviepy import concatenate_videoclips
 from image_helper import append_image
+from video_assembly_helper import skip_segment_render
 
 def generate_html_from_video_assembly(data: dict, output_html_path: str) -> None:
     """
@@ -158,13 +159,8 @@ def generate_video_cut(video_assembly, cut, video_assembly_last_modified_timesta
 
             video_clips_to_close = []
 
-            render_only = cut.get("render_only", {})
-            render_only_segment = render_only.get("segment_sequence")
-
             for segment in sorted_segments:
-                segment_sequence = segment["sequence"]
-
-                if render_only_segment and segment_sequence != render_only_segment:
+                if skip_segment_render(video_assembly, segment):
                     continue
 
                 print(f"  Segment Title: {segment['title']}")
