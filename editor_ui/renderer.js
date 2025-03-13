@@ -379,6 +379,10 @@ function saveVideoAssemblyToFile(filePath, data) {
 // so it can be accessed from other modules
 window.saveVideoAssemblyToFile = saveVideoAssemblyToFile;
 
+// Expose the handleRenderButtonClick function to the window object
+// so it can be accessed from the renderOptionsDisplay module
+window.handleRenderButtonClick = handleRenderButtonClick;
+
 // Function to load and display installed plugins
 async function loadInstalledPlugins() {
   // Get the container for installed plugin icons
@@ -862,11 +866,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initializeResizeHandle(); // For explorer
   initializeTerminalResizeHandle(); // For terminal
   
-  // Initialize render button
-  const renderButton = document.getElementById('render-button');
-  if (renderButton) {
-    renderButton.addEventListener('click', handleRenderButtonClick);
-  }
+  // Note: Render button is now handled in renderOptionsDisplay.js
   
   // Initialize render options
   if (typeof renderOptionsDisplay !== 'undefined' && renderOptionsDisplay.initializeRenderOptions) {

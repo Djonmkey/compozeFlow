@@ -49,13 +49,12 @@ function createRenderOptionsUI() {
   renderOptionsContainer.id = 'render-options-container';
   
   // Create the render options content
-  renderOptionsContainer.innerHTML = `
-    <div class="render-options-header">
-      <h3>Render Options</h3>
-    </div>
+  renderOptionsContainer.innerHTML = `      
+
     <div class="render-options-content">
+    <div id="render-button" class="render-button" title="Render Video">▶</div>
       <div class="render-option">
-        <label class="render-quality-label">Render Quality:</label>
+        <label class="render-quality-label">Render Options:</label>
         <div class="toggle-switch">
           <input type="checkbox" id="render-quality-toggle" class="toggle-input">
           <label for="render-quality-toggle" class="toggle-label">
@@ -92,11 +91,35 @@ function createRenderOptionsUI() {
   // Add CSS for render options
   addRenderOptionsStyles();
 }
-
 /**
  * Adds event listeners to the render options UI elements
  */
 function addRenderOptionsEventListeners() {
+  // Render button
+  const renderButton = document.getElementById('render-button');
+  if (renderButton) {
+    renderButton.addEventListener('click', () => {
+      // Check if we're running in Electron
+      if (typeof window !== 'undefined' && window.process && window.process.type === 'renderer') {
+        // Call the handleRenderButtonClick function from renderer.js if available
+        if (typeof window.handleRenderButtonClick === 'function') {
+          window.handleRenderButtonClick();
+        } else {
+          console.error('handleRenderButtonClick function not available');
+          // Update the terminal with a message
+          const terminal = document.getElementById('terminal');
+          terminal.innerHTML += `<p>Render button clicked, but render functionality is not available</p>`;
+        }
+      } else {
+        console.log('Not running in Electron, cannot render video');
+        // Update the terminal with a message
+        const terminal = document.getElementById('terminal');
+        terminal.innerHTML += `<p>Render button clicked, but not running in Electron environment</p>`;
+      }
+    });
+  }
+  
+  // Quality toggle (High Quality / Quick Render)
   // Quality toggle (High Quality / Quick Render)
   const qualityToggle = document.getElementById('render-quality-toggle');
   qualityToggle.addEventListener('change', () => {
@@ -273,12 +296,42 @@ function addRenderOptionsStyles() {
     
     .render-options-header {
       margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
     }
     
     .render-options-header h3 {
       margin: 0;
       font-size: 14px;
       color: #333;
+    }
+    
+    /* Render button styling */
+    .render-button {
+      width: 30px;
+      height: 30px;
+      background-color: #4a86e8;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.2s;
+    }
+    
+    .render-button:hover {
+      background-color: #3a76d8;
+    }
+    
+    .render-button.running {
+      background-color: #e74c3c;
+    }
+    
+    .render-button.failed {
+      background-color: #f39c12;
     }
     
     .render-options-content {
