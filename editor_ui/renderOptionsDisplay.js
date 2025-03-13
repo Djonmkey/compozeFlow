@@ -28,19 +28,14 @@ let currentVideoAssemblyPath = null;
 // Function to update the toggle visuals
 function updateToggleVisuals(isHighQuality) {
   const qualityKnob = document.querySelector('.quality-toggle-knob');
-  const quickLabel = document.querySelector('.quality-toggle-quick');
-  const highLabel = document.querySelector('.quality-toggle-high');
   
-  if (!qualityKnob || !quickLabel || !highLabel) return;
+  if (!qualityKnob) return;
   
+  // Only move the knob, don't change text colors
   if (isHighQuality) {
     qualityKnob.style.transform = 'translateX(77px)';
-    quickLabel.style.color = 'white';
-    highLabel.style.color = '#666';
   } else {
     qualityKnob.style.transform = 'translateX(0)';
-    quickLabel.style.color = '#666';
-    highLabel.style.color = 'white';
   }
 }
 
@@ -448,12 +443,10 @@ function addRenderOptionsStyles() {
       user-select: none;
     }
     
-    .quality-toggle-quick {
-      color: #666;
-    }
-    
+    .quality-toggle-quick,
     .quality-toggle-high {
-      color: #666;
+      color: white;
+      text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
     }
     
     .quality-toggle-knob {
@@ -476,14 +469,7 @@ function addRenderOptionsStyles() {
       transform: translateX(77px);
     }
     
-    /* Fix the color states to match our JavaScript logic */
-    .quality-toggle-input:checked + .quality-toggle-slider .quality-toggle-high {
-      color: white;
-    }
-    
-    .quality-toggle-input:not(:checked) + .quality-toggle-slider .quality-toggle-quick {
-      color: white;
-    }
+    /* No need to change text colors as they're always white */
     
     /* Checkboxes */
     .render-checkbox {
