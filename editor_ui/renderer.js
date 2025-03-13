@@ -27,7 +27,7 @@ if (isElectron) {
 // Initialize variables that would normally come from required modules
 let ipcRenderer, fs, child_process, path, generateHtmlFromVideoAssembly, generateOverlayImagesHtml,
     generateMixedAudioHtml, generateGeneralHtml, generateExplorerHtml, initializeExplorer,
-    fileTabsDisplay;
+    fileTabsDisplay, renderOptionsDisplay;
 
 // Only try to require modules if we're in Electron
 if (isElectron) {
@@ -55,6 +55,9 @@ if (isElectron) {
     
     // Load the file tabs display module
     fileTabsDisplay = require('./fileTabsDisplay');
+    
+    // Load the render options display module
+    renderOptionsDisplay = require('./renderOptionsDisplay');
   } catch (error) {
     console.error('Error loading modules:', error);
   }
@@ -186,6 +189,19 @@ if (isElectron && ipcRenderer) {
     
     // Update the explorer with content sources
     updateExplorer();
+    
+    // Update the render options with the video assembly data
+    if (typeof renderOptionsDisplay !== 'undefined' && renderOptionsDisplay.updateRenderOptions) {
+      // Get the current file path from the main process
+      ipcRenderer.invoke('get-current-file-path').then((filePath) => {
+        if (filePath) {
+          // Store the current file path
+          currentVideoAssemblyPath = filePath;
+          // Update render options
+          renderOptionsDisplay.updateRenderOptions(data, filePath);
+        }
+      });
+    }
     
     // Update the terminal with a message
     const terminal = document.getElementById('terminal');
@@ -850,6 +866,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const renderButton = document.getElementById('render-button');
   if (renderButton) {
     renderButton.addEventListener('click', handleRenderButtonClick);
+  }
+  
+  // Initialize render options
+  if (typeof renderOptionsDisplay !== 'undefined' && renderOptionsDisplay.initializeRenderOptions) {
+    renderOptionsDisplay.initializeRenderOptions();
   }
 });
 
