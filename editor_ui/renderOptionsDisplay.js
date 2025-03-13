@@ -8,6 +8,7 @@
  */
 
 const fs = require('fs');
+const { ICONS } = require('./uiConstants');
 
 // Install source map support for better debugging
 try {
@@ -66,7 +67,7 @@ function createRenderOptionsUI() {
   renderOptionsContainer.innerHTML = `      
 
     <div class="render-options-content">
-    <div id="render-button" class="render-button" title="Render Video">▶</div>
+    <div id="render-button" class="render-button" title="Export/Render Video">${ICONS.RENDER}</div>
       <div class="render-option">
         <label class="render-quality-label">Render Quality:</label>
         <div class="quality-toggle-container">

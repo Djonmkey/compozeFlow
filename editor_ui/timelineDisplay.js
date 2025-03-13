@@ -1,4 +1,5 @@
 const path = require('path');
+const { ICONS } = require('./uiConstants');
 
 /**
  * Generates an HTML page from the provided video assembly JSON structure.
@@ -103,7 +104,7 @@ function generateHtmlFromVideoAssembly(data) {
         
         htmlContent += `
         <div class="segment-header">
-            <button class="segment-render-button" onclick="renderSegment(${segmentSequence})" title="Render/Plan this segment">▶</button>
+            <button class="segment-render-button" onclick="renderSegment(${segmentSequence})" title="Export/Render this segment">${ICONS.RENDER}</button>
             <h3>${segmentTitle}</h3>
         </div>\n`;
 
@@ -115,7 +116,7 @@ function generateHtmlFromVideoAssembly(data) {
                 
                 htmlContent += `
                 <div class="scene-header">
-                    <button class="scene-render-button" onclick="renderScene(${segmentSequence}, ${sceneSequence})" title="Render/Plan this scene">▶</button>
+                    <button class="scene-render-button" onclick="renderScene(${segmentSequence}, ${sceneSequence})" title="Export/Render this scene">${ICONS.RENDER}</button>
                     <h4>${sceneTitle}</h4>
                 </div>\n`;
             }
