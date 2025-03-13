@@ -149,6 +149,20 @@ function addRenderOptionsEventListeners() {
     // Update visuals immediately
     updateToggleVisuals(qualityToggle.checked);
     
+    const watermarkCheckbox = document.getElementById('watermark-checkbox');
+    const cachingCheckbox = document.getElementById('caching-checkbox');
+    
+    // Update the checkboxes based on the quality toggle
+    if (qualityToggle.checked) {
+      // High Quality selected
+      watermarkCheckbox.checked = false;
+      cachingCheckbox.checked = false;
+    } else {
+      // Quick Render selected
+      watermarkCheckbox.checked = true;
+      cachingCheckbox.checked = true;
+    }
+    
     // Handle the data changes
     if (currentVideoAssemblyData) {
       // Ensure the settings object exists
