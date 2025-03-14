@@ -87,6 +87,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
   
+  // Check if account icon should be displayed
+  if (!FEATURE_FLAGS.ENABLE_ACCOUNT_FEATURES) {
+    console.log('Account icon is disabled by feature flag');
+    
+    // Hide the account icon when the feature is disabled
+    const accountIcon = document.getElementById('account-icon');
+    
+    if (accountIcon) {
+      accountIcon.style.display = 'none';
+    }
+  }
+  
   // Initialize the resize handles
   uiManager.initializeResizeHandle(); // For explorer
   uiManager.initializeTerminalResizeHandle(); // For terminal

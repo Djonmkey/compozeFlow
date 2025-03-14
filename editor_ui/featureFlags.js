@@ -8,7 +8,9 @@
 // Feature flags
 const FEATURE_FLAGS = {
   // Set to false to disable plugin functionality
-  ENABLE_PLUGINS: false
+  ENABLE_PLUGINS: false,
+  // Set to false to hide the account icon
+  ENABLE_ACCOUNT_FEATURES: false
 };
 
 // Export the feature flags
