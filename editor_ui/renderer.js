@@ -99,6 +99,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
   
+  // Check if settings icon should be displayed
+  if (!FEATURE_FLAGS.ENABLE_SETTINGS_FEATURE) {
+    console.log('Settings icon is disabled by feature flag');
+    
+    // Hide the settings icon when the feature is disabled
+    const settingsIcon = document.getElementById('settings-icon');
+    
+    if (settingsIcon) {
+      settingsIcon.style.display = 'none';
+    }
+  }
+  
   // Initialize the resize handles
   uiManager.initializeResizeHandle(); // For explorer
   uiManager.initializeTerminalResizeHandle(); // For terminal
