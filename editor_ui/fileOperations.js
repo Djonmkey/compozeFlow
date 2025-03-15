@@ -168,10 +168,10 @@ async function saveVideoAssemblyAsTemplate(window, content) {
 }
 
 /**
- * Lists available templates in the templates directory
- * @returns {Promise<Array<{name: string, path: string}>>} Array of template objects with name and path
+ * Lists available templates in the templates directory with their metadata
+ * @returns {Promise<Array<{name: string, path: string, title: string, subtitle: string}>>} Array of template objects with name, path, and metadata
  */
-function listTemplates() {
+function listTemplatesWithMetadata() {
   try {
     const templatesDir = path.join(__dirname, 'templates');
     if (!fs.existsSync(templatesDir)) {
@@ -182,16 +182,46 @@ function listTemplates() {
     const files = fs.readdirSync(templatesDir);
     const templates = files
       .filter(file => file.toLowerCase().endsWith('.json'))
-      .map(file => ({
-        name: path.basename(file, '.json'),
-        path: path.join(templatesDir, file)
-      }));
+      .map(file => {
+        const templatePath = path.join(templatesDir, file);
+        const templateName = path.basename(file, '.json');
+        
+        // Try to read title and subtitle from the template
+        let title = '';
+        let subtitle = '';
+        
+        try {
+          const content = JSON.parse(fs.readFileSync(templatePath, 'utf-8'));
+          if (content.cut) {
+            title = content.cut.title || '';
+            subtitle = content.cut.subtitle || '';
+          }
+        } catch (err) {
+          console.error(`Error reading template metadata for ${templateName}:`, err);
+        }
+        
+        return {
+          name: templateName,
+          path: templatePath,
+          title,
+          subtitle
+        };
+      });
     
     return templates;
   } catch (error) {
     console.error('Error listing templates:', error);
     return [];
   }
+}
+
+/**
+ * Lists available templates in the templates directory
+ * @returns {Array<{name: string, path: string}>} Array of template objects with name and path
+ */
+function listTemplates() {
+  const templates = listTemplatesWithMetadata();
+  return templates.map(({ name, path }) => ({ name, path }));
 }
 
 /**
@@ -269,5 +299,6 @@ module.exports = {
   saveVideoAssembly,
   saveVideoAssemblyAsTemplate,
   listTemplates,
+  listTemplatesWithMetadata,
   createVideoAssemblyFromTemplate
 };
