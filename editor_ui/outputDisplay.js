@@ -48,12 +48,8 @@ function generateOutputHtml(videoAssemblyData) {
         <input type="text" id="output-path-cut" class="output-form-control" value="${outputPaths.cut || ''}">
       </div>
       <div class="output-form-group">
-        <label for="output-path-segment">Segment Output Path:</label>
-        <input type="text" id="output-path-segment" class="output-form-control" value="${outputPaths.segment || ''}">
-      </div>
-      <div class="output-form-group">
-        <label for="output-path-scene">Scene Output Path:</label>
-        <input type="text" id="output-path-scene" class="output-form-control" value="${outputPaths.scene || ''}">
+        <label for="output-path-segment-scene">Segment / Scene Output Path:</label>
+        <input type="text" id="output-path-segment-scene" class="output-form-control" value="${outputPaths.segment_scene || ''}">
       </div>
       <div class="output-form-group">
         <label for="output-path-clip">Clip Output Path:</label>
@@ -265,8 +261,7 @@ function generateOutputHtml(videoAssemblyData) {
       // Function to save output paths
       function saveOutputPaths() {
         const cutPath = document.getElementById('output-path-cut').value;
-        const segmentPath = document.getElementById('output-path-segment').value;
-        const scenePath = document.getElementById('output-path-scene').value;
+        const segmentScenePath = document.getElementById('output-path-segment-scene').value;
         const clipPath = document.getElementById('output-path-clip').value;
         
         // Send message to parent window
@@ -274,8 +269,7 @@ function generateOutputHtml(videoAssemblyData) {
           type: 'save-output-paths',
           data: {
             cut: cutPath,
-            segment: segmentPath,
-            scene: scenePath,
+            segment_scene: segmentScenePath,
             clip: clipPath
           }
         }, '*');
