@@ -42,6 +42,9 @@ function generateContentSourcesHtml(videoAssemblyData) {
         }
     }
 
+    // Get dismissed files
+    const dismissedFiles = videoAssemblyData.cut.dismissed_files || [];
+    
     let html = '<div class="explorer-container">';
     
     // Add a button to add new content sources
@@ -83,11 +86,64 @@ function generateContentSourcesHtml(videoAssemblyData) {
                     </div>
                 </div>
                 <div class="explorer-section-content">
-                    ${generateFileTreeHtml(sourcePath, includeSubpaths, 0, supportedExtensions, true)}
+                    ${generateFileTreeHtml(sourcePath, includeSubpaths, 0, supportedExtensions, true, dismissedFiles)}
                 </div>
             </div>
         `;
     });
+    
+    // Add a section for dismissed files if there are any
+    if (dismissedFiles.length > 0) {
+        html += `
+            <div class="explorer-section dismissed-files-section">
+                <div class="explorer-section-header">
+                    <span class="explorer-section-name">Dismissed Files</span>
+                    <div class="explorer-section-actions">
+                        <span class="dismissed-files-count">(${dismissedFiles.length})</span>
+                    </div>
+                </div>
+                <div class="explorer-section-content">
+                    <ul class="explorer-file-list">
+        `;
+        
+        // Process each dismissed file
+        dismissedFiles.forEach(dismissedFile => {
+            const filePath = dismissedFile.path;
+            const fileName = path.basename(filePath);
+            const extension = path.extname(fileName).toLowerCase();
+            
+            // Determine file icon
+            let icon = '📄'; // Default file icon
+            if (['.mp4', '.mov', '.avi', '.mkv'].includes(extension)) {
+                icon = '🎬'; // Video files
+            } else if (['.jpg', '.jpeg', '.png', '.gif'].includes(extension)) {
+                icon = '🖼️'; // Image files
+            } else if (['.mp3', '.wav', '.aac', '.flac'].includes(extension)) {
+                icon = '🔊'; // Audio files
+            } else if (['.json', '.xml', '.yaml'].includes(extension)) {
+                icon = '📋'; // Data files
+            }
+            
+            // Check if file is supported
+            const isSupported = supportedExtensions.includes(extension);
+            const supportedClass = isSupported ? 'supported-file' : 'unsupported-file';
+            
+            html += `
+                <li class="explorer-item explorer-file ${supportedClass} dismissed" data-path="${filePath}">
+                    <div class="explorer-item-content">
+                        <span class="explorer-icon">${icon}</span>
+                        <span class="explorer-name">${fileName}</span>
+                    </div>
+                </li>
+            `;
+        });
+        
+        html += `
+                    </ul>
+                </div>
+            </div>
+        `;
+    }
 
     html += '</div>';
     return html;
@@ -100,9 +156,10 @@ function generateContentSourcesHtml(videoAssemblyData) {
  * @param {number} level - Current nesting level (for indentation)
  * @param {string[]} supportedExtensions - List of supported file extensions
  * @param {boolean} filterUnsupported - Whether to filter out unsupported files
+ * @param {Array} dismissedFiles - List of dismissed files
  * @returns {string} HTML content for the file tree
  */
-function generateFileTreeHtml(dirPath, includeSubpaths, level = 0, supportedExtensions = [], filterUnsupported = true) {
+function generateFileTreeHtml(dirPath, includeSubpaths, level = 0, supportedExtensions = [], filterUnsupported = true, dismissedFiles = []) {
     try {
         if (!fs.existsSync(dirPath)) {
             return `<div class="explorer-error">Path not found: ${dirPath}</div>`;
@@ -165,8 +222,13 @@ function generateFileTreeHtml(dirPath, includeSubpaths, level = 0, supportedExte
             // Add a class to indicate if the file is supported
             const supportedClass = isSupported ? 'supported-file' : 'unsupported-file';
             
+            // Check if the file is in the dismissed files list
+            const fullPath = path.join(dirPath, file.name);
+            const isDismissed = dismissedFiles.some(dismissedFile => dismissedFile.path === fullPath);
+            const dismissedClass = isDismissed ? 'dismissed' : '';
+            
             html += `
-                <li class="explorer-item explorer-file ${supportedClass}" data-path="${path.join(dirPath, file.name)}">
+                <li class="explorer-item explorer-file ${supportedClass} ${dismissedClass}" data-path="${fullPath}">
                     <div class="explorer-item-content">
                         <span class="explorer-icon">${icon}</span>
                         <span class="explorer-name">${file.name}</span>
@@ -300,13 +362,17 @@ function initializeContentSources(videoAssemblyData) {
                     }
                 }
                 
+                // Get dismissed files
+                const dismissedFiles = videoAssemblyData.cut.dismissed_files || [];
+                
                 // Regenerate the file tree with the new filter setting
                 sectionContent.innerHTML = generateFileTreeHtml(
                     sourcePath,
                     includeSubpaths,
                     0,
                     supportedExtensions,
-                    !isFilteringOn
+                    !isFilteringOn,
+                    dismissedFiles
                 );
                 
                 // Reinitialize event listeners for the new content
@@ -587,9 +653,31 @@ function saveVideoAssemblyData(videoAssemblyData) {
     }
 }
 
-// Add CSS for the dialog
+// Add CSS for the dialog and dismissed files
 const dialogStyle = document.createElement('style');
 dialogStyle.textContent = `
+    /* Dismissed files styling */
+    .dismissed-files-section {
+        margin-top: 20px;
+        border-top: 2px dashed #ffb0b0;
+        padding-top: 10px;
+    }
+    
+    .dismissed-files-section .explorer-section-header {
+        background-color: #fff0f0;
+    }
+    
+    .dismissed-files-count {
+        font-size: 12px;
+        color: #888;
+        margin-left: 5px;
+    }
+    
+    .explorer-file.dismissed .explorer-name {
+        text-decoration: line-through;
+        color: #888;
+    }
+    
     .dialog-overlay {
         position: fixed;
         top: 0;

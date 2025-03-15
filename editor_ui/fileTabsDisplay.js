@@ -179,10 +179,30 @@ function updateEditorContent(videoAssemblyData) {
     // Format file size
     const fileSize = formatFileSize(currentFile.size);
     
+    // Check if the file is in the dismissed_files list
+    let isDismissed = false;
+    let dismissButtonText = '❌ Dismiss';
+    let dismissButtonTitle = 'Dismiss file';
+    
+    if (videoAssemblyData && videoAssemblyData.cut && videoAssemblyData.cut.dismissed_files) {
+        isDismissed = videoAssemblyData.cut.dismissed_files.some(file => file.path === currentFile.path);
+        if (isDismissed) {
+            dismissButtonText = '✓ Restore';
+            dismissButtonTitle = 'Restore file';
+        }
+    }
+    
     // Create HTML for file details
     let html = `
         <div class="file-details">
-            <h2>${currentFile.name} <button class="copy-icon-btn" title="Copy path to clipboard" onclick="copyToClipboard('${currentFile.name}')">📋 Copy</button></h2>
+            <h2>
+                ${currentFile.name}
+                <button class="copy-icon-btn" title="Copy path to clipboard" onclick="copyToClipboard('${currentFile.name}')">📋 Copy</button>
+                <button class="file-action-btn open-file-btn" title="Open file in default application" onclick="openFileInDefaultApp('${currentFile.path.replace(/'/g, "\\'")}')">🔍 Open</button>
+                <button class="file-action-btn dismiss-file-btn" title="${dismissButtonTitle}" onclick="toggleFileDismissStatus('${currentFile.path.replace(/'/g, "\\'")}')">
+                    ${dismissButtonText}
+                </button>
+            </h2>
             <div class="file-info">
                 <div class="file-info-item">
                     <span class="file-info-label">Path:</span>
@@ -617,7 +637,7 @@ fileTabsStyle.textContent = `
         flex: 1;
     }
     
-    .copy-icon-btn {
+    .copy-icon-btn, .file-action-btn {
         cursor: pointer;
         font-size: 12px;
         padding: 4px 8px;
@@ -630,10 +650,40 @@ fileTabsStyle.textContent = `
         align-items: center;
         gap: 4px;
         white-space: nowrap;
+        margin-left: 5px;
     }
     
-    .copy-icon-btn:hover {
+    .copy-icon-btn:hover, .file-action-btn:hover {
         background-color: #e0e0e0;
+    }
+    
+    .open-file-btn {
+        background-color: #e8f4ff;
+        border-color: #a0c8ff;
+    }
+    
+    .open-file-btn:hover {
+        background-color: #d0e8ff;
+    }
+    
+    .dismiss-file-btn {
+        background-color: #fff0f0;
+        border-color: #ffb0b0;
+    }
+    
+    .dismiss-file-btn:hover {
+        background-color: #ffe0e0;
+    }
+    
+    /* Strikethrough style for dismissed files */
+    .explorer-file.dismissed .explorer-name {
+        text-decoration: line-through;
+        color: #888;
+    }
+    
+    .search-result-item.dismissed .explorer-name {
+        text-decoration: line-through;
+        color: #888;
     }
     
     /* Add to Timeline styling */
@@ -738,10 +788,123 @@ function copyToClipboard(text) {
     }
 }
 
-// Expose the copyToClipboard function to the global scope
-// so it can be accessed from inline onclick handlers
+/**
+ * Opens a file in the system's default application
+ * @param {string} filePath - The path of the file to open
+ */
+function openFileInDefaultApp(filePath) {
+    // Check if we're running in Electron
+    if (typeof window !== 'undefined' && window.process && window.process.type === 'renderer') {
+        try {
+            // Get the electron module
+            const electron = require('electron');
+            const { shell } = electron;
+            
+            // Open the file in the default application
+            shell.openPath(filePath)
+                .then((result) => {
+                    if (result) {
+                        console.error(`Error opening file: ${result}`);
+                        // Update the terminal with an error message
+                        const terminal = document.getElementById('terminal');
+                        terminal.innerHTML += `<p>Error opening file: ${result}</p>`;
+                    } else {
+                        console.log(`File opened: ${filePath}`);
+                        // Update the terminal with a message
+                        const terminal = document.getElementById('terminal');
+                        terminal.innerHTML += `<p>File opened in default application: ${filePath}</p>`;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error opening file:', error);
+                });
+        } catch (error) {
+            console.error('Error opening file:', error);
+        }
+    } else {
+        console.log('Not running in Electron, cannot open file');
+    }
+}
+
+/**
+ * Toggles the dismiss status of a file
+ * @param {string} filePath - The path of the file to toggle dismiss status
+ */
+function toggleFileDismissStatus(filePath) {
+    // Check if we're running in Electron
+    if (typeof window !== 'undefined' && window.process && window.process.type === 'renderer') {
+        try {
+            // Get the current video assembly data
+            const videoAssemblyData = window.currentVideoAssemblyData;
+            
+            if (!videoAssemblyData || !videoAssemblyData.cut) {
+                console.error('No video assembly data available');
+                return;
+            }
+            
+            // Ensure dismissed_files array exists
+            if (!videoAssemblyData.cut.dismissed_files) {
+                videoAssemblyData.cut.dismissed_files = [];
+            }
+            
+            // Check if the file is already in the dismissed_files array
+            const isDismissed = videoAssemblyData.cut.dismissed_files.some(file => file.path === filePath);
+            
+            if (isDismissed) {
+                // Remove the file from the dismissed_files array
+                videoAssemblyData.cut.dismissed_files = videoAssemblyData.cut.dismissed_files.filter(file => file.path !== filePath);
+                
+                // Update the button text
+                const dismissButton = document.querySelector('.dismiss-file-btn');
+                if (dismissButton) {
+                    dismissButton.textContent = '❌ Dismiss';
+                    dismissButton.title = 'Dismiss file';
+                }
+                
+                // Update the terminal with a message
+                const terminal = document.getElementById('terminal');
+                terminal.innerHTML += `<p>File restored: ${filePath}</p>`;
+            } else {
+                // Add the file to the dismissed_files array
+                videoAssemblyData.cut.dismissed_files.push({ path: filePath });
+                
+                // Update the button text
+                const dismissButton = document.querySelector('.dismiss-file-btn');
+                if (dismissButton) {
+                    dismissButton.textContent = '✓ Restore';
+                    dismissButton.title = 'Restore file';
+                }
+                
+                // Update the terminal with a message
+                const terminal = document.getElementById('terminal');
+                terminal.innerHTML += `<p>File dismissed: ${filePath}</p>`;
+            }
+            
+            // Save the updated video assembly data
+            saveVideoAssemblyData(videoAssemblyData);
+            
+            // Update the explorer if in Content Sources mode
+            const explorerMode = document.querySelector('.explorer-mode-selector .active');
+            if (explorerMode && explorerMode.textContent.trim() === 'Content Sources') {
+                const explorer = document.getElementById('explorer');
+                const contentSourcesDisplay = require('./contentSourcesDisplay');
+                explorer.innerHTML = contentSourcesDisplay.generateContentSourcesHtml(videoAssemblyData);
+                contentSourcesDisplay.initializeContentSources(videoAssemblyData);
+            }
+        } catch (error) {
+            console.error('Error toggling file dismiss status:', error);
+        }
+    } else {
+        console.log('Not running in Electron, cannot toggle file dismiss status');
+    }
+}
+
+// Expose functions to the global scope
+// so they can be accessed from inline onclick handlers
 if (typeof window !== 'undefined') {
     window.copyToClipboard = copyToClipboard;
+    window.openFileInDefaultApp = openFileInDefaultApp;
+    window.toggleFileDismissStatus = toggleFileDismissStatus;
 }
 
 module.exports = {

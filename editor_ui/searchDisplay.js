@@ -328,6 +328,9 @@ function findMatches(content, pattern) {
  * @param {Object} videoAssemblyData - The video assembly data for file type detection
  */
 function displaySearchResults(container, results, searchText, videoAssemblyData) {
+    // Get dismissed files
+    const dismissedFiles = videoAssemblyData.cut && videoAssemblyData.cut.dismissed_files ?
+        videoAssemblyData.cut.dismissed_files : [];
     if (results.length === 0) {
         container.innerHTML = `<div class="search-status">No results found for "${searchText}"</div>`;
         return;
@@ -369,8 +372,12 @@ function displaySearchResults(container, results, searchText, videoAssemblyData)
             const fileIcon = getFileIcon(result.name);
             const supportedClass = result.isSupported ? 'supported-file' : 'unsupported-file';
             
+            // Check if the file is in the dismissed files list
+            const isDismissed = dismissedFiles.some(dismissedFile => dismissedFile.path === result.path);
+            const dismissedClass = isDismissed ? 'dismissed' : '';
+            
             html += `
-                <li class="search-result-item ${supportedClass}" data-path="${result.path}">
+                <li class="search-result-item ${supportedClass} ${dismissedClass}" data-path="${result.path}">
                     <div class="search-result-file">
                         <span class="explorer-icon">${fileIcon}</span>
                         <span class="explorer-name">${result.name}</span>
@@ -588,6 +595,12 @@ searchStyle.textContent = `
     .search-match-type {
         font-style: italic;
         color: #666;
+    }
+    
+    /* Dismissed files styling */
+    .search-result-item.dismissed .explorer-name {
+        text-decoration: line-through;
+        color: #888;
     }
 `;
 document.head.appendChild(searchStyle);
