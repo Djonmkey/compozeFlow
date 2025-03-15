@@ -151,14 +151,32 @@ function createMenu() {
         {
           label: 'Save Video Assembly As Template',
           click: async () => {
-            // Get the current content from the renderer process
-            // For now, we'll use a placeholder object
-            const content = { placeholder: "Video Assembly Data" };
+            // Check if we have a currently loaded file
+            if (!currentFilePath) {
+              dialog.showMessageBox(mainWindow, {
+                type: 'error',
+                title: 'Error',
+                message: 'No video assembly file is currently loaded.'
+              });
+              return;
+            }
             
-            // Save as template
-            const filePath = await fileOps.saveVideoAssemblyAsTemplate(mainWindow, content);
-            if (filePath) {
-              console.log("Video assembly template saved to:", filePath);
+            try {
+              // Read the current file content
+              const fileContent = fs.readFileSync(currentFilePath, 'utf-8');
+              const content = JSON.parse(fileContent);
+              
+              // Save as template
+              const filePath = await fileOps.saveVideoAssemblyAsTemplate(mainWindow, content);
+              if (filePath) {
+                console.log("Video assembly template saved to:", filePath);
+              }
+            } catch (error) {
+              console.error("Error saving video assembly as template:", error);
+              dialog.showErrorBox(
+                'Error Saving Template',
+                `An error occurred: ${error.message}`
+              );
             }
           }
         },
