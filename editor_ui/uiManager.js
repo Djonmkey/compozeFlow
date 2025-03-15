@@ -6,6 +6,7 @@
 
 // Import required modules
 const electronSetup = require('./electronSetup');
+const generateOutputHtml = require('./outputDisplay');
 
 // Keep track of the currently active tab
 let activeTab = 'Timeline';
@@ -27,7 +28,7 @@ function updateEditorContent(currentVideoAssemblyData) {
   } else if (activeTab === 'Mixed Audio') {
     htmlContent = electronSetup.generateMixedAudioHtml(currentVideoAssemblyData);
   } else if (activeTab === 'Output') {
-    htmlContent = electronSetup.generateOutputHtml(currentVideoAssemblyData);
+    htmlContent = generateOutputHtml(currentVideoAssemblyData);
   } else if (activeTab === 'General') {
     htmlContent = electronSetup.generateGeneralHtml(currentVideoAssemblyData);
   } else {

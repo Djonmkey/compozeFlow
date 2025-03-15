@@ -73,6 +73,10 @@ window.saveVideoAssemblyToFile = videoAssemblyManager.saveVideoAssemblyToFile;
 // so it can be accessed from the renderOptionsDisplay module
 window.handleRenderButtonClick = renderProcessManager.handleRenderButtonClick;
 
+// Expose the electronSetup module to the window object
+// to avoid circular dependencies with modules that need it
+window.electronSetup = electronSetup;
+
 // Initialize the UI
 document.addEventListener('DOMContentLoaded', () => {
   console.log('Renderer process initialized');

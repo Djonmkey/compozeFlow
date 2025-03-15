@@ -39,7 +39,8 @@ if (isElectron) {
     generateOverlayImagesHtml = require('./overlayImagesDisplay');
     generateMixedAudioHtml = require('./mixedAudioDisplay');
     generateGeneralHtml = require('./generalDisplay');
-    generateOutputHtml = require('./outputDisplay');
+    // Don't require outputDisplay here to avoid circular dependency
+    // It will be loaded separately in renderer.js
     
     // Load explorer modules
     const explorerModule = require('./explorerDisplay');
@@ -73,7 +74,7 @@ module.exports = {
   generateOverlayImagesHtml,
   generateMixedAudioHtml,
   generateGeneralHtml,
-  generateOutputHtml,
+  // generateOutputHtml removed to avoid circular dependency
   generateExplorerHtml,
   initializeExplorer,
   switchExplorerMode,

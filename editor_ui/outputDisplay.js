@@ -7,9 +7,6 @@
  * @sourceMappingURL=outputDisplay.js.map
  */
 
-// Import required modules
-const electronSetup = require('./electronSetup');
-
 // Install source map support for better debugging
 try {
   require('source-map-support').install({
@@ -21,6 +18,8 @@ try {
 } catch (error) {
   console.error('Failed to install source map support in outputDisplay:', error);
 }
+
+// We'll get electronSetup from the window object to avoid circular dependencies
 
 /**
  * Generates HTML for the Output tab based on the video assembly data
@@ -413,8 +412,11 @@ function generateOutputHtml(videoAssemblyData) {
         try {
           console.log('Browse button clicked for:', inputId);
           
-          // Check if we're running in Electron
-          if (electronSetup.isElectron && electronSetup.ipcRenderer) {
+          // Get electronSetup from window to avoid circular dependencies
+          const electronSetup = window.electronSetup;
+          
+          // Check if we're running in Electron and electronSetup is available
+          if (electronSetup && electronSetup.isElectron && electronSetup.ipcRenderer) {
             console.log('Running in Electron with ipcRenderer available');
             
             // Use IPC to request the main process to show the open folder dialog
@@ -453,9 +455,13 @@ function generateOutputHtml(videoAssemblyData) {
               }
             }
           } else {
-            console.log('Not running in Electron or ipcRenderer not available');
-            console.log('electronSetup.isElectron:', electronSetup.isElectron);
-            console.log('electronSetup.ipcRenderer:', electronSetup.ipcRenderer);
+            console.log('Not running in Electron, electronSetup not available, or ipcRenderer not available');
+            if (!electronSetup) {
+              console.error('electronSetup is not defined in window object');
+            } else {
+              console.log('electronSetup.isElectron:', electronSetup.isElectron);
+              console.log('electronSetup.ipcRenderer:', electronSetup.ipcRenderer);
+            }
           }
         } catch (error) {
           console.error('Error browsing for directory:', error);
