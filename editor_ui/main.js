@@ -93,8 +93,76 @@ function createMenu() {
       submenu: [
         {
           label: 'New Video Assembly',
-          click: () => {
-            console.log("New Video Assembly Clicked");
+          click: async () => {
+            try {
+              // Get list of available templates
+              const templates = fileOps.listTemplates();
+              
+              if (templates.length === 0) {
+                dialog.showMessageBox(mainWindow, {
+                  type: 'error',
+                  title: 'No Templates Available',
+                  message: 'No templates are available. Please create a template first.'
+                });
+                return;
+              }
+              
+              // Create template selection dialog
+              const templateOptions = templates.map(template => template.name);
+              const { response: templateIndex, canceled: templateCanceled } = await dialog.showMessageBox(mainWindow, {
+                type: 'question',
+                title: 'Select Template',
+                message: 'Select a template for the new video assembly:',
+                buttons: templateOptions,
+                cancelId: -1
+              });
+              
+              if (templateCanceled || templateIndex === -1) {
+                console.log('Template selection was canceled');
+                return;
+              }
+              
+              const selectedTemplate = templates[templateIndex];
+              console.log(`Selected template: ${selectedTemplate.name}`);
+              
+              // For simplicity, we'll use default values for title and subtitle
+              // In a real implementation, you would create a proper input dialog using HTML/renderer process
+              const title = "New Video Assembly";
+              const subtitle = "Created from " + selectedTemplate.name;
+              
+              // Show confirmation dialog with the title and subtitle
+              const { response, canceled } = await dialog.showMessageBox(mainWindow, {
+                type: 'info',
+                title: 'Confirm Details',
+                message: `Create new video assembly with:\nTitle: ${title}\nSubtitle: ${subtitle}`,
+                buttons: ['Create', 'Cancel'],
+                defaultId: 0,
+                cancelId: 1
+              });
+              
+              if (canceled || response === 1) {
+                console.log('Creation was canceled');
+                return;
+              }
+              
+              // Create new video assembly from template
+              const result = await fileOps.createVideoAssemblyFromTemplate(mainWindow, selectedTemplate.path, { title, subtitle });
+              
+              if (result) {
+                currentFilePath = result.filePath;
+                // Send the loaded content to the renderer process
+                mainWindow.webContents.send('video-assembly-opened', result.content);
+                // Also send the file path
+                mainWindow.webContents.send('current-file-path', currentFilePath);
+                console.log("New video assembly created and opened:", currentFilePath);
+              }
+            } catch (error) {
+              console.error('Error creating new video assembly:', error);
+              dialog.showErrorBox(
+                'Error Creating Video Assembly',
+                `An error occurred: ${error.message}`
+              );
+            }
           }
         },
         {
