@@ -272,9 +272,10 @@ ipcMain.handle('show-open-folder-dialog', async (event) => {
 // Handle showing open folder dialog for output paths
 ipcMain.handle('show-output-path-dialog', async (event, title = 'Select Output Path') => {
   try {
+    console.log('Showing output path dialog with title:', title);
     const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
       title: title,
-      properties: ['openDirectory']
+      properties: ['openDirectory', 'createDirectory']
     });
     
     if (canceled || filePaths.length === 0) {
@@ -282,6 +283,7 @@ ipcMain.handle('show-output-path-dialog', async (event, title = 'Select Output P
       return { canceled: true };
     }
     
+    console.log('Selected output path:', filePaths[0]);
     return { canceled: false, folderPath: filePaths[0] };
   } catch (error) {
     console.error('Error showing output path dialog:', error);

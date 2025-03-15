@@ -7,6 +7,9 @@
  * @sourceMappingURL=outputDisplay.js.map
  */
 
+// Import required modules
+const electronSetup = require('./electronSetup');
+
 // Install source map support for better debugging
 try {
   require('source-map-support').install({
@@ -408,34 +411,61 @@ function generateOutputHtml(videoAssemblyData) {
       // Function to browse for a directory
       async function browseForDirectory(inputId) {
         try {
+          console.log('Browse button clicked for:', inputId);
+          
           // Check if we're running in Electron
-          if (typeof window !== 'undefined' && window.process && window.process.type === 'renderer') {
-            // Get the electron module
-            const electron = require('electron');
-            const ipcRenderer = electron.ipcRenderer;
+          if (electronSetup.isElectron && electronSetup.ipcRenderer) {
+            console.log('Running in Electron with ipcRenderer available');
             
             // Use IPC to request the main process to show the open folder dialog
             const pathType = inputId.replace('output-path-', '').replace('-', ' ');
-            const result = await ipcRenderer.invoke('show-output-path-dialog', 'Select ' + pathType + ' Output Path');
+            const dialogTitle = 'Select ' + pathType + ' Output Path';
+            console.log('Requesting folder dialog with title:', dialogTitle);
             
-            if (result.canceled) {
-              console.log('Folder selection was canceled');
-              return;
-            }
-            
-            const folderPath = result.folderPath;
-            console.log('Selected folder for ' + inputId + ': ' + folderPath);
-            
-            // Update the input field with the selected path
-            const inputField = document.getElementById(inputId);
-            if (inputField) {
-              inputField.value = folderPath;
+            try {
+              const result = await electronSetup.ipcRenderer.invoke('show-output-path-dialog', dialogTitle);
+              console.log('Dialog result:', result);
+              
+              if (result.canceled) {
+                console.log('Folder selection was canceled');
+                return;
+              }
+              
+              const folderPath = result.folderPath;
+              console.log('Selected folder for ' + inputId + ': ' + folderPath);
+              
+              // Update the input field with the selected path
+              const inputField = document.getElementById(inputId);
+              if (inputField) {
+                inputField.value = folderPath;
+                console.log('Input field updated with path:', folderPath);
+              } else {
+                console.error('Input field not found:', inputId);
+              }
+            } catch (ipcError) {
+              console.error('IPC error when showing folder dialog:', ipcError);
+              
+              // Show error in terminal
+              const terminal = window.parent.document.getElementById('terminal');
+              if (terminal) {
+                terminal.innerHTML += '<p>Error showing folder dialog: ' + ipcError.message + '</p>';
+                terminal.scrollTop = terminal.scrollHeight;
+              }
             }
           } else {
-            console.log('Not running in Electron, cannot show folder dialog');
+            console.log('Not running in Electron or ipcRenderer not available');
+            console.log('electronSetup.isElectron:', electronSetup.isElectron);
+            console.log('electronSetup.ipcRenderer:', electronSetup.ipcRenderer);
           }
         } catch (error) {
           console.error('Error browsing for directory:', error);
+          
+          // Show error in terminal
+          const terminal = window.parent.document.getElementById('terminal');
+          if (terminal) {
+            terminal.innerHTML += '<p>Error browsing for directory: ' + error.message + '</p>';
+            terminal.scrollTop = terminal.scrollHeight;
+          }
         }
       }
       
@@ -450,17 +480,38 @@ function generateOutputHtml(videoAssemblyData) {
         // Browse buttons for output paths
         const browseCutBtn = document.getElementById('browse-output-path-cut');
         if (browseCutBtn) {
-          browseCutBtn.addEventListener('click', () => browseForDirectory('output-path-cut'));
+          console.log('Adding click event listener to browse-output-path-cut button');
+          browseCutBtn.addEventListener('click', function(event) {
+            console.log('browse-output-path-cut button clicked');
+            event.preventDefault();
+            browseForDirectory('output-path-cut');
+          });
+        } else {
+          console.error('browse-output-path-cut button not found');
         }
         
         const browseSegmentSceneBtn = document.getElementById('browse-output-path-segment-scene');
         if (browseSegmentSceneBtn) {
-          browseSegmentSceneBtn.addEventListener('click', () => browseForDirectory('output-path-segment-scene'));
+          console.log('Adding click event listener to browse-output-path-segment-scene button');
+          browseSegmentSceneBtn.addEventListener('click', function(event) {
+            console.log('browse-output-path-segment-scene button clicked');
+            event.preventDefault();
+            browseForDirectory('output-path-segment-scene');
+          });
+        } else {
+          console.error('browse-output-path-segment-scene button not found');
         }
         
         const browseClipBtn = document.getElementById('browse-output-path-clip');
         if (browseClipBtn) {
-          browseClipBtn.addEventListener('click', () => browseForDirectory('output-path-clip'));
+          console.log('Adding click event listener to browse-output-path-clip button');
+          browseClipBtn.addEventListener('click', function(event) {
+            console.log('browse-output-path-clip button clicked');
+            event.preventDefault();
+            browseForDirectory('output-path-clip');
+          });
+        } else {
+          console.error('browse-output-path-clip button not found');
         }
         
         // High quality settings save button
