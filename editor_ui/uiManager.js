@@ -26,6 +26,8 @@ function updateEditorContent(currentVideoAssemblyData) {
     htmlContent = electronSetup.generateOverlayImagesHtml(currentVideoAssemblyData);
   } else if (activeTab === 'Mixed Audio') {
     htmlContent = electronSetup.generateMixedAudioHtml(currentVideoAssemblyData);
+  } else if (activeTab === 'Output') {
+    htmlContent = electronSetup.generateOutputHtml(currentVideoAssemblyData);
   } else if (activeTab === 'General') {
     htmlContent = electronSetup.generateGeneralHtml(currentVideoAssemblyData);
   } else {

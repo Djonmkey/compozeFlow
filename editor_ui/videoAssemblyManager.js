@@ -194,6 +194,105 @@ function handleRenderSceneRequest(segmentSequence, sceneSequence) {
 }
 
 /**
+ * Function to handle saving output paths
+ * @param {Object} outputPaths - The output paths to save
+ */
+function handleSaveOutputPaths(outputPaths) {
+  // Update the output paths in the current data
+  if (currentVideoAssemblyData && currentVideoAssemblyData.cut) {
+    // Ensure render_output exists
+    if (!currentVideoAssemblyData.cut.render_output) {
+      currentVideoAssemblyData.cut.render_output = {};
+    }
+    
+    // Update the output paths
+    currentVideoAssemblyData.cut.render_output.output_paths = outputPaths;
+    
+    // Only try to save if we're in Electron
+    if (electronSetup.isElectron && electronSetup.ipcRenderer && currentVideoAssemblyPath) {
+      // Save the updated data to the file
+      saveVideoAssemblyToFile(currentVideoAssemblyPath, currentVideoAssemblyData);
+      
+      // Update the terminal with a message
+      const terminal = document.getElementById('terminal');
+      terminal.innerHTML += `<p>Output paths updated and saved</p>`;
+    } else {
+      // In browser mode, just log the change
+      console.log('Output paths updated:', outputPaths);
+      // Update the terminal with a message
+      const terminal = document.getElementById('terminal');
+      terminal.innerHTML += `<p>Output paths updated (changes not saved in browser mode)</p>`;
+    }
+  }
+}
+
+/**
+ * Function to handle saving high quality render settings
+ * @param {Object} settings - The high quality render settings to save
+ */
+function handleSaveHighQualitySettings(settings) {
+  // Update the high quality render settings in the current data
+  if (currentVideoAssemblyData && currentVideoAssemblyData.cut) {
+    // Ensure render_output exists
+    if (!currentVideoAssemblyData.cut.render_output) {
+      currentVideoAssemblyData.cut.render_output = {};
+    }
+    
+    // Update the high quality render settings
+    currentVideoAssemblyData.cut.render_output.high_quality_render = settings;
+    
+    // Only try to save if we're in Electron
+    if (electronSetup.isElectron && electronSetup.ipcRenderer && currentVideoAssemblyPath) {
+      // Save the updated data to the file
+      saveVideoAssemblyToFile(currentVideoAssemblyPath, currentVideoAssemblyData);
+      
+      // Update the terminal with a message
+      const terminal = document.getElementById('terminal');
+      terminal.innerHTML += `<p>High quality render settings updated and saved</p>`;
+    } else {
+      // In browser mode, just log the change
+      console.log('High quality render settings updated:', settings);
+      // Update the terminal with a message
+      const terminal = document.getElementById('terminal');
+      terminal.innerHTML += `<p>High quality render settings updated (changes not saved in browser mode)</p>`;
+    }
+  }
+}
+
+/**
+ * Function to handle saving quick render settings
+ * @param {Object} settings - The quick render settings to save
+ */
+function handleSaveQuickRenderSettings(settings) {
+  // Update the quick render settings in the current data
+  if (currentVideoAssemblyData && currentVideoAssemblyData.cut) {
+    // Ensure render_output exists
+    if (!currentVideoAssemblyData.cut.render_output) {
+      currentVideoAssemblyData.cut.render_output = {};
+    }
+    
+    // Update the quick render settings
+    currentVideoAssemblyData.cut.render_output.quick_render = settings;
+    
+    // Only try to save if we're in Electron
+    if (electronSetup.isElectron && electronSetup.ipcRenderer && currentVideoAssemblyPath) {
+      // Save the updated data to the file
+      saveVideoAssemblyToFile(currentVideoAssemblyPath, currentVideoAssemblyData);
+      
+      // Update the terminal with a message
+      const terminal = document.getElementById('terminal');
+      terminal.innerHTML += `<p>Quick render settings updated and saved</p>`;
+    } else {
+      // In browser mode, just log the change
+      console.log('Quick render settings updated:', settings);
+      // Update the terminal with a message
+      const terminal = document.getElementById('terminal');
+      terminal.innerHTML += `<p>Quick render settings updated (changes not saved in browser mode)</p>`;
+    }
+  }
+}
+
+/**
  * Function to handle video assembly data received from the main process
  * @param {Object} data - The video assembly data
  */
@@ -253,5 +352,8 @@ module.exports = {
   handleSubtitleUpdate,
   handleRenderSegmentRequest,
   handleRenderSceneRequest,
+  handleSaveOutputPaths,
+  handleSaveHighQualitySettings,
+  handleSaveQuickRenderSettings,
   handleVideoAssemblyData
 };

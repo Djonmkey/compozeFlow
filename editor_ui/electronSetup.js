@@ -10,7 +10,7 @@ const isElectron = typeof window !== 'undefined' && window.process && window.pro
 
 // Initialize variables that would normally come from required modules
 let ipcRenderer, fs, child_process, path, generateHtmlFromVideoAssembly, generateOverlayImagesHtml,
-    generateMixedAudioHtml, generateGeneralHtml, generateExplorerHtml, initializeExplorer,
+    generateMixedAudioHtml, generateGeneralHtml, generateOutputHtml, generateExplorerHtml, initializeExplorer,
     fileTabsDisplay, renderOptionsDisplay, switchExplorerMode;
 
 // Install source map support for better debugging
@@ -39,6 +39,7 @@ if (isElectron) {
     generateOverlayImagesHtml = require('./overlayImagesDisplay');
     generateMixedAudioHtml = require('./mixedAudioDisplay');
     generateGeneralHtml = require('./generalDisplay');
+    generateOutputHtml = require('./outputDisplay');
     
     // Load explorer modules
     const explorerModule = require('./explorerDisplay');
@@ -72,6 +73,7 @@ module.exports = {
   generateOverlayImagesHtml,
   generateMixedAudioHtml,
   generateGeneralHtml,
+  generateOutputHtml,
   generateExplorerHtml,
   initializeExplorer,
   switchExplorerMode,

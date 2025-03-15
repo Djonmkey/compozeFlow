@@ -51,6 +51,18 @@ window.addEventListener('message', (event) => {
   else if (event.data && event.data.type === 'render-scene') {
     videoAssemblyManager.handleRenderSceneRequest(event.data.segmentSequence, event.data.sceneSequence);
   }
+  // Check if the message is to save output paths
+  else if (event.data && event.data.type === 'save-output-paths') {
+    videoAssemblyManager.handleSaveOutputPaths(event.data.data);
+  }
+  // Check if the message is to save high quality render settings
+  else if (event.data && event.data.type === 'save-high-quality-settings') {
+    videoAssemblyManager.handleSaveHighQualitySettings(event.data.data);
+  }
+  // Check if the message is to save quick render settings
+  else if (event.data && event.data.type === 'save-quick-render-settings') {
+    videoAssemblyManager.handleSaveQuickRenderSettings(event.data.data);
+  }
 });
 
 // Expose the saveVideoAssemblyToFile function to the window object
