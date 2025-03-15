@@ -136,13 +136,31 @@ function toggleFileDismissStatus(filePath) {
             const { saveVideoAssemblyData } = require('./fileTimelineIntegration');
             saveVideoAssemblyData(videoAssemblyData);
             
-            // Update the explorer if in Content Sources mode
+            // Update the explorer view to reflect the change
             const explorerMode = document.querySelector('.explorer-mode-selector .active');
-            if (explorerMode && explorerMode.textContent.trim() === 'Content Sources') {
+            if (explorerMode) {
                 const explorer = document.getElementById('explorer');
-                const contentSourcesDisplay = require('../contentSourcesDisplay');
-                explorer.innerHTML = contentSourcesDisplay.generateContentSourcesHtml(videoAssemblyData);
-                contentSourcesDisplay.initializeContentSources(videoAssemblyData);
+                const activeMode = explorerMode.textContent.trim();
+                
+                // Update based on the active explorer mode
+                if (activeMode === 'Content Sources') {
+                    const contentSourcesDisplay = require('../contentSourcesDisplay');
+                    explorer.innerHTML = contentSourcesDisplay.generateContentSourcesHtml(videoAssemblyData);
+                    contentSourcesDisplay.initializeContentSources(videoAssemblyData);
+                } else if (activeMode === 'Search') {
+                    // If in search mode, refresh the search results if there's an active search
+                    const searchInput = document.getElementById('global-search-input');
+                    if (searchInput && searchInput.value.trim().length >= 2) {
+                        const searchDisplay = require('../searchDisplay');
+                        // Re-trigger the search with current input
+                        const searchEvent = new Event('input', { bubbles: true });
+                        searchInput.dispatchEvent(searchEvent);
+                    }
+                }
+                
+                // Update the terminal with a message about the view refresh
+                const terminal = document.getElementById('terminal');
+                terminal.innerHTML += `<p>Explorer view updated to reflect file status change</p>`;
             }
         } catch (error) {
             console.error('Error toggling file dismiss status:', error);
