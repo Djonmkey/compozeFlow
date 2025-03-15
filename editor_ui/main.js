@@ -132,6 +132,7 @@ function createMenu() {
             }
           }
         },
+        { type: 'separator' },
         {
           label: 'Save Video Assembly As',
           click: async () => {
