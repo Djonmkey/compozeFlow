@@ -269,6 +269,26 @@ ipcMain.handle('show-open-folder-dialog', async (event) => {
   }
 });
 
+// Handle showing open folder dialog for output paths
+ipcMain.handle('show-output-path-dialog', async (event, title = 'Select Output Path') => {
+  try {
+    const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
+      title: title,
+      properties: ['openDirectory']
+    });
+    
+    if (canceled || filePaths.length === 0) {
+      console.log('Output path selection was canceled');
+      return { canceled: true };
+    }
+    
+    return { canceled: false, folderPath: filePaths[0] };
+  } catch (error) {
+    console.error('Error showing output path dialog:', error);
+    return { canceled: true, error: error.message };
+  }
+});
+
 // Handle saving video assembly data
 ipcMain.handle('save-video-assembly-data', async (event, videoAssemblyData) => {
   if (!currentFilePath) {

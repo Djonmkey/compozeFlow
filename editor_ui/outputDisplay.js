@@ -44,17 +44,26 @@ function generateOutputHtml(videoAssemblyData) {
     <div class="output-section">
       <h3>Output Paths</h3>
       <div class="output-form-group">
-        <label for="output-path-cut">Cut Output Path:</label>
-        <input type="text" id="output-path-cut" class="output-form-control" value="${outputPaths.cut || ''}">
+        <label for="output-path-cut">Video Output Path:</label>
+        <div class="output-path-input-container">
+          <input type="text" id="output-path-cut" class="output-form-control" value="${outputPaths.cut || ''}">
+          <button id="browse-output-path-cut" class="output-path-browse-btn">Browse...</button>
+        </div>
       </div>
       <div class="output-form-group">
         <label for="output-path-segment-scene">Segment / Scene Output Path:</label>
-        <input type="text" id="output-path-segment-scene" class="output-form-control" value="${outputPaths.segment_scene || ''}">
+        <div class="output-path-input-container">
+          <input type="text" id="output-path-segment-scene" class="output-form-control" value="${outputPaths.segment_scene || ''}">
+          <button id="browse-output-path-segment-scene" class="output-path-browse-btn">Browse...</button>
+        </div>
       </div>
       <div class="output-form-group">
         <label for="output-path-clip">Clip Output Path:</label>
-        <input type="text" id="output-path-clip" class="output-form-control" value="${outputPaths.clip || ''}">
-        Note: This path is only used if the "Render Each Clip Individually" is chosen.
+        <div class="output-path-input-container">
+          <input type="text" id="output-path-clip" class="output-form-control" value="${outputPaths.clip || ''}">
+          <button id="browse-output-path-clip" class="output-path-browse-btn">Browse...</button>
+        </div>
+        <div class="output-path-note">Note: This path is only used if the "Render Each Clip Individually" is chosen.</div>
       </div>
       <button id="save-output-paths" class="output-btn output-btn-primary">Save Output Paths</button>
     </div>
@@ -207,12 +216,36 @@ function generateOutputHtml(videoAssemblyData) {
         width: 50%;
       }
       
+      .output-path-input-container {
+        display: flex;
+        gap: 8px;
+      }
+      
       .output-form-control {
-        width: 100%;
+        flex: 1;
         padding: 8px;
         border: 1px solid #ccc;
         border-radius: 4px;
         font-size: 14px;
+      }
+      
+      .output-path-browse-btn {
+        padding: 8px 12px;
+        background-color: #f0f0f0;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+      }
+      
+      .output-path-browse-btn:hover {
+        background-color: #e0e0e0;
+      }
+      
+      .output-path-note {
+        font-size: 12px;
+        color: #666;
+        margin-top: 4px;
       }
       
       .output-btn {
@@ -372,12 +405,62 @@ function generateOutputHtml(videoAssemblyData) {
         }
       }
       
+      // Function to browse for a directory
+      async function browseForDirectory(inputId) {
+        try {
+          // Check if we're running in Electron
+          if (typeof window !== 'undefined' && window.process && window.process.type === 'renderer') {
+            // Get the electron module
+            const electron = require('electron');
+            const ipcRenderer = electron.ipcRenderer;
+            
+            // Use IPC to request the main process to show the open folder dialog
+            const pathType = inputId.replace('output-path-', '').replace('-', ' ');
+            const result = await ipcRenderer.invoke('show-output-path-dialog', 'Select ' + pathType + ' Output Path');
+            
+            if (result.canceled) {
+              console.log('Folder selection was canceled');
+              return;
+            }
+            
+            const folderPath = result.folderPath;
+            console.log('Selected folder for ' + inputId + ': ' + folderPath);
+            
+            // Update the input field with the selected path
+            const inputField = document.getElementById(inputId);
+            if (inputField) {
+              inputField.value = folderPath;
+            }
+          } else {
+            console.log('Not running in Electron, cannot show folder dialog');
+          }
+        } catch (error) {
+          console.error('Error browsing for directory:', error);
+        }
+      }
+      
       // Add event listeners when the document is loaded
       document.addEventListener('DOMContentLoaded', () => {
         // Output paths save button
         const saveOutputPathsBtn = document.getElementById('save-output-paths');
         if (saveOutputPathsBtn) {
           saveOutputPathsBtn.addEventListener('click', saveOutputPaths);
+        }
+        
+        // Browse buttons for output paths
+        const browseCutBtn = document.getElementById('browse-output-path-cut');
+        if (browseCutBtn) {
+          browseCutBtn.addEventListener('click', () => browseForDirectory('output-path-cut'));
+        }
+        
+        const browseSegmentSceneBtn = document.getElementById('browse-output-path-segment-scene');
+        if (browseSegmentSceneBtn) {
+          browseSegmentSceneBtn.addEventListener('click', () => browseForDirectory('output-path-segment-scene'));
+        }
+        
+        const browseClipBtn = document.getElementById('browse-output-path-clip');
+        if (browseClipBtn) {
+          browseClipBtn.addEventListener('click', () => browseForDirectory('output-path-clip'));
         }
         
         // High quality settings save button
