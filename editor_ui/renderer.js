@@ -77,12 +77,26 @@ window.handleRenderButtonClick = renderProcessManager.handleRenderButtonClick;
 // to avoid circular dependencies with modules that need it
 window.electronSetup = electronSetup;
 
+const { getCurrentVideoAssemblyData } = require('./videoAssemblyManager');
+
 // Initialize the UI
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('Renderer process initialized');
-  
-  // Initialize tabs
-  uiManager.initializeTabs();
+    console.log('Renderer process initialized');
+    
+    // Initialize tabs
+    uiManager.initializeTabs();
+
+    // Add event listener for Raw tab
+    const rawTab = document.querySelector('.tab:nth-child(6)');
+    rawTab.addEventListener('click', () => {
+        const data = getCurrentVideoAssemblyData();
+        if (data) {
+            const prettyPrintedJson = JSON.stringify(data, null, 2);
+            editorContent.innerText = prettyPrintedJson;
+        } else {
+            editorContent.innerText = 'No video assembly data available.';
+        }
+    });
   
   // Load and display installed plugins if the feature is enabled
   if (FEATURE_FLAGS.ENABLE_PLUGINS) {
