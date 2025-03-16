@@ -242,23 +242,31 @@ async function createVideoAssemblyFromTemplate(window, templatePath, metadata) {
     
     // Update the template with the provided metadata
     if (template.cut) {
+      // Set title to user-defined value, but set subtitle and description to blank
       template.cut.title = metadata.title || template.cut.title || '';
-      template.cut.subtitle = metadata.subtitle || template.cut.subtitle || '';
-      // Keep the original description from the template
+      template.cut.subtitle = ''; // Always set to blank
+      template.cut.description = ''; // Always set to blank
     } else {
       // If the template doesn't have a cut property, create a basic structure
       template.cut = {
         title: metadata.title || '',
-        subtitle: metadata.subtitle || '',
-        description: metadata.description || '',
+        subtitle: '', // Always blank
+        description: '', // Always blank
         segments: []
       };
+    }
+    
+    // Determine the default save path (video_assemblies directory)
+    const videoAssembliesDir = path.join(__dirname, 'video_assemblies');
+    // Create the directory if it doesn't exist
+    if (!fs.existsSync(videoAssembliesDir)) {
+      fs.mkdirSync(videoAssembliesDir, { recursive: true });
     }
     
     // Prompt for save location
     const { canceled, filePath: selectedPath } = await dialog.showSaveDialog(window, {
       title: 'Save New Video Assembly',
-      defaultPath: path.join(app.getPath('documents'), `${metadata.title || 'new_video_assembly'}.json`),
+      defaultPath: path.join(videoAssembliesDir, `${metadata.title || 'new_video_assembly'}.json`),
       filters: [
         { name: 'Video Assembly Files', extensions: ['json'] },
         { name: 'All Files', extensions: ['*'] }
