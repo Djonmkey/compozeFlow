@@ -6,6 +6,7 @@
 
 const { formatDate, formatFileSize } = require('./fileTypeUtils');
 const { addClipToTimeline, setCurrentVideoAssemblyData } = require('./fileTimelineIntegration');
+const { findFileUsages } = require('./fileUsageTracker');
 
 /**
  * Updates the editor content to show file details
@@ -144,6 +145,78 @@ function updateEditorContent(currentFile, videoAssemblyData) {
                 </div>
             </div>
         `;
+    }
+    
+    // Add file usages section
+    if (videoAssemblyData && videoAssemblyData.cut) {
+        const fileUsages = findFileUsages(currentFile.path, videoAssemblyData);
+        
+        if (fileUsages.length > 0) {
+            html += `
+                <div class="file-usages-section">
+                    <h3>File Usages (${fileUsages.length})</h3>
+                    <div class="file-usages-list">
+            `;
+            
+            fileUsages.forEach((usage, index) => {
+                const segmentInfo = `Segment ${usage.segment.sequence}: ${usage.segment.title}`;
+                const sceneInfo = usage.scene ? `Scene ${usage.scene.sequence}: ${usage.scene.title}` : 'N/A';
+                
+                html += `
+                    <div class="file-usage-item">
+                        <div class="file-usage-header">
+                            <span class="file-usage-number">#${index + 1}</span>
+                            <span class="file-usage-type">${usage.type}</span>
+                        </div>
+                        <div class="file-usage-details">
+                            <div class="file-usage-detail">
+                                <span class="file-usage-label">Segment:</span>
+                                <span class="file-usage-value">${segmentInfo}</span>
+                            </div>
+                            <div class="file-usage-detail">
+                                <span class="file-usage-label">Scene:</span>
+                                <span class="file-usage-value">${sceneInfo}</span>
+                            </div>
+                `;
+                
+                // Add additional details for timeline clips
+                if (usage.type === 'Timeline Clip' && usage.details) {
+                    html += `
+                            <div class="file-usage-detail">
+                                <span class="file-usage-label">Sequence:</span>
+                                <span class="file-usage-value">${usage.details.sequence || 'N/A'}</span>
+                            </div>
+                            <div class="file-usage-detail">
+                                <span class="file-usage-label">Trim Start:</span>
+                                <span class="file-usage-value">${usage.details.trimStart}</span>
+                            </div>
+                            <div class="file-usage-detail">
+                                <span class="file-usage-label">Trim End:</span>
+                                <span class="file-usage-value">${usage.details.trimEnd}</span>
+                            </div>
+                    `;
+                    
+                    if (usage.details.comments) {
+                        html += `
+                            <div class="file-usage-detail">
+                                <span class="file-usage-label">Comments:</span>
+                                <span class="file-usage-value">${usage.details.comments}</span>
+                            </div>
+                        `;
+                    }
+                }
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += `
+                    </div>
+                </div>
+            `;
+        }
     }
     
     html += `</div>`;

@@ -208,6 +208,65 @@ function applyFileTabsStyles() {
         background-color: #a0b8e0;
         cursor: not-allowed;
     }
+    
+    /* File usages styling */
+    .file-usages-section {
+        margin-top: 30px;
+    }
+    
+    .file-usages-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        margin-top: 15px;
+    }
+    
+    .file-usage-item {
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+    
+    .file-usage-header {
+        display: flex;
+        align-items: center;
+        padding: 8px 12px;
+        background-color: #f5f5f5;
+        border-bottom: 1px solid #ddd;
+    }
+    
+    .file-usage-number {
+        font-weight: bold;
+        margin-right: 10px;
+        color: #555;
+    }
+    
+    .file-usage-type {
+        font-weight: bold;
+        color: #0066cc;
+    }
+    
+    .file-usage-details {
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .file-usage-detail {
+        display: flex;
+        align-items: flex-start;
+    }
+    
+    .file-usage-label {
+        font-weight: bold;
+        width: 100px;
+        flex-shrink: 0;
+    }
+    
+    .file-usage-value {
+        word-break: break-all;
+    }
 `;
     document.head.appendChild(fileTabsStyle);
 }

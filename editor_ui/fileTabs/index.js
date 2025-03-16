@@ -23,6 +23,7 @@ const fileTypeUtils = require('./fileTypeUtils');
 const fileTimelineIntegration = require('./fileTimelineIntegration');
 const fileOperationsUI = require('./fileOperationsUI');
 const fileTabsStyles = require('./fileTabsStyles');
+const fileUsageTracker = require('./fileUsageTracker');
 
 // Apply styles when the module is loaded
 if (typeof window !== 'undefined') {
@@ -60,5 +61,8 @@ module.exports = {
   // From fileOperationsUI
   copyToClipboard: fileOperationsUI.copyToClipboard,
   openFileInDefaultApp: fileOperationsUI.openFileInDefaultApp,
-  toggleFileDismissStatus: fileOperationsUI.toggleFileDismissStatus
+  toggleFileDismissStatus: fileOperationsUI.toggleFileDismissStatus,
+  
+  // From fileUsageTracker
+  findFileUsages: fileUsageTracker.findFileUsages
 };
