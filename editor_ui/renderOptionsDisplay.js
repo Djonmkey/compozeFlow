@@ -373,7 +373,7 @@ function addRenderOptionsStyles() {
     .render-button {
       width: 30px;
       height: 30px;
-      background-color: #4a86e8;
+      background-color: #388E3C; /* Nice forest green color */
       color: white;
       border-radius: 50%;
       display: flex;
@@ -385,7 +385,7 @@ function addRenderOptionsStyles() {
     }
     
     .render-button:hover {
-      background-color: #3a76d8;
+      background-color: #2E7D32; /* Darker shade of green for hover state */
     }
     
     .render-button.running {

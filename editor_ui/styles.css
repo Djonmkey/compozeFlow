@@ -404,7 +404,7 @@ body.resizing {
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  background-color: #0078d7; /* Blue color similar to VSCode */
+  background-color: #388E3C; /* Nice forest green color */
   color: white;
   cursor: pointer;
   margin: auto 10px;
@@ -413,7 +413,7 @@ body.resizing {
 }
 
 .render-button:hover {
-  background-color: #106ebe;
+  background-color: #2E7D32; /* Darker shade of green for hover state */
 }
 
 .render-button.running {
