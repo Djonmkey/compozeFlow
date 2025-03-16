@@ -560,29 +560,20 @@ ipcMain.handle('save-video-assembly-data', async (event, videoAssemblyData) => {
   }
 });
 
-// Handle actions from the getting started window
-ipcMain.on('getting-started-new-assembly', () => {
-  // Do NOT close the getting started window yet - it will close automatically when a file is active
-  
-  // Trigger the New Video Assembly action
+// Handle menu actions from the renderer process
+ipcMain.on('menu-action', (event, action) => {
   const fileMenu = Menu.getApplicationMenu().items.find(item => item.label === 'File');
   if (fileMenu && fileMenu.submenu) {
-    const newAssemblyItem = fileMenu.submenu.items.find(item => item.label === 'New Video Assembly');
-    if (newAssemblyItem && newAssemblyItem.click) {
-      newAssemblyItem.click();
-    }
-  }
-});
-
-ipcMain.on('getting-started-open-assembly', async () => {
-  // Do NOT close the getting started window yet - it will close automatically when a file is active
-  
-  // Trigger the Open Video Assembly action
-  const fileMenu = Menu.getApplicationMenu().items.find(item => item.label === 'File');
-  if (fileMenu && fileMenu.submenu) {
-    const openAssemblyItem = fileMenu.submenu.items.find(item => item.label === 'Open Video Assembly');
-    if (openAssemblyItem && openAssemblyItem.click) {
-      openAssemblyItem.click();
+    if (action === 'new-video-assembly') {
+      const newAssemblyItem = fileMenu.submenu.items.find(item => item.label === 'New Video Assembly');
+      if (newAssemblyItem && newAssemblyItem.click) {
+        newAssemblyItem.click();
+      }
+    } else if (action === 'open-video-assembly') {
+      const openAssemblyItem = fileMenu.submenu.items.find(item => item.label === 'Open Video Assembly');
+      if (openAssemblyItem && openAssemblyItem.click) {
+        openAssemblyItem.click();
+      }
     }
   }
 });

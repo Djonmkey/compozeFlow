@@ -323,7 +323,7 @@ function handleVideoAssemblyData(data) {
   
   // Update the render options with the video assembly data
   if (electronSetup.isElectron && electronSetup.ipcRenderer) {
-    if (typeof electronSetup.renderOptionsDisplay !== 'undefined' && 
+    if (typeof electronSetup.renderOptionsDisplay !== 'undefined' &&
         electronSetup.renderOptionsDisplay.updateRenderOptions) {
       // Get the current file path from the main process
       electronSetup.ipcRenderer.invoke('get-current-file-path').then((filePath) => {
@@ -332,6 +332,11 @@ function handleVideoAssemblyData(data) {
           currentVideoAssemblyPath = filePath;
           // Update render options
           electronSetup.renderOptionsDisplay.updateRenderOptions(data, filePath);
+          
+          // Update the getting started UI visibility
+          if (typeof window.updateGettingStartedVisibility === 'function') {
+            window.updateGettingStartedVisibility();
+          }
         }
       });
     }
@@ -342,11 +347,38 @@ function handleVideoAssemblyData(data) {
   terminal.innerHTML += `<p>Video assembly loaded and displayed in Timeline tab</p>`;
 }
 
+/**
+ * Function to clear the current video assembly data
+ */
+function clearVideoAssemblyData() {
+  currentVideoAssemblyData = null;
+  currentVideoAssemblyPath = null;
+  window.currentVideoAssemblyData = null;
+  
+  // Update the application title
+  document.title = 'compozeFlow';
+  
+  // Update the getting started UI visibility
+  if (typeof window.updateGettingStartedVisibility === 'function') {
+    window.updateGettingStartedVisibility();
+  }
+  
+  // Update the terminal with a message
+  const terminal = document.getElementById('terminal');
+  terminal.innerHTML += `<p>Video assembly data cleared</p>`;
+}
+
 // Export the functions and variables
 module.exports = {
   getCurrentVideoAssemblyData: () => currentVideoAssemblyData,
   getCurrentVideoAssemblyPath: () => currentVideoAssemblyPath,
-  setCurrentVideoAssemblyPath: (path) => { currentVideoAssemblyPath = path; },
+  setCurrentVideoAssemblyPath: (path) => {
+    currentVideoAssemblyPath = path;
+    // Update the getting started UI visibility when the path changes
+    if (typeof window.updateGettingStartedVisibility === 'function') {
+      window.updateGettingStartedVisibility();
+    }
+  },
   saveVideoAssemblyToFile,
   handleTitleUpdate,
   handleSubtitleUpdate,
@@ -355,5 +387,6 @@ module.exports = {
   handleSaveOutputPaths,
   handleSaveHighQualitySettings,
   handleSaveQuickRenderSettings,
-  handleVideoAssemblyData
+  handleVideoAssemblyData,
+  clearVideoAssemblyData
 };
