@@ -62,32 +62,43 @@ async function openVideoAssembly(window) {
 }
 
 /**
- * Saves a video assembly to a JSON file
+ * Generic function to save a JSON file with dialog
  * @param {BrowserWindow} window - The parent window for the dialog
  * @param {Object} content - The content to save
- * @param {string} [filePath] - Optional file path (for Save). If not provided, will prompt for location (for Save As)
+ * @param {Object} options - Options for saving
+ * @param {string} [options.filePath] - Optional file path (for Save). If not provided, will prompt for location (for Save As)
+ * @param {string} [options.defaultDir] - Default directory to save to
+ * @param {string} [options.defaultFilename] - Default filename
+ * @param {string} [options.dialogTitle] - Title for the save dialog
  * @returns {Promise<string|null>} The file path where the content was saved, or null if canceled
  */
-async function saveVideoAssembly(window, content, filePath = null) {
+async function saveJsonFileWithDialog(window, content, options = {}) {
   try {
+    const {
+      filePath = null,
+      defaultDir = path.join(__dirname, 'video_assemblies'),
+      defaultFilename = 'video_assembly.json',
+      dialogTitle = 'Save Video Assembly'
+    } = options;
+
+    let finalFilePath = filePath;
+
     // If no file path is provided (Save As), show a save dialog
-    if (!filePath) {
-      // Determine the default save path (video_assemblies directory)
-      const videoAssembliesDir = path.join(__dirname, 'video_assemblies');
+    if (!finalFilePath) {
       // Create the directory if it doesn't exist
-      if (!fs.existsSync(videoAssembliesDir)) {
-        fs.mkdirSync(videoAssembliesDir, { recursive: true });
+      if (!fs.existsSync(defaultDir)) {
+        fs.mkdirSync(defaultDir, { recursive: true });
       }
       
       // Get a default filename based on title if available
-      let defaultFilename = 'video_assembly.json';
+      let filename = defaultFilename;
       if (content.cut && content.cut.title) {
-        defaultFilename = `${content.cut.title}.json`;
+        filename = `${content.cut.title}.json`;
       }
       
       const { canceled, filePath: selectedPath } = await dialog.showSaveDialog(window, {
-        title: 'Save Video Assembly',
-        defaultPath: path.join(videoAssembliesDir, defaultFilename),
+        title: dialogTitle,
+        defaultPath: path.join(defaultDir, filename),
         filters: [
           { name: 'Video Assembly Files', extensions: ['json'] },
           { name: 'All Files', extensions: ['*'] }
@@ -100,22 +111,22 @@ async function saveVideoAssembly(window, content, filePath = null) {
         return null;
       }
 
-      filePath = selectedPath;
+      finalFilePath = selectedPath;
     }
 
     // Ensure the file has a .json extension
-    if (!filePath.toLowerCase().endsWith('.json')) {
-      filePath += '.json';
+    if (!finalFilePath.toLowerCase().endsWith('.json')) {
+      finalFilePath += '.json';
     }
 
     // Convert content to JSON string
     const jsonContent = JSON.stringify(content, null, 2);
     
     // Write to file
-    fs.writeFileSync(filePath, jsonContent, 'utf-8');
-    console.log(`File saved to: ${filePath}`);
+    fs.writeFileSync(finalFilePath, jsonContent, 'utf-8');
+    console.log(`File saved to: ${finalFilePath}`);
     
-    return filePath;
+    return finalFilePath;
   } catch (error) {
     console.error('Error saving file:', error);
     dialog.showErrorBox(
@@ -127,58 +138,33 @@ async function saveVideoAssembly(window, content, filePath = null) {
 }
 
 /**
+ * Saves a video assembly to a JSON file
+ * @param {BrowserWindow} window - The parent window for the dialog
+ * @param {Object} content - The content to save
+ * @param {string} [filePath] - Optional file path (for Save). If not provided, will prompt for location (for Save As)
+ * @returns {Promise<string|null>} The file path where the content was saved, or null if canceled
+ */
+async function saveVideoAssembly(window, content, filePath = null) {
+  return saveJsonFileWithDialog(window, content, {
+    filePath,
+    defaultDir: path.join(__dirname, 'video_assemblies'),
+    defaultFilename: 'video_assembly.json',
+    dialogTitle: 'Save Video Assembly'
+  });
+}
+
+/**
  * Saves a video assembly as a template
  * @param {BrowserWindow} window - The parent window for the dialog
  * @param {Object} content - The content to save
  * @returns {Promise<string|null>} The file path where the template was saved, or null if canceled
  */
 async function saveVideoAssemblyAsTemplate(window, content) {
-  try {
-    // Create templates directory if it doesn't exist
-    const templatesDir = path.join(__dirname, 'templates');
-    if (!fs.existsSync(templatesDir)) {
-      fs.mkdirSync(templatesDir, { recursive: true });
-    }
-
-    // Show save dialog with templates directory as default path
-    const { canceled, filePath: selectedPath } = await dialog.showSaveDialog(window, {
-      title: 'Save Video Assembly As Template',
-      defaultPath: path.join(templatesDir, 'template.json'),
-      filters: [
-        { name: 'Template Files', extensions: ['json'] },
-        { name: 'All Files', extensions: ['*'] }
-      ],
-      properties: ['createDirectory', 'showOverwriteConfirmation']
-    });
-
-    if (canceled || !selectedPath) {
-      console.log('Save template was canceled');
-      return null;
-    }
-
-    let filePath = selectedPath;
-    
-    // Ensure the file has a .json extension
-    if (!filePath.toLowerCase().endsWith('.json')) {
-      filePath += '.json';
-    }
-
-    // Convert content to JSON string
-    const jsonContent = JSON.stringify(content, null, 2);
-    
-    // Write to file
-    fs.writeFileSync(filePath, jsonContent, 'utf-8');
-    console.log(`Template saved to: ${filePath}`);
-    
-    return filePath;
-  } catch (error) {
-    console.error('Error saving template:', error);
-    dialog.showErrorBox(
-      'Error Saving Template',
-      `An error occurred while saving the template: ${error.message}`
-    );
-    return null;
-  }
+  return saveJsonFileWithDialog(window, content, {
+    defaultDir: path.join(__dirname, 'templates'),
+    defaultFilename: 'template.json',
+    dialogTitle: 'Save Video Assembly As Template'
+  });
 }
 
 /**
@@ -270,42 +256,16 @@ async function createVideoAssemblyFromTemplate(window, templatePath, metadata) {
       };
     }
     
-    // Determine the default save path (video_assemblies directory)
-    const videoAssembliesDir = path.join(__dirname, 'video_assemblies');
-    // Create the directory if it doesn't exist
-    if (!fs.existsSync(videoAssembliesDir)) {
-      fs.mkdirSync(videoAssembliesDir, { recursive: true });
-    }
-    
-    // Prompt for save location
-    const { canceled, filePath: selectedPath } = await dialog.showSaveDialog(window, {
-      title: 'Save New Video Assembly',
-      defaultPath: path.join(videoAssembliesDir, `${metadata.title || 'new_video_assembly'}.json`),
-      filters: [
-        { name: 'Video Assembly Files', extensions: ['json'] },
-        { name: 'All Files', extensions: ['*'] }
-      ],
-      properties: ['createDirectory', 'showOverwriteConfirmation']
+    // Save the file using our generic function
+    const filePath = await saveJsonFileWithDialog(window, template, {
+      defaultDir: path.join(__dirname, 'video_assemblies'),
+      defaultFilename: `${metadata.title || 'new_video_assembly'}.json`,
+      dialogTitle: 'Save New Video Assembly'
     });
-
-    if (canceled || !selectedPath) {
-      console.log('Save was canceled');
+    
+    if (!filePath) {
       return null;
     }
-
-    let filePath = selectedPath;
-    
-    // Ensure the file has a .json extension
-    if (!filePath.toLowerCase().endsWith('.json')) {
-      filePath += '.json';
-    }
-
-    // Convert content to JSON string
-    const jsonContent = JSON.stringify(template, null, 2);
-    
-    // Write to file
-    fs.writeFileSync(filePath, jsonContent, 'utf-8');
-    console.log(`New video assembly saved to: ${filePath}`);
     
     return {
       filePath,

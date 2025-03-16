@@ -167,26 +167,34 @@ function createMenu() {
                 const selectedTemplate = templates[data.templateIndex];
                 console.log(`Selected template: ${selectedTemplate.name}`);
                 
-                // Create new video assembly from template
-                const result = await fileOps.createVideoAssemblyFromTemplate(
-                  mainWindow,
-                  selectedTemplate.path,
-                  {
-                    title: data.title || '',
-                    subtitle: selectedTemplate.subtitle || '',
-                    description: selectedTemplate.description || ''
+                try {
+                  // Create new video assembly from template
+                  const result = await fileOps.createVideoAssemblyFromTemplate(
+                    mainWindow,
+                    selectedTemplate.path,
+                    {
+                      title: data.title || '',
+                      subtitle: selectedTemplate.subtitle || '',
+                      description: selectedTemplate.description || ''
+                    }
+                  );
+                  
+                  if (result) {
+                    currentFilePath = result.filePath;
+                    // Send the loaded content to the renderer process
+                    mainWindow.webContents.send('video-assembly-opened', result.content);
+                    // Also send the file path
+                    mainWindow.webContents.send('current-file-path', currentFilePath);
+                    console.log("New video assembly created and opened:", currentFilePath);
+                    // Update menu items after setting currentFilePath
+                    updateMenuItems();
                   }
-                );
-                
-                if (result) {
-                  currentFilePath = result.filePath;
-                  // Send the loaded content to the renderer process
-                  mainWindow.webContents.send('video-assembly-opened', result.content);
-                  // Also send the file path
-                  mainWindow.webContents.send('current-file-path', currentFilePath);
-                  console.log("New video assembly created and opened:", currentFilePath);
-                  // Update menu items after setting currentFilePath
-                  updateMenuItems();
+                } catch (error) {
+                  console.error("Error creating video assembly from template:", error);
+                  dialog.showErrorBox(
+                    'Error Creating Video Assembly',
+                    `An error occurred: ${error.message}`
+                  );
                 }
               });
               
@@ -219,22 +227,31 @@ function createMenu() {
           label: 'Save Video Assembly',
           enabled: false, // Initially disabled
           click: async () => {
-            // Get the current content from the renderer process
-            // For now, we'll use a placeholder object
-            const content = { placeholder: "Video Assembly Data" };
-            
-            if (currentFilePath) {
+            try {
+              // First, get the current file content
+              if (!currentFilePath) {
+                // No current file, behave like Save As
+                dialog.showMessageBox(mainWindow, {
+                  type: 'error',
+                  title: 'Error',
+                  message: 'No video assembly file is currently loaded.'
+                });
+                return;
+              }
+              
+              // Read the current file content
+              const fileContent = fs.readFileSync(currentFilePath, 'utf-8');
+              const content = JSON.parse(fileContent);
+              
               // Use existing path for Save
               await fileOps.saveVideoAssembly(mainWindow, content, currentFilePath);
               console.log("Video assembly saved to:", currentFilePath);
-            } else {
-              // No current file, behave like Save As
-              const filePath = await fileOps.saveVideoAssembly(mainWindow, content);
-              if (filePath) {
-                currentFilePath = filePath;
-                console.log("Video assembly saved to:", currentFilePath);
-                updateMenuItems(); // Update menu items after setting currentFilePath
-              }
+            } catch (error) {
+              console.error("Error in Save Video Assembly:", error);
+              dialog.showErrorBox(
+                'Error Saving File',
+                `An error occurred: ${error.message}`
+              );
             }
           }
         },
@@ -243,16 +260,38 @@ function createMenu() {
           label: 'Save Video Assembly As',
           enabled: false, // Initially disabled
           click: async () => {
-            // Get the current content from the renderer process
-            // For now, we'll use a placeholder object
-            const content = { placeholder: "Video Assembly Data" };
-            
-            // Always prompt for location with Save As
-            const filePath = await fileOps.saveVideoAssembly(mainWindow, content);
-            if (filePath) {
-              currentFilePath = filePath;
-              console.log("Video assembly saved to:", filePath);
-              updateMenuItems(); // Update menu items after setting currentFilePath
+            try {
+              // First, get the current file content
+              if (!currentFilePath) {
+                dialog.showMessageBox(mainWindow, {
+                  type: 'error',
+                  title: 'Error',
+                  message: 'No video assembly file is currently loaded.'
+                });
+                return;
+              }
+              
+              // Read the current file content
+              const fileContent = fs.readFileSync(currentFilePath, 'utf-8');
+              const content = JSON.parse(fileContent);
+              
+              // Save with a new name/location
+              const filePath = await fileOps.saveVideoAssembly(mainWindow, content);
+              if (filePath) {
+                currentFilePath = filePath;
+                console.log("Video assembly saved to:", filePath);
+                
+                // Send the current file path to the renderer process
+                mainWindow.webContents.send('current-file-path', currentFilePath);
+                
+                updateMenuItems(); // Update menu items after setting currentFilePath
+              }
+            } catch (error) {
+              console.error("Error in Save Video Assembly As:", error);
+              dialog.showErrorBox(
+                'Error Saving File',
+                `An error occurred: ${error.message}`
+              );
             }
           }
         },
@@ -432,27 +471,38 @@ ipcMain.handle('show-output-path-dialog', async (event, title = 'Select Output P
 
 // Handle saving video assembly data
 ipcMain.handle('save-video-assembly-data', async (event, videoAssemblyData) => {
-  if (!currentFilePath) {
-    // If no current file path, prompt for a location
-    const filePath = await fileOps.saveVideoAssembly(mainWindow, videoAssemblyData);
-    if (filePath) {
-      currentFilePath = filePath;
-      console.log("Video assembly saved to:", currentFilePath);
-      return { success: true, filePath: currentFilePath };
+  try {
+    if (!currentFilePath) {
+      // If no current file path, prompt for a location
+      const filePath = await fileOps.saveVideoAssembly(mainWindow, videoAssemblyData);
+      if (filePath) {
+        currentFilePath = filePath;
+        console.log("Video assembly saved to:", currentFilePath);
+        
+        // Send the current file path to the renderer process
+        mainWindow.webContents.send('current-file-path', currentFilePath);
+        
+        // Update menu items after setting currentFilePath
+        updateMenuItems();
+        
+        return { success: true, filePath: currentFilePath };
+      } else {
+        console.log("Save was canceled");
+        return { success: false, error: "Save was canceled" };
+      }
     } else {
-      console.log("Save was canceled");
-      return { success: false, error: "Save was canceled" };
-    }
-  } else {
-    // Use existing path for Save
-    try {
+      // Use existing path for Save
       await fileOps.saveVideoAssembly(mainWindow, videoAssemblyData, currentFilePath);
       console.log("Video assembly saved to:", currentFilePath);
       return { success: true, filePath: currentFilePath };
-    } catch (error) {
-      console.error("Error saving video assembly:", error);
-      return { success: false, error: error.message };
     }
+  } catch (error) {
+    console.error("Error saving video assembly:", error);
+    dialog.showErrorBox(
+      'Error Saving File',
+      `An error occurred: ${error.message}`
+    );
+    return { success: false, error: error.message };
   }
 });
 
