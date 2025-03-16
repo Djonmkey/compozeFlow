@@ -44,9 +44,8 @@ function startRender(renderButton, terminal) {
   
   isRendering = true;
   
-  // Update button appearance
+  // Update button text only, not appearance
   renderButton.innerHTML = '■ Stop'; // Square for stop and text
-  renderButton.classList.add('running');
   renderButton.title = 'Stop Render';
   
   // Clear terminal
@@ -66,8 +65,6 @@ function startRender(renderButton, terminal) {
     if (!currentVideoAssemblyPath) {
       terminal.innerHTML += `<p style="color: #ff6666;">Error: No video assembly file is currently loaded.</p>`;
       isRendering = false;
-      renderButton.classList.remove('running');
-      renderButton.classList.add('failed');
       renderButton.innerHTML = `${ICONS.RENDER} Render`;
       renderButton.title = 'Render failed - no file loaded';
       return;
@@ -136,24 +133,18 @@ function startRender(renderButton, terminal) {
       if (code === 0) {
         // Success
         terminal.innerHTML += '<p style="color: #88ff88;">Render completed successfully.</p>';
-        renderButton.classList.remove('running');
-        renderButton.classList.remove('failed');
         renderButton.innerHTML = `${ICONS.RENDER} Render`;
         renderButton.title = 'Render Video';
       } else if (code === -2) {
         // Process was terminated by a signal (likely SIGINT)
         terminal.innerHTML += `<p style="color: #ffcc66;">Render process was terminated (code ${code}). This typically happens when the process is interrupted.</p>`;
         terminal.innerHTML += `<p>Check that Python is installed correctly and the script path is valid.</p>`;
-        renderButton.classList.remove('running');
-        renderButton.classList.add('failed');
         renderButton.innerHTML = `${ICONS.RENDER} Render`;
         renderButton.title = 'Last render was interrupted';
       } else {
         // Other failure
         terminal.innerHTML += `<p style="color: #ff6666;">Render process exited with code ${code}</p>`;
         terminal.innerHTML += `<p>This may indicate an error in the Python script or missing dependencies.</p>`;
-        renderButton.classList.remove('running');
-        renderButton.classList.add('failed');
         renderButton.innerHTML = `${ICONS.RENDER} Render`;
         renderButton.title = 'Last render failed';
       }
@@ -202,8 +193,6 @@ function startRender(renderButton, terminal) {
       // Suggest checking the script path
       terminal.innerHTML += `<p>Verify that the script exists at: ${pythonScriptPath}</p>`;
       
-      renderButton.classList.remove('running');
-      renderButton.classList.add('failed');
       renderButton.innerHTML = `${ICONS.RENDER} Render`;
       renderButton.title = 'Last render failed';
       
@@ -214,8 +203,6 @@ function startRender(renderButton, terminal) {
   } catch (error) {
     isRendering = false;
     terminal.innerHTML += `<p style="color: #ff6666;">Error: ${error.message}</p>`;
-    renderButton.classList.remove('running');
-    renderButton.classList.add('failed');
     renderButton.innerHTML = `${ICONS.RENDER} Render`;
     renderButton.title = 'Last render failed';
   }
@@ -242,7 +229,6 @@ function stopRender(renderButton, terminal) {
     terminal.innerHTML += '<p>Render process stopped by user.</p>';
     
     // Update button state
-    renderButton.classList.remove('running');
     renderButton.innerHTML = `${ICONS.RENDER} Render`;
     renderButton.title = 'Render Video';
     

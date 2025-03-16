@@ -52,15 +52,6 @@ function generateHtmlFromVideoAssembly(data) {
                 background-color: #45a049; /* Slightly darker shade for hover state */
             }
             
-            /* Add running and failed states */
-            .render-button-common.running {
-                background-color: #FF5722; /* Orange/red for stop button */
-            }
-            
-            .render-button-common.failed {
-                background-color: #F44336; /* Red for failed state */
-            }
-            
             .segment-render-button {
                 margin-right: 10px;
             }

@@ -64,12 +64,32 @@ function initializeTabs() {
     tab.addEventListener('click', () => {
       // Update active tab styling
       tabs.forEach(t => {
-        t.style.backgroundColor = t.textContent === tab.textContent ? '#ddd' : '';
-        t.style.fontWeight = t.textContent === tab.textContent ? 'bold' : 'normal';
+        if (t.textContent === tab.textContent) {
+          t.style.backgroundColor = '#ddd';
+          t.style.fontWeight = 'bold';
+          t.classList.add('active');
+        } else {
+          t.style.backgroundColor = '';
+          t.style.fontWeight = 'normal';
+          t.classList.remove('active');
+        }
       });
       
       activeTab = tab.textContent;
       updateEditorContent(window.currentVideoAssemblyData);
+      
+      // If we're clicking on a tab other than File, update the File tab appearance
+      if (tab.textContent !== 'File' && tab.className.indexOf('file-tab') === -1) {
+        // Check if the fileTabsManager module is available
+        try {
+          const fileTabsModule = require('./fileTabs');
+          if (fileTabsModule && typeof fileTabsModule.setFileTabActive === 'function') {
+            fileTabsModule.setFileTabActive(false);
+          }
+        } catch (error) {
+          console.log('File tabs module not available:', error);
+        }
+      }
     });
   });
 }
@@ -294,6 +314,15 @@ function setActiveTab(tabName) {
   
   activeTab = tabName;
   updateEditorContent(window.currentVideoAssemblyData);
+  
+  // If we're switching to a tab other than File, update the File tab appearance
+  if (tabName !== 'File') {
+    // Check if the fileTabsManager module is available
+    const fileTabsModule = require('./fileTabs');
+    if (fileTabsModule && typeof fileTabsModule.setFileTabActive === 'function') {
+      fileTabsModule.setFileTabActive(false);
+    }
+  }
 }
 
 // Export the functions
