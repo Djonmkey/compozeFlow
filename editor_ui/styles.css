@@ -420,6 +420,7 @@ body.resizing {
 /* Main render button styling */
 .render-button {
   margin: auto 10px;
+  /* No additional overrides needed - use common styling */
 }
 
 .render-button.running {

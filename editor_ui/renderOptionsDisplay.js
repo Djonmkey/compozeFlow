@@ -369,13 +369,8 @@ function addRenderOptionsStyles() {
       color: #333;
     }
     
-    /* Use the common render button styling from styles.css */
-    /* Just add specific size and font adjustments */
-    .render-button {
-      width: 30px;
-      height: 30px;
-      font-size: 16px;
-    }
+    /* Use the common render button styling from styles.css without overrides */
+    /* No need for specific size adjustments as they should be consistent */
     
     /* Use the common styles for states from styles.css */
     /* No need to redefine these here */

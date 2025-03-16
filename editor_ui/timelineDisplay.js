@@ -31,11 +31,37 @@ function generateHtmlFromVideoAssembly(data) {
             .clip-name { font-weight: bold; }
             .title-container { text-align: center; margin-bottom: 10px; }
             .segment-header { display: flex; align-items: center; margin-bottom: 10px; }
-            /* Import the common styles */
-            @import url('styles.css');
+            /* Define render button styles directly instead of importing */
+            .render-button-common {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+                padding: 6px 12px;
+                border-radius: 4px;
+                background-color: #4CAF50; /* Standard green button color */
+                color: white;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                border: none;
+                font-size: 14px;
+                font-weight: 500;
+            }
+            
+            .render-button-common:hover {
+                background-color: #45a049; /* Slightly darker shade for hover state */
+            }
+            
+            /* Add running and failed states */
+            .render-button-common.running {
+                background-color: #FF5722; /* Orange/red for stop button */
+            }
+            
+            .render-button-common.failed {
+                background-color: #F44336; /* Red for failed state */
+            }
             
             .segment-render-button {
-                /* Use the common render button style class instead of redefining */
                 margin-right: 10px;
             }
             .scene-header {
@@ -45,10 +71,8 @@ function generateHtmlFromVideoAssembly(data) {
                 margin-left: 20px;
             }
             .scene-render-button {
-                /* Use the common render button style class instead of redefining */
                 margin-right: 10px;
-                font-size: 12px; /* Slightly smaller font for scene buttons */
-                padding: 4px 8px; /* Slightly smaller padding for scene buttons */
+                /* Keep the same font size and padding as segment buttons for consistency */
             }
         </style>
         <script>
