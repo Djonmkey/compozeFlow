@@ -1,6 +1,6 @@
 /**
  * contentSourcesDisplay.js
- * 
+ *
  * Handles the display of content sources in the explorer area.
  */
 
@@ -8,6 +8,7 @@ const fs = require('fs');
 const path = require('path');
 const electron = require('electron');
 const ipcRenderer = electron.ipcRenderer;
+const fileOccurrenceCounter = require('./fileOccurrenceCounter');
 
 /**
  * Generates HTML for the content sources mode in the explorer area
@@ -86,7 +87,7 @@ function generateContentSourcesHtml(videoAssemblyData) {
                     </div>
                 </div>
                 <div class="explorer-section-content">
-                    ${generateFileTreeHtml(sourcePath, includeSubpaths, 0, supportedExtensions, true, dismissedFiles)}
+                    ${generateFileTreeHtml(sourcePath, includeSubpaths, 0, supportedExtensions, true, dismissedFiles, videoAssemblyData)}
                 </div>
             </div>
         `;
@@ -157,9 +158,10 @@ function generateContentSourcesHtml(videoAssemblyData) {
  * @param {string[]} supportedExtensions - List of supported file extensions
  * @param {boolean} filterUnsupported - Whether to filter out unsupported files
  * @param {Array} dismissedFiles - List of dismissed files
+ * @param {Object} videoAssemblyData - The video assembly data for file occurrence counting
  * @returns {string} HTML content for the file tree
  */
-function generateFileTreeHtml(dirPath, includeSubpaths, level = 0, supportedExtensions = [], filterUnsupported = true, dismissedFiles = []) {
+function generateFileTreeHtml(dirPath, includeSubpaths, level = 0, supportedExtensions = [], filterUnsupported = true, dismissedFiles = [], videoAssemblyData = null) {
     try {
         if (!fs.existsSync(dirPath)) {
             return `<div class="explorer-error">Path not found: ${dirPath}</div>`;
@@ -168,6 +170,12 @@ function generateFileTreeHtml(dirPath, includeSubpaths, level = 0, supportedExte
         const files = fs.readdirSync(dirPath, { withFileTypes: true });
         if (files.length === 0) {
             return '<div class="explorer-empty-dir">Empty directory</div>';
+        }
+
+        // Get file occurrence counts if video assembly data is provided
+        let occurrenceCounts = {};
+        if (videoAssemblyData) {
+            occurrenceCounts = fileOccurrenceCounter.countFileOccurrences(videoAssemblyData);
         }
 
         let html = '<ul class="explorer-file-list">';
@@ -191,7 +199,7 @@ function generateFileTreeHtml(dirPath, includeSubpaths, level = 0, supportedExte
             
             // Include subdirectories if specified
             if (includeSubpaths && hasChildren) {
-                html += generateFileTreeHtml(fullPath, includeSubpaths, level + 1, supportedExtensions, filterUnsupported);
+                html += generateFileTreeHtml(fullPath, includeSubpaths, level + 1, supportedExtensions, filterUnsupported, dismissedFiles, videoAssemblyData);
             }
             
             html += '</li>';
@@ -227,11 +235,16 @@ function generateFileTreeHtml(dirPath, includeSubpaths, level = 0, supportedExte
             const isDismissed = dismissedFiles.some(dismissedFile => dismissedFile.path === fullPath);
             const dismissedClass = isDismissed ? 'dismissed' : '';
             
+            // Check if the file has occurrences in the video assembly
+            const occurrenceCount = occurrenceCounts[fullPath] || 0;
+            const occurrenceDisplay = occurrenceCount > 0 ? `<span class="occurrence-count">(${occurrenceCount})</span>` : '';
+            
             html += `
                 <li class="explorer-item explorer-file ${supportedClass} ${dismissedClass}" data-path="${fullPath}">
                     <div class="explorer-item-content">
                         <span class="explorer-icon">${icon}</span>
                         <span class="explorer-name">${file.name}</span>
+                        ${occurrenceDisplay}
                     </div>
                 </li>
             `;
@@ -372,7 +385,8 @@ function initializeContentSources(videoAssemblyData) {
                     0,
                     supportedExtensions,
                     !isFilteringOn,
-                    dismissedFiles
+                    dismissedFiles,
+                    videoAssemblyData
                 );
                 
                 // Reinitialize event listeners for the new content
@@ -653,7 +667,7 @@ function saveVideoAssemblyData(videoAssemblyData) {
     }
 }
 
-// Add CSS for the dialog and dismissed files
+// Add CSS for the dialog, dismissed files, and occurrence counts
 const dialogStyle = document.createElement('style');
 dialogStyle.textContent = `
     /* Dismissed files styling */
@@ -676,6 +690,14 @@ dialogStyle.textContent = `
     .explorer-file.dismissed .explorer-name {
         text-decoration: line-through;
         color: #888;
+    }
+    
+    /* Occurrence count styling */
+    .occurrence-count {
+        font-size: 12px;
+        color: #0066cc;
+        margin-left: 5px;
+        font-weight: bold;
     }
     
     .dialog-overlay {

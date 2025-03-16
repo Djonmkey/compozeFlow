@@ -1,11 +1,12 @@
 /**
  * searchDisplay.js
- * 
+ *
  * Handles the display of the search functionality in the explorer area.
  */
 
 const fs = require('fs');
 const path = require('path');
+const fileOccurrenceCounter = require('./fileOccurrenceCounter');
 
 /**
  * Generates HTML for the search mode in the explorer area
@@ -331,6 +332,9 @@ function displaySearchResults(container, results, searchText, videoAssemblyData)
     // Get dismissed files
     const dismissedFiles = videoAssemblyData.cut && videoAssemblyData.cut.dismissed_files ?
         videoAssemblyData.cut.dismissed_files : [];
+        
+    // Get file occurrence counts
+    const occurrenceCounts = fileOccurrenceCounter.countFileOccurrences(videoAssemblyData);
     if (results.length === 0) {
         container.innerHTML = `<div class="search-status">No results found for "${searchText}"</div>`;
         return;
@@ -376,11 +380,16 @@ function displaySearchResults(container, results, searchText, videoAssemblyData)
             const isDismissed = dismissedFiles.some(dismissedFile => dismissedFile.path === result.path);
             const dismissedClass = isDismissed ? 'dismissed' : '';
             
+            // Check if the file has occurrences in the video assembly
+            const occurrenceCount = occurrenceCounts[result.path] || 0;
+            const occurrenceDisplay = occurrenceCount > 0 ? `<span class="occurrence-count">(${occurrenceCount})</span>` : '';
+            
             html += `
                 <li class="search-result-item ${supportedClass} ${dismissedClass}" data-path="${result.path}">
                     <div class="search-result-file">
                         <span class="explorer-icon">${fileIcon}</span>
                         <span class="explorer-name">${result.name}</span>
+                        ${occurrenceDisplay}
                     </div>
             `;
             
@@ -601,6 +610,14 @@ searchStyle.textContent = `
     .search-result-item.dismissed .explorer-name {
         text-decoration: line-through;
         color: #888;
+    }
+    
+    /* Occurrence count styling */
+    .occurrence-count {
+        font-size: 12px;
+        color: #0066cc;
+        margin-left: 5px;
+        font-weight: bold;
     }
 `;
 document.head.appendChild(searchStyle);
