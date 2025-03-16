@@ -34,6 +34,12 @@ if (electronSetup.isElectron && electronSetup.ipcRenderer) {
   // Listen for the 'video-assembly-opened' event from the main process
   electronSetup.ipcRenderer.on('video-assembly-opened', (event, data) => {
     videoAssemblyManager.handleVideoAssemblyData(data);
+    
+    // Fire a resize event after a short delay to ensure UI is fully updated
+    setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+      console.log('Resize event fired after file load');
+    }, 100);
   });
   
   // Listen for the current file path from the main process
@@ -45,6 +51,12 @@ if (electronSetup.isElectron && electronSetup.ipcRenderer) {
   electronSetup.ipcRenderer.on('file-state-changed', (event, data) => {
     if (typeof updateGettingStartedVisibility === 'function') {
       updateGettingStartedVisibility();
+      
+      // Fire a resize event after a short delay to ensure UI is fully updated
+      setTimeout(() => {
+        window.dispatchEvent(new Event('resize'));
+        console.log('Resize event fired after file state change');
+      }, 100);
     }
   });
 }
@@ -168,6 +180,12 @@ function updateGettingStartedVisibility() {
       gettingStartedContainer.style.display = 'block';
       hideRegularUI();
     }
+    
+    // Fire a resize event after a short delay to ensure UI is fully updated
+    setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+      console.log('Resize event fired after UI visibility change');
+    }, 100);
   }
 }
 
@@ -184,6 +202,16 @@ function showRegularUI() {
   if (explorer) explorer.style.display = 'block';
   if (resizeHandle) resizeHandle.style.display = 'block';
   if (mainSection) mainSection.style.display = 'flex';
+  
+  // Ensure resize handles are properly positioned by calling the initialize functions
+  setTimeout(() => {
+    if (typeof uiManager.initializeResizeHandle === 'function') {
+      uiManager.initializeResizeHandle();
+    }
+    if (typeof uiManager.initializeTerminalResizeHandle === 'function') {
+      uiManager.initializeTerminalResizeHandle();
+    }
+  }, 50);
 }
 
 /**
