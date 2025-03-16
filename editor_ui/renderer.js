@@ -40,6 +40,13 @@ if (electronSetup.isElectron && electronSetup.ipcRenderer) {
   electronSetup.ipcRenderer.on('current-file-path', (event, filePath) => {
     videoAssemblyManager.setCurrentVideoAssemblyPath(filePath);
   });
+  
+  // Listen for file state changes from the main process
+  electronSetup.ipcRenderer.on('file-state-changed', (event, data) => {
+    if (typeof updateGettingStartedVisibility === 'function') {
+      updateGettingStartedVisibility();
+    }
+  });
 }
 
 // Listen for messages from the iframe

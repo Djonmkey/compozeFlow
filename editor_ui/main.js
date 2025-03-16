@@ -41,10 +41,9 @@ app.name = 'compozeFlow'
 // Or you can also use:
 app.setName('compozeFlow')
 
-// Keep a global reference of the window objects, to prevent
-// garbage collection from closing the windows automatically.
+// Keep a global reference of the main window object, to prevent
+// garbage collection from closing the window automatically.
 let mainWindow;
-let gettingStartedWindow;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -67,105 +66,6 @@ function createWindow() {
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
-  
-  // If no file is active, show the getting started window
-  if (!currentFilePath) {
-    createGettingStartedWindow();
-  }
-}
-
-/**
- * Creates the getting started overlay window
- */
-function createGettingStartedWindow() {
-  // If the window already exists, just show it
-  if (gettingStartedWindow) {
-    gettingStartedWindow.show();
-    return;
-  }
-  
-  // Create a new browser window for the getting started page
-  gettingStartedWindow = new BrowserWindow({
-    parent: mainWindow,
-    width: mainWindow.getSize()[0] * 0.9,
-    height: mainWindow.getSize()[1] * 0.9,
-    modal: false,
-    frame: true,
-    resizable: true,
-    // Set alwaysOnTop to false to ensure dialogs can appear on top
-    alwaysOnTop: false,
-    // Set the window type to ensure proper layering with dialogs
-    type: 'normal',
-    // Make it a child window to keep it attached to the parent
-    skipTaskbar: true,
-    webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: true,
-      preload: path.join(__dirname, 'getting_started_preload.js')
-    }
-  });
-  
-  // Load the getting started HTML file
-  gettingStartedWindow.loadFile(path.join(__dirname, 'getting_started.html'));
-  
-  // Hide the menu bar
-  gettingStartedWindow.setMenuBarVisibility(false);
-  
-  // Center the window on the parent
-  gettingStartedWindow.center();
-  
-  // When the window is closed, dereference it
-  gettingStartedWindow.on('closed', () => {
-    gettingStartedWindow = null;
-  });
-  
-  // Keep the getting started window attached to the main window when it moves
-  mainWindow.on('move', () => {
-    if (gettingStartedWindow) {
-      centerGettingStartedWindow();
-    }
-  });
-  
-  /**
-   * Centers the getting started window on the main window
-   */
-  function centerGettingStartedWindow() {
-    if (!gettingStartedWindow || !mainWindow) return;
-    
-    const mainBounds = mainWindow.getBounds();
-    const gettingStartedBounds = gettingStartedWindow.getBounds();
-    
-    // Calculate the center position
-    const x = Math.round(mainBounds.x + (mainBounds.width - gettingStartedBounds.width) / 2);
-    const y = Math.round(mainBounds.y + (mainBounds.height - gettingStartedBounds.height) / 2);
-    
-    // Set the position
-    gettingStartedWindow.setPosition(x, y);
-  }
-  
-  // Keep the getting started window attached to the main window when it's resized
-  mainWindow.on('resize', () => {
-    if (gettingStartedWindow) {
-      centerGettingStartedWindow();
-    }
-  });
-  
-  // Ensure the getting started window is shown when the main window is focused
-  mainWindow.on('focus', () => {
-    if (gettingStartedWindow && !currentFilePath) {
-      gettingStartedWindow.show();
-    }
-  });
-}
-
-/**
- * Closes the getting started window if it exists
- */
-function closeGettingStartedWindow() {
-  if (gettingStartedWindow) {
-    gettingStartedWindow.close();
-    gettingStartedWindow = null;
-  }
 }
 
 // Store references to menu items that need to be updated
@@ -173,7 +73,7 @@ let saveMenuItem;
 let saveAsMenuItem;
 let saveAsTemplateMenuItem;
 
-// Function to update menu items and UI based on whether there's an active file
+// Function to update menu items based on whether there's an active file
 function updateMenuItems() {
   const hasActiveFile = currentFilePath !== null;
   
@@ -182,16 +82,12 @@ function updateMenuItems() {
   if (saveAsMenuItem) saveAsMenuItem.enabled = hasActiveFile;
   if (saveAsTemplateMenuItem) saveAsTemplateMenuItem.enabled = hasActiveFile;
   
-  // Manage getting started window
-  if (hasActiveFile) {
-    // If we have an active file, close the getting started window
-    closeGettingStartedWindow();
-  } else if (mainWindow) {
-    // If we don't have an active file and the main window exists, show the getting started window
-    createGettingStartedWindow();
+  // Notify the renderer process about the file state change
+  if (mainWindow && mainWindow.webContents) {
+    mainWindow.webContents.send('file-state-changed', { hasActiveFile });
   }
   
-  console.log(`Application state updated. Active file: ${hasActiveFile ? 'Yes' : 'No'}`);
+  console.log(`Menu items updated. Active file: ${hasActiveFile ? 'Yes' : 'No'}`);
 }
 
 function createMenu() {
