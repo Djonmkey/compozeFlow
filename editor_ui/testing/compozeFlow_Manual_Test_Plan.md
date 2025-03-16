@@ -43,7 +43,22 @@ This test plan outlines all actions that can be performed by an end-user in the 
 - [ ] Verify the explorer panel updates to show content sources
 
 ### 4. Save Video Assembly
-- [ ] Make changes to the video assembly (e.g., update title, add/modify clips)
+- [ ] Make changes to the video assembly
+- [ ] Add Clip
+- [ ] Edit Clip
+- [ ] Delete Clip
+- [ ] Add Scene
+- [ ] Edit Scene
+- [ ] Delete Scene
+- [ ] Add Segment
+- [ ] Edit Segment
+- [ ] Delete Segment
+- [ ] Add Image Overlay
+- [ ] Edit Image Overlay
+- [ ] Delete Image Overlay
+- [ ] Add Audio Overlay
+- [ ] Edit Audio Overlay
+- [ ] Delete Audio Overlay
 - [ ] Click on "File" menu
 - [ ] Select "Save Video Assembly"
 - [ ] Verify the file is saved without prompting for location (if previously saved)
