@@ -284,7 +284,7 @@ function createMenu() {
           }
         },
         { type: 'separator' },
-        isMac ? { role: 'close' } : { role: 'quit' }
+        { role: 'quit' }
       ]
     },
     {
