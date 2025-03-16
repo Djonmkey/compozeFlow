@@ -35,24 +35,8 @@ function generateHtmlFromVideoAssembly(data) {
             @import url('styles.css');
             
             .segment-render-button {
-                /* Extend the common render button style */
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                border-radius: 50%;
-                background-color: #4CAF50; /* Lighter, more vibrant green */
-                color: white;
-                cursor: pointer;
-                transition: all 0.2s ease;
-                border: none;
-                /* Specific to segment render button */
-                width: 30px;
-                height: 30px;
-                font-size: 14px;
+                /* Use the common render button style class instead of redefining */
                 margin-right: 10px;
-            }
-            .segment-render-button:hover {
-                background-color: #45a049; /* Slightly darker shade for hover state */
             }
             .scene-header {
                 display: flex;
@@ -61,24 +45,10 @@ function generateHtmlFromVideoAssembly(data) {
                 margin-left: 20px;
             }
             .scene-render-button {
-                /* Extend the common render button style */
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                border-radius: 50%;
-                background-color: #4CAF50; /* Lighter, more vibrant green */
-                color: white;
-                cursor: pointer;
-                transition: all 0.2s ease;
-                border: none;
-                /* Specific to scene render button */
-                width: 24px;
-                height: 24px;
-                font-size: 12px;
+                /* Use the common render button style class instead of redefining */
                 margin-right: 10px;
-            }
-            .scene-render-button:hover {
-                background-color: #45a049; /* Slightly darker shade for hover state */
+                font-size: 12px; /* Slightly smaller font for scene buttons */
+                padding: 4px 8px; /* Slightly smaller padding for scene buttons */
             }
         </style>
         <script>
@@ -111,7 +81,7 @@ function generateHtmlFromVideoAssembly(data) {
         
         htmlContent += `
         <div class="segment-header">
-            <button class="segment-render-button" onclick="renderSegment(${segmentSequence})" title="Export/Render this segment">${ICONS.RENDER}</button>
+            <button class="segment-render-button render-button-common" onclick="renderSegment(${segmentSequence})" title="Export/Render this segment">${ICONS.RENDER} Render</button>
             <h3>${segmentTitle}</h3>
         </div>\n`;
 
@@ -123,7 +93,7 @@ function generateHtmlFromVideoAssembly(data) {
                 
                 htmlContent += `
                 <div class="scene-header">
-                    <button class="scene-render-button" onclick="renderScene(${segmentSequence}, ${sceneSequence})" title="Export/Render this scene">${ICONS.RENDER}</button>
+                    <button class="scene-render-button render-button-common" onclick="renderScene(${segmentSequence}, ${sceneSequence})" title="Export/Render this scene">${ICONS.RENDER} Render</button>
                     <h4>${sceneTitle}</h4>
                 </div>\n`;
             }

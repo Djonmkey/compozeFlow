@@ -398,15 +398,19 @@ body.resizing {
 
 /* Common Render button styling - used across the application */
 .render-button-common {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  background-color: #4CAF50; /* Lighter, more vibrant green */
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 4px;
+  background-color: #4CAF50; /* Standard green button color */
   color: white;
   cursor: pointer;
   transition: all 0.2s ease;
   border: none;
+  font-size: 14px;
+  font-weight: 500;
 }
 
 .render-button-common:hover {
@@ -415,11 +419,7 @@ body.resizing {
 
 /* Main render button styling */
 .render-button {
-  composes: render-button-common;
-  width: 30px;
-  height: 30px;
   margin: auto 10px;
-  font-size: 14px;
 }
 
 .render-button.running {

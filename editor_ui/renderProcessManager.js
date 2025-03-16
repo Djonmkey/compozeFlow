@@ -40,7 +40,7 @@ function startRender(renderButton, terminal) {
   isRendering = true;
   
   // Update button appearance
-  renderButton.textContent = '■'; // Square for stop
+  renderButton.innerHTML = '■ Stop'; // Square for stop and text
   renderButton.classList.add('running');
   renderButton.title = 'Stop Render';
   
@@ -63,7 +63,7 @@ function startRender(renderButton, terminal) {
       isRendering = false;
       renderButton.classList.remove('running');
       renderButton.classList.add('failed');
-      renderButton.textContent = ICONS.RENDER;
+      renderButton.innerHTML = `${ICONS.RENDER} Render`;
       renderButton.title = 'Render failed - no file loaded';
       return;
     }
@@ -133,7 +133,7 @@ function startRender(renderButton, terminal) {
         terminal.innerHTML += '<p style="color: #88ff88;">Render completed successfully.</p>';
         renderButton.classList.remove('running');
         renderButton.classList.remove('failed');
-        renderButton.textContent = ICONS.RENDER;
+        renderButton.innerHTML = `${ICONS.RENDER} Render`;
         renderButton.title = 'Render Video';
       } else if (code === -2) {
         // Process was terminated by a signal (likely SIGINT)
@@ -141,7 +141,7 @@ function startRender(renderButton, terminal) {
         terminal.innerHTML += `<p>Check that Python is installed correctly and the script path is valid.</p>`;
         renderButton.classList.remove('running');
         renderButton.classList.add('failed');
-        renderButton.textContent = ICONS.RENDER;
+        renderButton.innerHTML = `${ICONS.RENDER} Render`;
         renderButton.title = 'Last render was interrupted';
       } else {
         // Other failure
@@ -149,7 +149,7 @@ function startRender(renderButton, terminal) {
         terminal.innerHTML += `<p>This may indicate an error in the Python script or missing dependencies.</p>`;
         renderButton.classList.remove('running');
         renderButton.classList.add('failed');
-        renderButton.textContent = ICONS.RENDER;
+        renderButton.innerHTML = `${ICONS.RENDER} Render`;
         renderButton.title = 'Last render failed';
       }
       
@@ -180,7 +180,7 @@ function startRender(renderButton, terminal) {
       
       renderButton.classList.remove('running');
       renderButton.classList.add('failed');
-      renderButton.textContent = ICONS.RENDER;
+      renderButton.innerHTML = `${ICONS.RENDER} Render`;
       renderButton.title = 'Last render failed';
       
       // Auto-scroll to bottom
@@ -192,7 +192,7 @@ function startRender(renderButton, terminal) {
     terminal.innerHTML += `<p style="color: #ff6666;">Error: ${error.message}</p>`;
     renderButton.classList.remove('running');
     renderButton.classList.add('failed');
-    renderButton.textContent = ICONS.RENDER;
+    renderButton.innerHTML = `${ICONS.RENDER} Render`;
     renderButton.title = 'Last render failed';
   }
 }
@@ -219,7 +219,7 @@ function stopRender(renderButton, terminal) {
     
     // Update button state
     renderButton.classList.remove('running');
-    renderButton.textContent = ICONS.RENDER;
+    renderButton.innerHTML = `${ICONS.RENDER} Render`;
     renderButton.title = 'Render Video';
     
     isRendering = false;

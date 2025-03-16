@@ -67,7 +67,7 @@ function createRenderOptionsUI() {
   renderOptionsContainer.innerHTML = `      
 
     <div class="render-options-content">
-    <div id="render-button" class="render-button" title="Export/Render Video">${ICONS.RENDER}</div>
+    <button id="render-button" class="render-button render-button-common" title="Export/Render Video">${ICONS.RENDER} Render</button>
       <div class="render-option">
         <label class="render-quality-label">Render Quality:</label>
         <div class="quality-toggle-container">
