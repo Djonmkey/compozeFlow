@@ -68,6 +68,22 @@ function createWindow() {
   });
 }
 
+// Store references to menu items that need to be updated
+let saveMenuItem;
+let saveAsMenuItem;
+let saveAsTemplateMenuItem;
+
+// Function to update menu items based on whether there's an active file
+function updateMenuItems() {
+  const hasActiveFile = currentFilePath !== null;
+  
+  if (saveMenuItem) saveMenuItem.enabled = hasActiveFile;
+  if (saveAsMenuItem) saveAsMenuItem.enabled = hasActiveFile;
+  if (saveAsTemplateMenuItem) saveAsTemplateMenuItem.enabled = hasActiveFile;
+  
+  console.log(`Menu items updated. Active file: ${hasActiveFile ? 'Yes' : 'No'}`);
+}
+
 function createMenu() {
   const isMac = process.platform === 'darwin';
 
@@ -163,6 +179,8 @@ function createMenu() {
                   // Also send the file path
                   mainWindow.webContents.send('current-file-path', currentFilePath);
                   console.log("New video assembly created and opened:", currentFilePath);
+                  // Update menu items after setting currentFilePath
+                  updateMenuItems();
                 }
               });
               
@@ -186,11 +204,14 @@ function createMenu() {
               // Also send the file path
               mainWindow.webContents.send('current-file-path', currentFilePath);
               console.log("Video assembly opened:", currentFilePath);
+              // Update menu items after setting currentFilePath
+              updateMenuItems();
             }
           }
         },
         {
           label: 'Save Video Assembly',
+          enabled: false, // Initially disabled
           click: async () => {
             // Get the current content from the renderer process
             // For now, we'll use a placeholder object
@@ -206,6 +227,7 @@ function createMenu() {
               if (filePath) {
                 currentFilePath = filePath;
                 console.log("Video assembly saved to:", currentFilePath);
+                updateMenuItems(); // Update menu items after setting currentFilePath
               }
             }
           }
@@ -213,6 +235,7 @@ function createMenu() {
         { type: 'separator' },
         {
           label: 'Save Video Assembly As',
+          enabled: false, // Initially disabled
           click: async () => {
             // Get the current content from the renderer process
             // For now, we'll use a placeholder object
@@ -223,11 +246,13 @@ function createMenu() {
             if (filePath) {
               currentFilePath = filePath;
               console.log("Video assembly saved to:", filePath);
+              updateMenuItems(); // Update menu items after setting currentFilePath
             }
           }
         },
         {
           label: 'Save Video Assembly As Template',
+          enabled: false, // Initially disabled
           click: async () => {
             // Check if we have a currently loaded file
             if (!currentFilePath) {
@@ -319,6 +344,17 @@ function createMenu() {
 
   const menu = Menu.buildFromTemplate(template);
   Menu.setApplicationMenu(menu);
+  
+  // Store references to menu items that need to be updated
+  const fileMenu = menu.items.find(item => item.label === 'File');
+  if (fileMenu && fileMenu.submenu) {
+    saveMenuItem = fileMenu.submenu.items.find(item => item.label === 'Save Video Assembly');
+    saveAsMenuItem = fileMenu.submenu.items.find(item => item.label === 'Save Video Assembly As');
+    saveAsTemplateMenuItem = fileMenu.submenu.items.find(item => item.label === 'Save Video Assembly As Template');
+    
+    // Initialize menu items based on current state
+    updateMenuItems();
+  }
 }
 
 app.whenReady().then(() => {

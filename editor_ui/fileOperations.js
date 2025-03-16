@@ -72,8 +72,22 @@ async function saveVideoAssembly(window, content, filePath = null) {
   try {
     // If no file path is provided (Save As), show a save dialog
     if (!filePath) {
+      // Determine the default save path (video_assemblies directory)
+      const videoAssembliesDir = path.join(__dirname, 'video_assemblies');
+      // Create the directory if it doesn't exist
+      if (!fs.existsSync(videoAssembliesDir)) {
+        fs.mkdirSync(videoAssembliesDir, { recursive: true });
+      }
+      
+      // Get a default filename based on title if available
+      let defaultFilename = 'video_assembly.json';
+      if (content.cut && content.cut.title) {
+        defaultFilename = `${content.cut.title}.json`;
+      }
+      
       const { canceled, filePath: selectedPath } = await dialog.showSaveDialog(window, {
         title: 'Save Video Assembly',
+        defaultPath: path.join(videoAssembliesDir, defaultFilename),
         filters: [
           { name: 'Video Assembly Files', extensions: ['json'] },
           { name: 'All Files', extensions: ['*'] }
