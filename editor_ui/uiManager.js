@@ -31,6 +31,10 @@ function updateEditorContent(currentVideoAssemblyData) {
     htmlContent = generateOutputHtml(currentVideoAssemblyData);
   } else if (activeTab === 'General') {
     htmlContent = electronSetup.generateGeneralHtml(currentVideoAssemblyData);
+  } else if (activeTab === 'Render') {
+    // Use the render tab display module
+    const renderTabDisplay = require('./renderTabDisplay');
+    htmlContent = renderTabDisplay.generateRenderTabHtml();
   } else {
     // For other tabs, show a placeholder
     htmlContent = `<h2>Content for ${activeTab} tab</h2><p>This tab is not yet implemented.</p>`;

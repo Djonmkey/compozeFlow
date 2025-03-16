@@ -12,6 +12,7 @@ const electronSetup = require('./electronSetup');
 const uiManager = require('./uiManager');
 const videoAssemblyManager = require('./videoAssemblyManager');
 const renderProcessManager = require('./renderProcessManager');
+const renderTabDisplay = require('./renderTabDisplay');
 const pluginManager = require('./pluginManager');
 const { FEATURE_FLAGS } = require('./featureFlags');
 
@@ -73,10 +74,18 @@ window.addEventListener('message', (event) => {
   }
   // Check if the message is a render segment request
   else if (event.data && event.data.type === 'render-segment') {
+    // Switch to the Render tab before handling the render request
+    if (window.uiManager) {
+      window.uiManager.setActiveTab('Render');
+    }
     videoAssemblyManager.handleRenderSegmentRequest(event.data.segmentSequence);
   }
   // Check if the message is a render scene request
   else if (event.data && event.data.type === 'render-scene') {
+    // Switch to the Render tab before handling the render request
+    if (window.uiManager) {
+      window.uiManager.setActiveTab('Render');
+    }
     videoAssemblyManager.handleRenderSceneRequest(event.data.segmentSequence, event.data.sceneSequence);
   }
   // Check if the message is to save output paths
@@ -237,7 +246,7 @@ document.addEventListener('DOMContentLoaded', () => {
     uiManager.initializeTabs();
 
     // Add event listener for Raw tab
-    const rawTab = document.querySelector('.tab:nth-child(6)');
+    const rawTab = document.querySelector('.tab:nth-child(7)'); // Updated index due to added Render tab
     rawTab.addEventListener('click', () => {
         const data = getCurrentVideoAssemblyData();
         if (data) {
@@ -250,57 +259,63 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Initialize the Getting Started UI
     initializeGettingStartedUI();
+    
+    // Initialize the Render tab
+    renderTabDisplay.initializeRenderTab();
+    
+    // Start the refresh interval for the Render tab
+    renderTabDisplay.startRefreshInterval();
   
-  // Load and display installed plugins if the feature is enabled
-  if (FEATURE_FLAGS.ENABLE_PLUGINS) {
-    pluginManager.loadInstalledPlugins();
-  } else {
-    console.log('Plugins feature is disabled by feature flag');
-    
-    // Hide the plugins icon and container when the feature is disabled
-    const pluginsIcon = document.getElementById('plugins-icon');
-    const installedPluginsContainer = document.getElementById('installed-plugins-icons');
-    
-    if (pluginsIcon) {
-      pluginsIcon.style.display = 'none';
+    // Load and display installed plugins if the feature is enabled
+    if (FEATURE_FLAGS.ENABLE_PLUGINS) {
+        pluginManager.loadInstalledPlugins();
+    } else {
+        console.log('Plugins feature is disabled by feature flag');
+        
+        // Hide the plugins icon and container when the feature is disabled
+        const pluginsIcon = document.getElementById('plugins-icon');
+        const installedPluginsContainer = document.getElementById('installed-plugins-icons');
+        
+        if (pluginsIcon) {
+            pluginsIcon.style.display = 'none';
+        }
+        
+        if (installedPluginsContainer) {
+            installedPluginsContainer.style.display = 'none';
+        }
     }
     
-    if (installedPluginsContainer) {
-      installedPluginsContainer.style.display = 'none';
+    // Check if account icon should be displayed
+    if (!FEATURE_FLAGS.ENABLE_ACCOUNT_FEATURES) {
+        console.log('Account icon is disabled by feature flag');
+        
+        // Hide the account icon when the feature is disabled
+        const accountIcon = document.getElementById('account-icon');
+        
+        if (accountIcon) {
+            accountIcon.style.display = 'none';
+        }
     }
-  }
-  
-  // Check if account icon should be displayed
-  if (!FEATURE_FLAGS.ENABLE_ACCOUNT_FEATURES) {
-    console.log('Account icon is disabled by feature flag');
     
-    // Hide the account icon when the feature is disabled
-    const accountIcon = document.getElementById('account-icon');
-    
-    if (accountIcon) {
-      accountIcon.style.display = 'none';
+    // Check if settings icon should be displayed
+    if (!FEATURE_FLAGS.ENABLE_SETTINGS_FEATURE) {
+        console.log('Settings icon is disabled by feature flag');
+        
+        // Hide the settings icon when the feature is disabled
+        const settingsIcon = document.getElementById('settings-icon');
+        
+        if (settingsIcon) {
+            settingsIcon.style.display = 'none';
+        }
     }
-  }
-  
-  // Check if settings icon should be displayed
-  if (!FEATURE_FLAGS.ENABLE_SETTINGS_FEATURE) {
-    console.log('Settings icon is disabled by feature flag');
     
-    // Hide the settings icon when the feature is disabled
-    const settingsIcon = document.getElementById('settings-icon');
+    // Initialize the resize handles
+    uiManager.initializeResizeHandle(); // For explorer
+    uiManager.initializeTerminalResizeHandle(); // For terminal
     
-    if (settingsIcon) {
-      settingsIcon.style.display = 'none';
+    // Initialize render options
+    if (typeof electronSetup.renderOptionsDisplay !== 'undefined' && 
+        electronSetup.renderOptionsDisplay.initializeRenderOptions) {
+        electronSetup.renderOptionsDisplay.initializeRenderOptions();
     }
-  }
-  
-  // Initialize the resize handles
-  uiManager.initializeResizeHandle(); // For explorer
-  uiManager.initializeTerminalResizeHandle(); // For terminal
-  
-  // Initialize render options
-  if (typeof electronSetup.renderOptionsDisplay !== 'undefined' && 
-      electronSetup.renderOptionsDisplay.initializeRenderOptions) {
-    electronSetup.renderOptionsDisplay.initializeRenderOptions();
-  }
 });

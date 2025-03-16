@@ -476,7 +476,18 @@ ipcMain.on('menu-action', (event, action) => {
 
 // Handle opening external links
 ipcMain.on('open-external-link', (event, url) => {
-  require('electron').shell.openExternal(url).catch(err => {
-    console.error('Failed to open external link:', err);
-  });
+  // Check if the URL is a file path (starts with 'file://')
+  if (url.startsWith('file://')) {
+    // Extract the file path from the URL
+    const filePath = url.replace('file://', '');
+    // Open the file with the default application
+    require('electron').shell.openPath(filePath).catch(err => {
+      console.error('Failed to open file:', err);
+    });
+  } else {
+    // Open external URL in default browser
+    require('electron').shell.openExternal(url).catch(err => {
+      console.error('Failed to open external link:', err);
+    });
+  }
 });

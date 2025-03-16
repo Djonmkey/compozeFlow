@@ -21,6 +21,11 @@ function handleRenderButtonClick() {
   const terminal = document.getElementById('terminal');
   
   if (!isRendering) {
+    // Switch to the Render tab before starting the render
+    if (window.uiManager) {
+      window.uiManager.setActiveTab('Render');
+    }
+    
     // Start rendering
     startRender(renderButton, terminal);
   } else {
@@ -155,6 +160,25 @@ function startRender(renderButton, terminal) {
       
       // Auto-scroll to bottom
       terminal.scrollTop = terminal.scrollHeight;
+      
+      // If the Render tab is active, refresh its content
+      if (window.uiManager && window.uiManager.getActiveTab() === 'Render') {
+        // Get the render tab display module
+        const renderTabDisplay = require('./renderTabDisplay');
+        
+        // Update the editor content with fresh render tab HTML
+        const editorContent = document.getElementById('editor-content');
+        if (editorContent) {
+          const htmlContent = renderTabDisplay.generateRenderTabHtml();
+          editorContent.innerHTML = `
+            <iframe
+              id="video-assembly-frame"
+              style="width: 100%; height: 100%; border: none;"
+              srcdoc="${htmlContent.replace(/"/g, '&quot;')}"
+            ></iframe>
+          `;
+        }
+      }
     });
     
     // Handle process error
