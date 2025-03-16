@@ -369,32 +369,16 @@ function addRenderOptionsStyles() {
       color: #333;
     }
     
-    /* Render button styling */
+    /* Use the common render button styling from styles.css */
+    /* Just add specific size and font adjustments */
     .render-button {
       width: 30px;
       height: 30px;
-      background-color: #388E3C; /* Nice forest green color */
-      color: white;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
       font-size: 16px;
-      transition: background-color 0.2s;
     }
     
-    .render-button:hover {
-      background-color: #2E7D32; /* Darker shade of green for hover state */
-    }
-    
-    .render-button.running {
-      background-color: #e74c3c;
-    }
-    
-    .render-button.failed {
-      background-color: #f39c12;
-    }
+    /* Use the common styles for states from styles.css */
+    /* No need to redefine these here */
     
     .render-options-content {
       display: flex;

@@ -396,32 +396,38 @@ body.resizing {
   background-color: #ddd;
 }
 
-/* Render button styling */
-.render-button {
+/* Common Render button styling - used across the application */
+.render-button-common {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
   border-radius: 50%;
-  background-color: #388E3C; /* Nice forest green color */
+  background-color: #4CAF50; /* Lighter, more vibrant green */
   color: white;
   cursor: pointer;
-  margin: auto 10px;
-  font-size: 14px;
   transition: all 0.2s ease;
+  border: none;
 }
 
-.render-button:hover {
-  background-color: #2E7D32; /* Darker shade of green for hover state */
+.render-button-common:hover {
+  background-color: #45a049; /* Slightly darker shade for hover state */
+}
+
+/* Main render button styling */
+.render-button {
+  composes: render-button-common;
+  width: 30px;
+  height: 30px;
+  margin: auto 10px;
+  font-size: 14px;
 }
 
 .render-button.running {
-  background-color: #d83b01; /* Orange/red for stop button */
+  background-color: #FF5722; /* Orange/red for stop button */
 }
 
 .render-button.failed {
-  background-color: #e81123; /* Red for failed state */
+  background-color: #F44336; /* Red for failed state */
 }
 
 .render-button.disabled {

@@ -31,23 +31,28 @@ function generateHtmlFromVideoAssembly(data) {
             .clip-name { font-weight: bold; }
             .title-container { text-align: center; margin-bottom: 10px; }
             .segment-header { display: flex; align-items: center; margin-bottom: 10px; }
+            /* Import the common styles */
+            @import url('styles.css');
+            
             .segment-render-button {
+                /* Extend the common render button style */
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
-                width: 30px;
-                height: 30px;
                 border-radius: 50%;
-                background-color: #0078d7;
+                background-color: #4CAF50; /* Lighter, more vibrant green */
                 color: white;
                 cursor: pointer;
-                font-size: 14px;
                 transition: all 0.2s ease;
                 border: none;
+                /* Specific to segment render button */
+                width: 30px;
+                height: 30px;
+                font-size: 14px;
                 margin-right: 10px;
             }
             .segment-render-button:hover {
-                background-color: #106ebe;
+                background-color: #45a049; /* Slightly darker shade for hover state */
             }
             .scene-header {
                 display: flex;
@@ -56,22 +61,24 @@ function generateHtmlFromVideoAssembly(data) {
                 margin-left: 20px;
             }
             .scene-render-button {
+                /* Extend the common render button style */
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
-                width: 24px;
-                height: 24px;
                 border-radius: 50%;
-                background-color: #0078d7;
+                background-color: #4CAF50; /* Lighter, more vibrant green */
                 color: white;
                 cursor: pointer;
-                font-size: 12px;
                 transition: all 0.2s ease;
                 border: none;
+                /* Specific to scene render button */
+                width: 24px;
+                height: 24px;
+                font-size: 12px;
                 margin-right: 10px;
             }
             .scene-render-button:hover {
-                background-color: #106ebe;
+                background-color: #45a049; /* Slightly darker shade for hover state */
             }
         </style>
         <script>
