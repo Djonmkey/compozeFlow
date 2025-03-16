@@ -109,6 +109,7 @@ function updateExplorer(currentVideoAssemblyData) {
 
 /**
  * Function to initialize the resize handle for the explorer section
+ * Improved version with better mouse tracking and smoother resizing
  */
 function initializeResizeHandle() {
   const resizeHandle = document.getElementById('resize-handle');
@@ -116,8 +117,6 @@ function initializeResizeHandle() {
   const app = document.getElementById('app');
   
   let isResizing = false;
-  let startX = 0;
-  let startWidth = 0;
   
   // Update the resize handle position to match the explorer width
   function updateResizeHandlePosition() {
@@ -129,49 +128,73 @@ function initializeResizeHandle() {
   // Initialize the resize handle position
   updateResizeHandlePosition();
   
-  // Mouse down event on the resize handle
-  resizeHandle.addEventListener('mousedown', (e) => {
+  // Calculate max width as 50% of the window width
+  function getMaxWidth() {
+    return Math.max(500, window.innerWidth * 0.5);
+  }
+  
+  // Start resize function
+  function startResize(e) {
     isResizing = true;
-    startX = e.clientX;
-    startWidth = explorer.offsetWidth;
+    
+    // Store initial mouse position and explorer width
+    const initialX = e.clientX;
+    const initialWidth = explorer.offsetWidth;
     
     // Add a class to the body to indicate resizing is in progress
     document.body.classList.add('resizing');
     
     // Prevent text selection during resize
     e.preventDefault();
-  });
-  
-  // Mouse move event to handle resizing
-  document.addEventListener('mousemove', (e) => {
-    if (!isResizing) return;
     
-    // Calculate the new width based on mouse movement
-    const newWidth = startWidth + (e.clientX - startX);
+    // Define the resize function
+    function resize(e) {
+      if (!isResizing) return;
+      
+      // Calculate the new width based on mouse movement
+      const newWidth = initialWidth + (e.clientX - initialX);
+      
+      // Apply min and max constraints
+      const minWidth = 150;
+      const maxWidth = getMaxWidth();
+      const constrainedWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
+      
+      // Update the explorer width
+      explorer.style.width = `${constrainedWidth}px`;
+      
+      // Update the resize handle position
+      updateResizeHandlePosition();
+    }
     
-    // Apply min and max constraints
-    const minWidth = 150;
-    const maxWidth = 500;
-    const constrainedWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
-    
-    // Update the explorer width
-    explorer.style.width = `${constrainedWidth}px`;
-    
-    // Update the resize handle position
-    updateResizeHandlePosition();
-  });
-  
-  // Mouse up event to stop resizing
-  document.addEventListener('mouseup', () => {
-    if (isResizing) {
+    // Define the stop resize function
+    function stopResize() {
+      if (!isResizing) return;
+      
+      // Reset the resizing flag
       isResizing = false;
+      
+      // Remove the resizing class from the body
       document.body.classList.remove('resizing');
+      
+      // Remove the event listeners
+      document.removeEventListener('mousemove', resize);
+      document.removeEventListener('mouseup', stopResize);
       
       // Update the terminal with a message
       const terminal = document.getElementById('terminal');
       terminal.innerHTML += `<p>Explorer width adjusted to ${explorer.offsetWidth}px</p>`;
     }
-  });
+    
+    // Add event listeners for resize and stop resize
+    document.addEventListener('mousemove', resize);
+    document.addEventListener('mouseup', stopResize);
+    
+    // Also add a blur event listener to stop resizing if the window loses focus
+    window.addEventListener('blur', stopResize, { once: true });
+  }
+  
+  // Add the mousedown event listener to the resize handle
+  resizeHandle.addEventListener('mousedown', startResize);
   
   // Handle window resize to ensure the resize handle stays in the correct position
   window.addEventListener('resize', () => {
@@ -181,6 +204,7 @@ function initializeResizeHandle() {
 
 /**
  * Function to initialize the resize handle for the terminal section
+ * Improved version with better mouse tracking and smoother resizing
  */
 function initializeTerminalResizeHandle() {
   const resizeHandle = document.getElementById('terminal-resize-handle');
@@ -188,43 +212,50 @@ function initializeTerminalResizeHandle() {
   const editorContent = document.getElementById('editor-content');
   
   let isResizing = false;
-  let startY = 0;
-  let startHeight = 0;
   
-  // Mouse down event on the resize handle
-  resizeHandle.addEventListener('mousedown', (e) => {
+  // Start resize function
+  function startResize(e) {
     isResizing = true;
-    startY = e.clientY;
-    startHeight = terminal.offsetHeight;
+    
+    // Store initial mouse position and terminal height
+    const initialY = e.clientY;
+    const initialHeight = terminal.offsetHeight;
     
     // Add a class to the body to indicate resizing is in progress
     document.body.classList.add('resizing');
     
     // Prevent text selection during resize
     e.preventDefault();
-  });
-  
-  // Mouse move event to handle resizing
-  document.addEventListener('mousemove', (e) => {
-    if (!isResizing) return;
     
-    // Calculate the new height based on mouse movement (moving up decreases terminal height)
-    const newHeight = startHeight - (e.clientY - startY);
+    // Define the resize function
+    function resize(e) {
+      if (!isResizing) return;
+      
+      // Calculate the new height based on mouse movement (moving up decreases terminal height)
+      const newHeight = initialHeight - (e.clientY - initialY);
+      
+      // Apply min and max constraints
+      const minHeight = 50;
+      const maxHeight = window.innerHeight * 0.8; // 80% of viewport height
+      const constrainedHeight = Math.max(minHeight, Math.min(maxHeight, newHeight));
+      
+      // Update the terminal height
+      terminal.style.height = `${constrainedHeight}px`;
+    }
     
-    // Apply min and max constraints
-    const minHeight = 50;
-    const maxHeight = window.innerHeight * 0.8; // 80% of viewport height
-    const constrainedHeight = Math.max(minHeight, Math.min(maxHeight, newHeight));
-    
-    // Update the terminal height
-    terminal.style.height = `${constrainedHeight}px`;
-  });
-  
-  // Mouse up event to stop resizing
-  document.addEventListener('mouseup', () => {
-    if (isResizing) {
+    // Define the stop resize function
+    function stopResize() {
+      if (!isResizing) return;
+      
+      // Reset the resizing flag
       isResizing = false;
+      
+      // Remove the resizing class from the body
       document.body.classList.remove('resizing');
+      
+      // Remove the event listeners
+      document.removeEventListener('mousemove', resize);
+      document.removeEventListener('mouseup', stopResize);
       
       // Update the terminal with a message
       terminal.innerHTML += `<p>Terminal height adjusted to ${terminal.offsetHeight}px</p>`;
@@ -232,12 +263,17 @@ function initializeTerminalResizeHandle() {
       // Auto-scroll to bottom
       terminal.scrollTop = terminal.scrollHeight;
     }
-  });
+    
+    // Add event listeners for resize and stop resize
+    document.addEventListener('mousemove', resize);
+    document.addEventListener('mouseup', stopResize);
+    
+    // Also add a blur event listener to stop resizing if the window loses focus
+    window.addEventListener('blur', stopResize, { once: true });
+  }
   
-  // Handle window resize to ensure the resize handle stays in the correct position
-  window.addEventListener('resize', () => {
-    // No position updates needed for the terminal resize handle as it's relatively positioned
-  });
+  // Add the mousedown event listener to the resize handle
+  resizeHandle.addEventListener('mousedown', startResize);
 }
 
 /**

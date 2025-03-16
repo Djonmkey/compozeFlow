@@ -102,7 +102,7 @@ html, body {
   font-size: 14px;
   /* Added to support resizing */
   min-width: 150px;
-  max-width: 500px;
+  max-width: 50%; /* Allow resizing up to 50% of the screen width */
   resize: horizontal;
 }
 
@@ -117,8 +117,7 @@ html, body {
   z-index: 10;
   /* Add a subtle visual indicator */
   background-image: linear-gradient(90deg, transparent 0%, rgba(0,0,0,0.1) 50%, transparent 100%);
-  /* Add transition for smoother visual updates */
-  transition: background-color 0.2s;
+  /* Remove transition to prevent snapping effect */
 }
 
 #resize-handle:hover,
@@ -447,8 +446,7 @@ body.resizing {
   z-index: 10;
   /* Add a subtle visual indicator */
   background-image: linear-gradient(0deg, transparent 0%, rgba(0,0,0,0.1) 50%, transparent 100%);
-  /* Add transition for smoother visual updates */
-  transition: background-color 0.2s;
+  /* Remove transition to prevent snapping effect */
 }
 
 #terminal-resize-handle:hover,
