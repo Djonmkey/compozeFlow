@@ -53,11 +53,27 @@ function applyFileTabsStyles() {
         padding: 20px;
     }
     
-    .file-details h2 {
-        margin-top: 0;
-        margin-bottom: 20px;
+    .file-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 10px;
         border-bottom: 1px solid #ddd;
         padding-bottom: 10px;
+    }
+    
+    .file-header h2 {
+        margin: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        flex: 1;
+    }
+    
+    .file-actions {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
     }
     
     .file-details h3 {

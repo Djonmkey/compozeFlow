@@ -4,9 +4,36 @@
  * Handles the display of file details in the editor.
  */
 
-const { formatDate, formatFileSize } = require('./fileTypeUtils');
+const { formatDate, formatFileSize, determineFileType } = require('./fileTypeUtils');
 const { addClipToTimeline, setCurrentVideoAssemblyData } = require('./fileTimelineIntegration');
 const { findFileUsages } = require('./fileUsageTracker');
+
+/**
+ * Checks if a file is a video or audio file based on its extension
+ * @param {Object} file - The file object
+ * @param {Object} videoAssemblyData - The video assembly data containing supported extensions
+ * @returns {boolean} - True if the file is a video or audio file
+ */
+function isVideoOrAudioFile(file, videoAssemblyData) {
+    if (!file || !file.path) return false;
+    
+    // Get the file extension
+    const extension = file.path.substring(file.path.lastIndexOf('.')).toLowerCase();
+    
+    // Check if videoAssemblyData has the composeflow.org data
+    if (videoAssemblyData && videoAssemblyData['composeflow.org']) {
+        const cfData = videoAssemblyData['composeflow.org'];
+        
+        // Check if extension is in supported video or audio extensions
+        return (cfData.supported_video_file_extensions &&
+                cfData.supported_video_file_extensions.includes(extension)) ||
+               (cfData.supported_audio_file_extensions &&
+                cfData.supported_audio_file_extensions.includes(extension));
+    }
+    
+    // Fallback to checking common video and audio extensions
+    return ['.mp4', '.mov', '.avi', '.mkv', '.mp3', '.wav', '.aac', '.flac'].includes(extension);
+}
 
 /**
  * Updates the editor content to show file details
@@ -44,23 +71,31 @@ function updateEditorContent(currentFile, videoAssemblyData) {
         }
     }
     
+    // Check if the file is a video or audio file
+    const isMediaFile = isVideoOrAudioFile(currentFile, videoAssemblyData);
+    const openButtonIcon = isMediaFile ? '▶️' : '🔍';
+    
     // Create HTML for file details
     let html = `
         <div class="file-details">
-            <h2>
-                ${currentFile.name}
-                <button class="copy-icon-btn" title="Copy path to clipboard" onclick="copyToClipboard('${currentFile.name}')">📋 Copy</button>
-                <button class="file-action-btn open-file-btn" title="Open file in default application" onclick="openFileInDefaultApp('${currentFile.path.replace(/'/g, "\\'")}')">🔍 Open</button>
+            <div class="file-header">
+                <h2>${currentFile.name}</h2>
+                <button class="copy-icon-btn" title="Copy filename to clipboard" onclick="copyToClipboard('${currentFile.name}')">📋 Copy Filename</button>
+            </div>
+            <div class="file-actions">
+                <button class="file-action-btn open-file-btn" title="Open file in default application" onclick="openFileInDefaultApp('${currentFile.path.replace(/'/g, "\\'")}')">
+                    ${openButtonIcon} Open
+                </button>
                 <button class="file-action-btn dismiss-file-btn" title="${dismissButtonTitle}" onclick="toggleFileDismissStatus('${currentFile.path.replace(/'/g, "\\'")}')">
                     ${dismissButtonText}
                 </button>
-            </h2>
+            </div>
             <div class="file-info">
                 <div class="file-info-item">
                     <span class="file-info-label">Path:</span>
                     <div class="file-info-value-container">
                         <span class="file-info-value">${currentFile.path}</span>
-                        <button class="copy-icon-btn" title="Copy path to clipboard" onclick="copyToClipboard('${currentFile.path.replace(/'/g, "\\'")}')">📋 Copy</button>
+                        <button class="copy-icon-btn" title="Copy path to clipboard" onclick="copyToClipboard('${currentFile.path.replace(/'/g, "\\'")}')">📋 Copy Path</button>
                     </div>
                 </div>
                 <div class="file-info-item">
@@ -304,5 +339,6 @@ function clearEditorContent() {
 
 module.exports = {
     updateEditorContent,
-    clearEditorContent
+    clearEditorContent,
+    isVideoOrAudioFile
 };
