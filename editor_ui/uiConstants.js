@@ -8,8 +8,8 @@
 
 // Icons
 const ICONS = {
-  // Export/render icon (outbox tray symbol)
-  RENDER: '📤',
+  // Export/render icon (white up arrow)
+  RENDER: '⬆️',
   
   // Edit icon (pencil)
   EDIT: '✏️',
