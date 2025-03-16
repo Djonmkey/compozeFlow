@@ -150,8 +150,9 @@ function createMenu() {
                   mainWindow,
                   selectedTemplate.path,
                   {
-                    title: data.title || selectedTemplate.title || '',
-                    subtitle: data.subtitle || selectedTemplate.subtitle || ''
+                    title: data.title || '',
+                    subtitle: selectedTemplate.subtitle || '',
+                    description: selectedTemplate.description || ''
                   }
                 );
                 

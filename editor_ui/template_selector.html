@@ -80,7 +80,7 @@
   <h1>Create New Video Assembly</h1>
   
   <div class="form-group">
-    <label for="template-select">Select Template:</label>
+    <label for="template-select">From Template:</label>
     <select id="template-select"></select>
     
     <div class="template-info" id="template-info">
@@ -142,8 +142,8 @@
       if (templates.length > 0) {
         updateTemplateInfo(templates[0]);
         
-        // Pre-fill title input
-        document.getElementById('title-input').value = templates[0].title || '';
+        // Leave title input empty - user must enter a title
+        document.getElementById('title-input').value = '';
       }
       
       // Add change event listener to update info when selection changes
@@ -151,8 +151,7 @@
         const selectedIndex = parseInt(templateSelect.value);
         updateTemplateInfo(templates[selectedIndex]);
         
-        // Update title input
-        document.getElementById('title-input').value = templates[selectedIndex].title || '';
+        // Keep title input as is - don't update with template title
       });
     });
     
@@ -171,7 +170,14 @@
     // Handle save button click
     document.getElementById('save-btn').addEventListener('click', () => {
       const templateIndex = parseInt(document.getElementById('template-select').value);
-      const title = document.getElementById('title-input').value;
+      const title = document.getElementById('title-input').value.trim();
+      
+      // Validate that a title is entered
+      if (!title) {
+        alert('Please enter a video title before saving.');
+        document.getElementById('title-input').focus();
+        return;
+      }
       
       ipcRenderer.send('template-dialog-save', {
         templateIndex,

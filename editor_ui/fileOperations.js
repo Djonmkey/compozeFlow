@@ -189,12 +189,14 @@ function listTemplatesWithMetadata() {
         // Try to read title and subtitle from the template
         let title = '';
         let subtitle = '';
+        let description = '';
         
         try {
           const content = JSON.parse(fs.readFileSync(templatePath, 'utf-8'));
           if (content.cut) {
             title = content.cut.title || '';
             subtitle = content.cut.subtitle || '';
+            description = content.cut.description || '';
           }
         } catch (err) {
           console.error(`Error reading template metadata for ${templateName}:`, err);
@@ -204,7 +206,8 @@ function listTemplatesWithMetadata() {
           name: templateName,
           path: templatePath,
           title,
-          subtitle
+          subtitle,
+          description
         };
       });
     
@@ -241,11 +244,13 @@ async function createVideoAssemblyFromTemplate(window, templatePath, metadata) {
     if (template.cut) {
       template.cut.title = metadata.title || template.cut.title || '';
       template.cut.subtitle = metadata.subtitle || template.cut.subtitle || '';
+      // Keep the original description from the template
     } else {
       // If the template doesn't have a cut property, create a basic structure
       template.cut = {
         title: metadata.title || '',
         subtitle: metadata.subtitle || '',
+        description: metadata.description || '',
         segments: []
       };
     }
