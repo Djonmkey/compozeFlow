@@ -162,33 +162,56 @@ function createMenu() {
               
               // Handle save button
               ipcMain.once('template-dialog-save', async (event, data) => {
-                templateSelectorWindow.close();
-                
                 const selectedTemplate = templates[data.templateIndex];
                 console.log(`Selected template: ${selectedTemplate.name}`);
                 
+                // Close the window before async operations but after getting the data we need
+                templateSelectorWindow.close();
+                
                 try {
-                  // Create new video assembly from template
-                  const result = await fileOps.createVideoAssemblyFromTemplate(
-                    mainWindow,
-                    selectedTemplate.path,
-                    {
-                      title: data.title || '',
-                      subtitle: selectedTemplate.subtitle || '',
-                      description: selectedTemplate.description || ''
-                    }
-                  );
+                  // Read the template file
+                  const templateContent = fs.readFileSync(selectedTemplate.path, 'utf-8');
+                  const template = JSON.parse(templateContent);
                   
-                  if (result) {
-                    currentFilePath = result.filePath;
-                    // Send the loaded content to the renderer process
-                    mainWindow.webContents.send('video-assembly-opened', result.content);
-                    // Also send the file path
-                    mainWindow.webContents.send('current-file-path', currentFilePath);
-                    console.log("New video assembly created and opened:", currentFilePath);
-                    // Update menu items after setting currentFilePath
-                    updateMenuItems();
+                  // Update the template with the provided metadata
+                  if (template.cut) {
+                    // Set title to user-defined value, but clear subtitle and description
+                    template.cut.title = data.title || template.cut.title || '';
+                    template.cut.subtitle = ''; // Always clear
+                    template.cut.description = ''; // Always clear
+                  } else {
+                    // If the template doesn't have a cut property, create a basic structure
+                    template.cut = {
+                      title: data.title || '',
+                      subtitle: '',
+                      description: '',
+                      segments: []
+                    };
                   }
+                  
+                  // Load the template as the active video assembly but with no file path
+                  currentFilePath = null; // Clear the path to prevent editing the template
+                  
+                  // Send the loaded content to the renderer process
+                  mainWindow.webContents.send('video-assembly-opened', template);
+                  // Also send the file path (null)
+                  mainWindow.webContents.send('current-file-path', currentFilePath);
+                  console.log("Template loaded as new video assembly");
+                  
+                  // Update menu items after setting currentFilePath
+                  updateMenuItems();
+                  
+                  // Programmatically trigger "Save Video Assembly As" from the file menu
+                  setTimeout(() => {
+                    const fileMenu = Menu.getApplicationMenu().items.find(item => item.label === 'File');
+                    if (fileMenu && fileMenu.submenu) {
+                      const saveAsMenuItem = fileMenu.submenu.items.find(item => item.label === 'Save Video Assembly As');
+                      if (saveAsMenuItem && saveAsMenuItem.click) {
+                        saveAsMenuItem.click();
+                      }
+                    }
+                  }, 500); // Small delay to ensure UI is updated
+                  
                 } catch (error) {
                   console.error("Error creating video assembly from template:", error);
                   dialog.showErrorBox(
@@ -228,24 +251,46 @@ function createMenu() {
           enabled: false, // Initially disabled
           click: async () => {
             try {
-              // First, get the current file content
+              // Check if we have a current file path
               if (!currentFilePath) {
-                // No current file, behave like Save As
+                console.log("No file path, redirecting to Save As...");
+                
+                // Programmatically trigger "Save Video Assembly As" from the file menu
+                const fileMenu = Menu.getApplicationMenu().items.find(item => item.label === 'File');
+                if (fileMenu && fileMenu.submenu) {
+                  const saveAsMenuItem = fileMenu.submenu.items.find(item => item.label === 'Save Video Assembly As');
+                  if (saveAsMenuItem && saveAsMenuItem.click) {
+                    saveAsMenuItem.click();
+                    return;
+                  }
+                }
+                
+                // Fallback if menu item not found
                 dialog.showMessageBox(mainWindow, {
-                  type: 'error',
-                  title: 'Error',
-                  message: 'No video assembly file is currently loaded.'
+                  type: 'info',
+                  title: 'Save As Required',
+                  message: 'Please save this video assembly with a file name.'
                 });
                 return;
               }
               
-              // Read the current file content
-              const fileContent = fs.readFileSync(currentFilePath, 'utf-8');
-              const content = JSON.parse(fileContent);
+              // Get the current content from the renderer
+              mainWindow.webContents.send('request-current-content');
               
-              // Use existing path for Save
-              await fileOps.saveVideoAssembly(mainWindow, content, currentFilePath);
-              console.log("Video assembly saved to:", currentFilePath);
+              // Set up a one-time listener for the response
+              ipcMain.once('current-content-response', async (event, content) => {
+                try {
+                  // Use existing path for Save
+                  await fileOps.saveVideoAssembly(mainWindow, content, currentFilePath);
+                  console.log("Video assembly saved to:", currentFilePath);
+                } catch (error) {
+                  console.error("Error saving file:", error);
+                  dialog.showErrorBox(
+                    'Error Saving File',
+                    `An error occurred: ${error.message}`
+                  );
+                }
+              });
             } catch (error) {
               console.error("Error in Save Video Assembly:", error);
               dialog.showErrorBox(
@@ -261,31 +306,40 @@ function createMenu() {
           enabled: false, // Initially disabled
           click: async () => {
             try {
-              // First, get the current file content
-              if (!currentFilePath) {
-                dialog.showMessageBox(mainWindow, {
-                  type: 'error',
-                  title: 'Error',
-                  message: 'No video assembly file is currently loaded.'
-                });
-                return;
-              }
+              // Get the current content from the renderer
+              mainWindow.webContents.send('request-current-content');
               
-              // Read the current file content
-              const fileContent = fs.readFileSync(currentFilePath, 'utf-8');
-              const content = JSON.parse(fileContent);
-              
-              // Save with a new name/location
-              const filePath = await fileOps.saveVideoAssembly(mainWindow, content);
-              if (filePath) {
-                currentFilePath = filePath;
-                console.log("Video assembly saved to:", filePath);
-                
-                // Send the current file path to the renderer process
-                mainWindow.webContents.send('current-file-path', currentFilePath);
-                
-                updateMenuItems(); // Update menu items after setting currentFilePath
-              }
+              // Set up a one-time listener for the response
+              ipcMain.once('current-content-response', async (event, content) => {
+                try {
+                  if (!content) {
+                    dialog.showMessageBox(mainWindow, {
+                      type: 'error',
+                      title: 'Error',
+                      message: 'No video assembly content is available to save.'
+                    });
+                    return;
+                  }
+                  
+                  // Save with a new name/location
+                  const filePath = await fileOps.saveVideoAssembly(mainWindow, content);
+                  if (filePath) {
+                    currentFilePath = filePath;
+                    console.log("Video assembly saved to:", filePath);
+                    
+                    // Send the current file path to the renderer process
+                    mainWindow.webContents.send('current-file-path', currentFilePath);
+                    
+                    updateMenuItems(); // Update menu items after setting currentFilePath
+                  }
+                } catch (error) {
+                  console.error("Error saving file:", error);
+                  dialog.showErrorBox(
+                    'Error Saving File',
+                    `An error occurred: ${error.message}`
+                  );
+                }
+              });
             } catch (error) {
               console.error("Error in Save Video Assembly As:", error);
               dialog.showErrorBox(
@@ -299,26 +353,35 @@ function createMenu() {
           label: 'Save Video Assembly As Template',
           enabled: false, // Initially disabled
           click: async () => {
-            // Check if we have a currently loaded file
-            if (!currentFilePath) {
-              dialog.showMessageBox(mainWindow, {
-                type: 'error',
-                title: 'Error',
-                message: 'No video assembly file is currently loaded.'
-              });
-              return;
-            }
-            
             try {
-              // Read the current file content
-              const fileContent = fs.readFileSync(currentFilePath, 'utf-8');
-              const content = JSON.parse(fileContent);
+              // Get the current content from the renderer
+              mainWindow.webContents.send('request-current-content');
               
-              // Save as template
-              const filePath = await fileOps.saveVideoAssemblyAsTemplate(mainWindow, content);
-              if (filePath) {
-                console.log("Video assembly template saved to:", filePath);
-              }
+              // Set up a one-time listener for the response
+              ipcMain.once('current-content-response', async (event, content) => {
+                try {
+                  if (!content) {
+                    dialog.showMessageBox(mainWindow, {
+                      type: 'error',
+                      title: 'Error',
+                      message: 'No video assembly content is available to save as template.'
+                    });
+                    return;
+                  }
+                  
+                  // Save as template
+                  const filePath = await fileOps.saveVideoAssemblyAsTemplate(mainWindow, content);
+                  if (filePath) {
+                    console.log("Video assembly template saved to:", filePath);
+                  }
+                } catch (error) {
+                  console.error("Error saving template:", error);
+                  dialog.showErrorBox(
+                    'Error Saving Template',
+                    `An error occurred: ${error.message}`
+                  );
+                }
+              });
             } catch (error) {
               console.error("Error saving video assembly as template:", error);
               dialog.showErrorBox(

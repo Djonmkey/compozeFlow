@@ -60,6 +60,13 @@ if (electronSetup.isElectron && electronSetup.ipcRenderer) {
       }, 100);
     }
   });
+  
+  // Listen for requests to get the current content
+  electronSetup.ipcRenderer.on('request-current-content', (event) => {
+    console.log('Main process requested current content');
+    const currentContent = videoAssemblyManager.getCurrentVideoAssemblyData();
+    electronSetup.ipcRenderer.send('current-content-response', currentContent);
+  });
 }
 
 // Listen for messages from the iframe
