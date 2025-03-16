@@ -41,9 +41,10 @@ app.name = 'compozeFlow'
 // Or you can also use:
 app.setName('compozeFlow')
 
-// Keep a global reference of the window object, to prevent
-// garbage collection from closing the window automatically.
+// Keep a global reference of the window objects, to prevent
+// garbage collection from closing the windows automatically.
 let mainWindow;
+let gettingStartedWindow;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -66,6 +67,61 @@ function createWindow() {
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
+  
+  // If no file is active, show the getting started window
+  if (!currentFilePath) {
+    createGettingStartedWindow();
+  }
+}
+
+/**
+ * Creates the getting started overlay window
+ */
+function createGettingStartedWindow() {
+  // If the window already exists, just show it
+  if (gettingStartedWindow) {
+    gettingStartedWindow.show();
+    return;
+  }
+  
+  // Create a new browser window for the getting started page
+  gettingStartedWindow = new BrowserWindow({
+    parent: mainWindow,
+    width: mainWindow.getSize()[0] * 0.9,
+    height: mainWindow.getSize()[1] * 0.9,
+    modal: false,
+    frame: true,
+    resizable: true,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: path.join(__dirname, 'getting_started_preload.js')
+    }
+  });
+  
+  // Load the getting started HTML file
+  gettingStartedWindow.loadFile(path.join(__dirname, 'getting_started.html'));
+  
+  // Hide the menu bar
+  gettingStartedWindow.setMenuBarVisibility(false);
+  
+  // Center the window on the parent
+  gettingStartedWindow.center();
+  
+  // When the window is closed, dereference it
+  gettingStartedWindow.on('closed', () => {
+    gettingStartedWindow = null;
+  });
+}
+
+/**
+ * Closes the getting started window if it exists
+ */
+function closeGettingStartedWindow() {
+  if (gettingStartedWindow) {
+    gettingStartedWindow.close();
+    gettingStartedWindow = null;
+  }
 }
 
 // Store references to menu items that need to be updated
@@ -73,15 +129,25 @@ let saveMenuItem;
 let saveAsMenuItem;
 let saveAsTemplateMenuItem;
 
-// Function to update menu items based on whether there's an active file
+// Function to update menu items and UI based on whether there's an active file
 function updateMenuItems() {
   const hasActiveFile = currentFilePath !== null;
   
+  // Update menu items
   if (saveMenuItem) saveMenuItem.enabled = hasActiveFile;
   if (saveAsMenuItem) saveAsMenuItem.enabled = hasActiveFile;
   if (saveAsTemplateMenuItem) saveAsTemplateMenuItem.enabled = hasActiveFile;
   
-  console.log(`Menu items updated. Active file: ${hasActiveFile ? 'Yes' : 'No'}`);
+  // Manage getting started window
+  if (hasActiveFile) {
+    // If we have an active file, close the getting started window
+    closeGettingStartedWindow();
+  } else if (mainWindow) {
+    // If we don't have an active file and the main window exists, show the getting started window
+    createGettingStartedWindow();
+  }
+  
+  console.log(`Application state updated. Active file: ${hasActiveFile ? 'Yes' : 'No'}`);
 }
 
 function createMenu() {
@@ -448,4 +514,40 @@ ipcMain.handle('save-video-assembly-data', async (event, videoAssemblyData) => {
       return { success: false, error: error.message };
     }
   }
+});
+
+// Handle actions from the getting started window
+ipcMain.on('getting-started-new-assembly', () => {
+  // Close the getting started window
+  closeGettingStartedWindow();
+  
+  // Trigger the New Video Assembly action
+  const fileMenu = Menu.getApplicationMenu().items.find(item => item.label === 'File');
+  if (fileMenu && fileMenu.submenu) {
+    const newAssemblyItem = fileMenu.submenu.items.find(item => item.label === 'New Video Assembly');
+    if (newAssemblyItem && newAssemblyItem.click) {
+      newAssemblyItem.click();
+    }
+  }
+});
+
+ipcMain.on('getting-started-open-assembly', async () => {
+  // Close the getting started window
+  closeGettingStartedWindow();
+  
+  // Trigger the Open Video Assembly action
+  const fileMenu = Menu.getApplicationMenu().items.find(item => item.label === 'File');
+  if (fileMenu && fileMenu.submenu) {
+    const openAssemblyItem = fileMenu.submenu.items.find(item => item.label === 'Open Video Assembly');
+    if (openAssemblyItem && openAssemblyItem.click) {
+      openAssemblyItem.click();
+    }
+  }
+});
+
+// Handle opening external links
+ipcMain.on('open-external-link', (event, url) => {
+  require('electron').shell.openExternal(url).catch(err => {
+    console.error('Failed to open external link:', err);
+  });
 });
