@@ -92,6 +92,12 @@ function createGettingStartedWindow() {
     modal: false,
     frame: true,
     resizable: true,
+    // Set alwaysOnTop to false to ensure dialogs can appear on top
+    alwaysOnTop: false,
+    // Set the window type to ensure proper layering with dialogs
+    type: 'normal',
+    // Make it a child window to keep it attached to the parent
+    skipTaskbar: true,
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -111,6 +117,44 @@ function createGettingStartedWindow() {
   // When the window is closed, dereference it
   gettingStartedWindow.on('closed', () => {
     gettingStartedWindow = null;
+  });
+  
+  // Keep the getting started window attached to the main window when it moves
+  mainWindow.on('move', () => {
+    if (gettingStartedWindow) {
+      centerGettingStartedWindow();
+    }
+  });
+  
+  /**
+   * Centers the getting started window on the main window
+   */
+  function centerGettingStartedWindow() {
+    if (!gettingStartedWindow || !mainWindow) return;
+    
+    const mainBounds = mainWindow.getBounds();
+    const gettingStartedBounds = gettingStartedWindow.getBounds();
+    
+    // Calculate the center position
+    const x = Math.round(mainBounds.x + (mainBounds.width - gettingStartedBounds.width) / 2);
+    const y = Math.round(mainBounds.y + (mainBounds.height - gettingStartedBounds.height) / 2);
+    
+    // Set the position
+    gettingStartedWindow.setPosition(x, y);
+  }
+  
+  // Keep the getting started window attached to the main window when it's resized
+  mainWindow.on('resize', () => {
+    if (gettingStartedWindow) {
+      centerGettingStartedWindow();
+    }
+  });
+  
+  // Ensure the getting started window is shown when the main window is focused
+  mainWindow.on('focus', () => {
+    if (gettingStartedWindow && !currentFilePath) {
+      gettingStartedWindow.show();
+    }
   });
 }
 
@@ -518,8 +562,7 @@ ipcMain.handle('save-video-assembly-data', async (event, videoAssemblyData) => {
 
 // Handle actions from the getting started window
 ipcMain.on('getting-started-new-assembly', () => {
-  // Close the getting started window
-  closeGettingStartedWindow();
+  // Do NOT close the getting started window yet - it will close automatically when a file is active
   
   // Trigger the New Video Assembly action
   const fileMenu = Menu.getApplicationMenu().items.find(item => item.label === 'File');
@@ -532,8 +575,7 @@ ipcMain.on('getting-started-new-assembly', () => {
 });
 
 ipcMain.on('getting-started-open-assembly', async () => {
-  // Close the getting started window
-  closeGettingStartedWindow();
+  // Do NOT close the getting started window yet - it will close automatically when a file is active
   
   // Trigger the Open Video Assembly action
   const fileMenu = Menu.getApplicationMenu().items.find(item => item.label === 'File');
