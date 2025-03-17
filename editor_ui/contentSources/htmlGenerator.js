@@ -18,9 +18,14 @@ function generateContentSourcesHtml(videoAssemblyData) {
         return '<div class="explorer-empty">No content sources available</div>';
     }
 
-    // Get content sources and sort by order
+    // Get content sources and sort by order or sequence
     const contentSources = [...videoAssemblyData.cut.content_sources];
-    contentSources.sort((a, b) => a.order - b.order);
+    contentSources.sort((a, b) => {
+        // Use order if available, otherwise use sequence
+        const aValue = a.order !== undefined ? a.order : a.sequence;
+        const bValue = b.order !== undefined ? b.order : b.sequence;
+        return aValue - bValue;
+    });
 
     // Get supported file extensions from videoAssemblyData
     const supportedExtensions = utils.getSupportedExtensions(videoAssemblyData);
@@ -44,12 +49,15 @@ function generateContentSourcesHtml(videoAssemblyData) {
     contentSources.forEach(source => {
         const sourcePath = source.path;
         const includeSubpaths = source.include_subpaths;
-        const sourceOrder = source.order;
+        
+        // Get the identifier (order or sequence)
+        const sourceOrder = source.order !== undefined ? source.order : source.sequence;
+        const orderAttr = source.order !== undefined ? 'data-order' : 'data-sequence';
         
         // Create a section for this content source
         const sectionName = path.basename(sourcePath);
         html += `
-            <div class="explorer-section" data-path="${sourcePath}" data-order="${sourceOrder}" data-include-subpaths="${includeSubpaths}">
+            <div class="explorer-section" data-path="${sourcePath}" ${orderAttr}="${sourceOrder}" data-include-subpaths="${includeSubpaths}">
                 <div class="explorer-section-header">
                     <span class="explorer-section-name">${sectionName}</span>
                     <div class="explorer-section-actions">

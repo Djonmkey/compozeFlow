@@ -11,6 +11,13 @@ const fileTreeGenerator = require('./fileTreeGenerator');
 const utils = require('./utils');
 const explorerDisplay = require('../explorerDisplay');
 
+// Set up event listener for content sources updates
+document.addEventListener('contentSourcesUpdated', (event) => {
+    if (event.detail && event.detail.videoAssemblyData) {
+        initializeContentSources(event.detail.videoAssemblyData);
+    }
+});
+
 /**
  * Gets the full path of a directory element
  * @param {Element} dirElement - The directory element
@@ -112,7 +119,17 @@ function initializeContentSources(videoAssemblyData) {
             // Get the explorer section that contains this button
             const section = button.closest('.explorer-section');
             const sourcePath = section.getAttribute('data-path');
-            const sourceOrder = parseInt(section.getAttribute('data-order'));
+            
+            // Get either order or sequence attribute
+            let sourceOrder;
+            if (section.hasAttribute('data-order')) {
+                sourceOrder = parseInt(section.getAttribute('data-order'));
+            } else if (section.hasAttribute('data-sequence')) {
+                sourceOrder = parseInt(section.getAttribute('data-sequence'));
+            } else {
+                console.error('Section has neither order nor sequence attribute');
+                return;
+            }
             
             // Remove the content source
             contentSourceManager.removeContentSource(videoAssemblyData, sourcePath, sourceOrder);
