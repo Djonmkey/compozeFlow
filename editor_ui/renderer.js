@@ -133,6 +133,16 @@ window.addEventListener('message', (event) => {
   else if (event.data && event.data.type === 'open-file-dialog') {
     handleOpenFileDialogForClip(event.data);
   }
+  // Check if the message is to add a file to the timeline from the File tab
+  else if (event.data && event.data.type === 'add-to-timeline-from-file-tab') {
+    const { currentFile, formData } = event.data;
+    const timelineClipOperations = require('./timelineClipOperations');
+    const success = timelineClipOperations.addClipToTimeline(currentFile, formData, videoAssemblyManager.getCurrentVideoAssemblyData());
+    
+    if (success) {
+      timelineClipOperations.switchToTimelineTab();
+    }
+  }
 });
 
 // Expose the saveVideoAssemblyToFile function to the window object

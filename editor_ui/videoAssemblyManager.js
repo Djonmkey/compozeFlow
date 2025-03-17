@@ -7,6 +7,7 @@
 // Import required modules
 const electronSetup = require('./electronSetup');
 const uiManager = require('./uiManager');
+const timelineClipOperations = require('./timelineClipOperations');
 
 // Store the current video assembly data and file path
 let currentVideoAssemblyData = null;
@@ -373,60 +374,7 @@ function clearVideoAssemblyData() {
  * @param {Object} params - Parameters containing segment, scene, and clip sequence numbers
  */
 function handleGetClipData(params) {
-  const { segmentSequence, sceneSequence, clipSequence, clipType } = params;
-  
-  if (!currentVideoAssemblyData || !currentVideoAssemblyData.cut || !currentVideoAssemblyData.cut.segments) {
-    console.error('No video assembly data available');
-    return null;
-  }
-  
-  // Find the segment
-  const segment = currentVideoAssemblyData.cut.segments.find(s =>
-    (s.sequence === segmentSequence || s.order === segmentSequence));
-  
-  if (!segment || !segment.scenes) {
-    console.error(`Segment with sequence ${segmentSequence} not found`);
-    return null;
-  }
-  
-  // Find the scene
-  const scene = segment.scenes.find(s =>
-    (s.sequence === sceneSequence || s.order === sceneSequence));
-  
-  if (!scene || !scene.timeline_clips) {
-    console.error(`Scene with sequence ${sceneSequence} not found in segment ${segmentSequence}`);
-    return null;
-  }
-  
-  // Find the clip
-  const clip = scene.timeline_clips.find(c => c.sequence === clipSequence);
-  
-  if (!clip) {
-    console.error(`Clip with sequence ${clipSequence} not found in scene ${sceneSequence}, segment ${segmentSequence}`);
-    return null;
-  }
-  
-  // Prepare clip data for editing
-  const clipData = {
-    segmentSequence,
-    sceneSequence,
-    clipSequence,
-    clipType,
-    clipPath: clip.path || ''
-  };
-  
-  if (clipType === 'video') {
-    clipData.trimStartMinutes = clip.trim_start_minutes || 0;
-    clipData.trimStartSeconds = clip.trim_start_seconds || 0;
-    clipData.trimEndMinutes = clip.trim_end_minutes || 0;
-    clipData.trimEndSeconds = clip.trim_end_seconds || 0;
-    clipData.comments = clip.comments || clip.comment || '';
-  } else if (clipType === 'image') {
-    clipData.durationSeconds = clip.duration_seconds || 0;
-    clipData.comments = clip.comments || clip.comment || '';
-  }
-  
-  return clipData;
+  return timelineClipOperations.getClipData(params, currentVideoAssemblyData);
 }
 
 /**
@@ -434,121 +382,34 @@ function handleGetClipData(params) {
  * @param {Object} clipData - The updated clip data
  */
 function handleUpdateClip(clipData) {
-  const { segmentSequence, sceneSequence, clipSequence, clipType } = clipData;
+  const success = timelineClipOperations.updateClipInTimeline(clipData, currentVideoAssemblyData);
   
-  if (!currentVideoAssemblyData || !currentVideoAssemblyData.cut || !currentVideoAssemblyData.cut.segments) {
-    console.error('No video assembly data available');
-    return false;
-  }
-  
-  // Find the segment
-  const segment = currentVideoAssemblyData.cut.segments.find(s =>
-    (s.sequence === parseInt(segmentSequence) || s.order === parseInt(segmentSequence)));
-  
-  if (!segment || !segment.scenes) {
-    console.error(`Segment with sequence ${segmentSequence} not found`);
-    return false;
-  }
-  
-  // Find the scene
-  const scene = segment.scenes.find(s =>
-    (s.sequence === parseInt(sceneSequence) || s.order === parseInt(sceneSequence)));
-  
-  if (!scene || !scene.timeline_clips) {
-    console.error(`Scene with sequence ${sceneSequence} not found in segment ${segmentSequence}`);
-    return false;
-  }
-  
-  // Find the clip
-  const clipIndex = scene.timeline_clips.findIndex(c => c.sequence === parseInt(clipSequence));
-  
-  if (clipIndex === -1) {
-    console.error(`Clip with sequence ${clipSequence} not found in scene ${sceneSequence}, segment ${segmentSequence}`);
-    return false;
-  }
-  
-  // Update the clip with the new data
-  if (clipType === 'video') {
-    // Update clip path if provided
-    if (clipData.clipPath) {
-      scene.timeline_clips[clipIndex].path = clipData.clipPath;
+  if (success) {
+    // Get the iframe and save its scroll position before updating
+    const iframe = document.getElementById('video-assembly-frame');
+    let scrollPosition = 0;
+    
+    if (iframe && iframe.contentWindow) {
+      scrollPosition = iframe.contentWindow.scrollY || 0;
     }
     
-    // Handle trim values - set to null if blank
-    scene.timeline_clips[clipIndex].trim_start_minutes = clipData.trimStartMinutes === '' ? null :
-                                                       (parseInt(clipData.trimStartMinutes) || 0);
-    scene.timeline_clips[clipIndex].trim_start_seconds = clipData.trimStartSeconds === '' ? null :
-                                                       (parseFloat(clipData.trimStartSeconds) || 0);
-    scene.timeline_clips[clipIndex].trim_end_minutes = clipData.trimEndMinutes === '' ? null :
-                                                     (parseInt(clipData.trimEndMinutes) || 0);
-    scene.timeline_clips[clipIndex].trim_end_seconds = clipData.trimEndSeconds === '' ? null :
-                                                     (parseFloat(clipData.trimEndSeconds) || 0);
+    // Update the editor content to reflect the changes
+    uiManager.updateEditorContent(currentVideoAssemblyData);
     
-    // Update comments field (could be either comments or comment in the original data)
-    if ('comment' in scene.timeline_clips[clipIndex]) {
-      scene.timeline_clips[clipIndex].comment = clipData.comments;
-    } else {
-      scene.timeline_clips[clipIndex].comments = clipData.comments;
-    }
-  } else if (clipType === 'image') {
-    // Update clip path if provided
-    if (clipData.clipPath) {
-      scene.timeline_clips[clipIndex].path = clipData.clipPath;
-    }
-    
-    // Handle duration - set to null if blank
-    scene.timeline_clips[clipIndex].duration_seconds = clipData.durationSeconds === '' ? null :
-                                                     (parseFloat(clipData.durationSeconds) || 0);
-    
-    // Update comments field (could be either comments or comment in the original data)
-    if ('comment' in scene.timeline_clips[clipIndex]) {
-      scene.timeline_clips[clipIndex].comment = clipData.comments;
-    } else {
-      scene.timeline_clips[clipIndex].comments = clipData.comments;
-    }
-  }
-  
-  // Save the updated data to the file
-  if (currentVideoAssemblyPath) {
-    const success = saveVideoAssemblyToFile(currentVideoAssemblyPath, currentVideoAssemblyData);
-    
-    if (success) {
-      // Update the terminal with a message
-      const terminal = document.getElementById('terminal');
-      terminal.innerHTML += `<p>Clip updated successfully</p>`;
-      
-      // Get the iframe and save its scroll position before updating
-      const iframe = document.getElementById('video-assembly-frame');
-      let scrollPosition = 0;
-      
-      if (iframe && iframe.contentWindow) {
-        scrollPosition = iframe.contentWindow.scrollY || 0;
+    // Restore the scroll position after the iframe content is loaded
+    setTimeout(() => {
+      const updatedIframe = document.getElementById('video-assembly-frame');
+      if (updatedIframe && updatedIframe.contentWindow) {
+        updatedIframe.contentWindow.scrollTo(0, scrollPosition);
+        
+        // Update the terminal with a message
+        const terminal = document.getElementById('terminal');
+        terminal.innerHTML += `<p>Restored scroll position to ${scrollPosition}px</p>`;
       }
-      
-      // Update the editor content to reflect the changes
-      uiManager.updateEditorContent(currentVideoAssemblyData);
-      
-      // Restore the scroll position after the iframe content is loaded
-      setTimeout(() => {
-        const updatedIframe = document.getElementById('video-assembly-frame');
-        if (updatedIframe && updatedIframe.contentWindow) {
-          updatedIframe.contentWindow.scrollTo(0, scrollPosition);
-          
-          // Update the terminal with a message
-          const terminal = document.getElementById('terminal');
-          terminal.innerHTML += `<p>Restored scroll position to ${scrollPosition}px</p>`;
-        }
-      }, 100); // Small delay to ensure the iframe content is fully loaded
-      
-      return true;
-    } else {
-      console.error('Failed to save updated clip data');
-      return false;
-    }
-  } else {
-    console.error('No file path available for saving');
-    return false;
+    }, 100); // Small delay to ensure the iframe content is fully loaded
   }
+  
+  return success;
 }
 
 /**
@@ -556,83 +417,34 @@ function handleUpdateClip(clipData) {
  * @param {Object} params - Parameters containing segment, scene, and clip sequence numbers
  */
 function handleDeleteClip(params) {
-  const { segmentSequence, sceneSequence, clipSequence, clipType } = params;
+  const success = timelineClipOperations.deleteClipFromTimeline(params, currentVideoAssemblyData);
   
-  if (!currentVideoAssemblyData || !currentVideoAssemblyData.cut || !currentVideoAssemblyData.cut.segments) {
-    console.error('No video assembly data available');
-    return false;
-  }
-  
-  // Find the segment
-  const segment = currentVideoAssemblyData.cut.segments.find(s =>
-    (s.sequence === segmentSequence || s.order === segmentSequence));
-  
-  if (!segment || !segment.scenes) {
-    console.error(`Segment with sequence ${segmentSequence} not found`);
-    return false;
-  }
-  
-  // Find the scene
-  const scene = segment.scenes.find(s =>
-    (s.sequence === sceneSequence || s.order === sceneSequence));
-  
-  if (!scene || !scene.timeline_clips) {
-    console.error(`Scene with sequence ${sceneSequence} not found in segment ${segmentSequence}`);
-    return false;
-  }
-  
-  // Find the clip
-  const clipIndex = scene.timeline_clips.findIndex(c => c.sequence === clipSequence);
-  
-  if (clipIndex === -1) {
-    console.error(`Clip with sequence ${clipSequence} not found in scene ${sceneSequence}, segment ${segmentSequence}`);
-    return false;
-  }
-  
-  // Remove the clip from the array
-  scene.timeline_clips.splice(clipIndex, 1);
-  
-  // Save the updated data to the file
-  if (currentVideoAssemblyPath) {
-    const success = saveVideoAssemblyToFile(currentVideoAssemblyPath, currentVideoAssemblyData);
+  if (success) {
+    // Get the iframe and save its scroll position before updating
+    const iframe = document.getElementById('video-assembly-frame');
+    let scrollPosition = 0;
     
-    if (success) {
-      // Update the terminal with a message
-      const terminal = document.getElementById('terminal');
-      terminal.innerHTML += `<p>Clip deleted successfully</p>`;
-      
-      // Get the iframe and save its scroll position before updating
-      const iframe = document.getElementById('video-assembly-frame');
-      let scrollPosition = 0;
-      
-      if (iframe && iframe.contentWindow) {
-        scrollPosition = iframe.contentWindow.scrollY || 0;
-      }
-      
-      // Update the editor content to reflect the changes
-      uiManager.updateEditorContent(currentVideoAssemblyData);
-      
-      // Restore the scroll position after the iframe content is loaded
-      setTimeout(() => {
-        const updatedIframe = document.getElementById('video-assembly-frame');
-        if (updatedIframe && updatedIframe.contentWindow) {
-          updatedIframe.contentWindow.scrollTo(0, scrollPosition);
-          
-          // Update the terminal with a message
-          const terminal = document.getElementById('terminal');
-          terminal.innerHTML += `<p>Restored scroll position to ${scrollPosition}px</p>`;
-        }
-      }, 100); // Small delay to ensure the iframe content is fully loaded
-      
-      return true;
-    } else {
-      console.error('Failed to save after deleting clip');
-      return false;
+    if (iframe && iframe.contentWindow) {
+      scrollPosition = iframe.contentWindow.scrollY || 0;
     }
-  } else {
-    console.error('No file path available for saving');
-    return false;
+    
+    // Update the editor content to reflect the changes
+    uiManager.updateEditorContent(currentVideoAssemblyData);
+    
+    // Restore the scroll position after the iframe content is loaded
+    setTimeout(() => {
+      const updatedIframe = document.getElementById('video-assembly-frame');
+      if (updatedIframe && updatedIframe.contentWindow) {
+        updatedIframe.contentWindow.scrollTo(0, scrollPosition);
+        
+        // Update the terminal with a message
+        const terminal = document.getElementById('terminal');
+        terminal.innerHTML += `<p>Restored scroll position to ${scrollPosition}px</p>`;
+      }
+    }, 100); // Small delay to ensure the iframe content is fully loaded
   }
+  
+  return success;
 }
 
 /**

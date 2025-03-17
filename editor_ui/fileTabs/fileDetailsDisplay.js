@@ -5,8 +5,9 @@
  */
 
 const { formatDate, formatFileSize, determineFileType } = require('./fileTypeUtils');
-const { addClipToTimeline, setCurrentVideoAssemblyData } = require('./fileTimelineIntegration');
+const { setCurrentVideoAssemblyData } = require('./fileTimelineIntegration');
 const { findFileUsages } = require('./fileUsageTracker');
+const timelineClipOperations = require('../timelineClipOperations');
 
 /**
  * Checks if a file is a video or audio file based on its extension
@@ -347,7 +348,25 @@ function setupTimelineEventListeners(currentFile) {
     
     // Add event listener for the Add to Timeline button
     addToTimelineBtn.addEventListener('click', () => {
-        addClipToTimeline(currentFile);
+        // Get form data
+        const formData = {
+            segmentSequence: parseInt(segmentSelect.value),
+            sceneSequence: parseInt(sceneSelect.value),
+            trimStartMinutes: document.getElementById('trim-start-minutes').value,
+            trimStartSeconds: document.getElementById('trim-start-seconds').value,
+            trimEndMinutes: document.getElementById('trim-end-minutes').value,
+            trimEndSeconds: document.getElementById('trim-end-seconds').value,
+            clipOrder: clipOrderSelect.value,
+            customSequence: document.getElementById('custom-sequence').value,
+            comments: document.getElementById('clip-comments').value
+        };
+        
+        // Dispatch an event to the renderer process to add the clip to the timeline
+        window.postMessage({
+            type: 'add-to-timeline-from-file-tab',
+            currentFile: currentFile,
+            formData: formData
+        }, '*');
     });
 }
 

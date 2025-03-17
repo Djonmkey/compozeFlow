@@ -7,123 +7,8 @@
 // Store the current video assembly data
 let currentVideoAssemblyData = null;
 
-/**
- * Adds the current file as a clip to the selected timeline
- * @param {Object} currentFile - The current file object
- */
-function addClipToTimeline(currentFile) {
-    // Get the current video assembly data from the window object if not available locally
-    if (!currentVideoAssemblyData && window.currentVideoAssemblyData) {
-        currentVideoAssemblyData = window.currentVideoAssemblyData;
-    }
-    
-    if (!currentFile || !currentVideoAssemblyData) {
-        console.error('No file or video assembly data available');
-        return;
-    }
-    
-    // Get form values
-    const segmentSequence = parseInt(document.getElementById('segment-select').value);
-    const sceneSequence = parseInt(document.getElementById('scene-select').value);
-    
-    // Get trim values
-    const trimStartMinutes = document.getElementById('trim-start-minutes').value ?
-        parseInt(document.getElementById('trim-start-minutes').value) : undefined;
-    
-    const trimStartSeconds = document.getElementById('trim-start-seconds').value ?
-        parseFloat(document.getElementById('trim-start-seconds').value) : undefined;
-    
-    const trimEndMinutes = document.getElementById('trim-end-minutes').value ?
-        parseInt(document.getElementById('trim-end-minutes').value) : undefined;
-    
-    const trimEndSeconds = document.getElementById('trim-end-seconds').value ?
-        parseFloat(document.getElementById('trim-end-seconds').value) : undefined;
-    
-    // Get sequence and comments
-    let clipSequence;
-    const clipOrderSelect = document.getElementById('clip-order');
-    
-    if (clipOrderSelect.value === 'custom') {
-        const customSequence = document.getElementById('custom-sequence').value;
-        clipSequence = customSequence ? parseInt(customSequence) : 9999;
-    } else {
-        clipSequence = parseInt(clipOrderSelect.value); // Will be 0 for "Add to Front" or 9999 for "Add to End"
-    }
-    
-    const comments = document.getElementById('clip-comments').value;
-    
-    // Find the segment and scene
-    const segment = currentVideoAssemblyData.cut.segments.find(s => s.sequence === segmentSequence);
-    if (!segment) {
-        console.error('Selected segment not found');
-        return;
-    }
-    
-    const scene = segment.scenes.find(s => s.sequence === sceneSequence);
-    if (!scene) {
-        console.error('Selected scene not found');
-        return;
-    }
-    
-    // Ensure timeline_clips array exists
-    if (!scene.timeline_clips) {
-        scene.timeline_clips = [];
-    }
-    
-    // Get the relative path from content sources
-    let relativePath = currentFile.path;
-    if (currentVideoAssemblyData.composeflow.org &&
-        currentVideoAssemblyData.composeflow.org.settings &&
-        currentVideoAssemblyData.composeflow.org.settings.common_base_file_path) {
-        const basePath = currentVideoAssemblyData.composeflow.org.settings.common_base_file_path;
-        if (relativePath.startsWith(basePath)) {
-            relativePath = relativePath.substring(basePath.length);
-        }
-    }
-    
-    // Create the new clip object
-    const newClip = {
-        sequence: clipSequence,
-        path: relativePath
-    };
-    
-    // Add optional fields if they exist
-    if (trimStartMinutes !== undefined) {
-        newClip.trim_start_minutes = trimStartMinutes;
-    }
-    
-    if (trimStartSeconds !== undefined) {
-        newClip.trim_start_seconds = trimStartSeconds;
-    }
-    
-    if (trimEndMinutes !== undefined) {
-        newClip.trim_end_minutes = trimEndMinutes;
-    }
-    
-    if (trimEndSeconds !== undefined) {
-        newClip.trim_end_seconds = trimEndSeconds;
-    }
-    
-    if (comments) {
-        newClip.comments = comments;
-    }
-    
-    // Add the clip to the timeline
-    scene.timeline_clips.push(newClip);
-    
-    // Resequence all timeline clips starting at 1
-    resequenceTimelineClips(scene);
-    
-    // Save the updated video assembly data
-    saveVideoAssemblyData(currentVideoAssemblyData);
-    
-    // Switch to the Timeline tab
-    switchToTimelineTab();
-    
-    // Update the terminal with a message
-    const terminal = document.getElementById('terminal');
-    terminal.innerHTML += `<p>Added ${currentFile.name} to timeline in segment ${segmentSequence}, scene ${sceneSequence}</p>`;
-}
+// Import the common timeline clip operations
+const timelineClipOperations = require('../timelineClipOperations');
 
 /**
  * Resequences all timeline clips in a scene starting at 1
@@ -229,7 +114,6 @@ function getCurrentVideoAssemblyData() {
 
 // Export functions
 module.exports = {
-    addClipToTimeline,
     saveVideoAssemblyData,
     switchToTimelineTab,
     setCurrentVideoAssemblyData,
