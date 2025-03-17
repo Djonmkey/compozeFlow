@@ -1,6 +1,6 @@
 /**
  * contentSources/eventHandlers.js
- * 
+ *
  * Event handling functions for the content sources display.
  */
 
@@ -9,6 +9,36 @@ const fileFilters = require('./fileFilters');
 const contentSourceManager = require('./contentSourceManager');
 const fileTreeGenerator = require('./fileTreeGenerator');
 const utils = require('./utils');
+const explorerDisplay = require('../explorerDisplay');
+
+/**
+ * Gets the full path of a directory element
+ * @param {Element} dirElement - The directory element
+ * @returns {string|null} The directory path or null if not found
+ */
+function getDirectoryPath(dirElement) {
+    // Try to get the path from the data-path attribute
+    let dirPath = dirElement.getAttribute('data-path');
+    
+    // If the directory doesn't have a data-path attribute, try to construct it
+    if (!dirPath) {
+        // Get the section element that contains this directory
+        const section = dirElement.closest('.explorer-section');
+        if (!section) return null;
+        
+        const sectionPath = section.getAttribute('data-path');
+        if (!sectionPath) return null;
+        
+        // Get the directory name
+        const dirName = dirElement.querySelector('.explorer-name')?.textContent;
+        if (!dirName) return null;
+        
+        // Construct the path by combining the section path and directory name
+        dirPath = path.join(sectionPath, dirName);
+    }
+    
+    return dirPath;
+}
 
 /**
  * Initializes the content sources mode with event handlers
@@ -19,9 +49,24 @@ function initializeContentSources(videoAssemblyData) {
     document.querySelectorAll('.explorer-directory').forEach(dir => {
         const content = dir.querySelector('.explorer-item-content');
         content.addEventListener('click', () => {
-            dir.classList.toggle('expanded');
+            // Toggle expanded state
+            const isExpanded = dir.classList.toggle('expanded');
+            
+            // Get directory path
+            const dirPath = getDirectoryPath(dir);
+            if (dirPath) {
+                // Update the expandedFolders set in explorerDisplay
+                if (isExpanded) {
+                    // Add to expanded folders set
+                    explorerDisplay.saveExpandedFoldersState();
+                } else {
+                    // Remove from expanded folders set
+                    explorerDisplay.saveExpandedFoldersState();
+                }
+            }
         });
     });
+    
 
     // Add click event listeners for files
     document.querySelectorAll('.explorer-file').forEach(file => {
@@ -144,7 +189,21 @@ function initializeExplorerContent(section, videoAssemblyData) {
     section.querySelectorAll('.explorer-directory').forEach(dir => {
         const content = dir.querySelector('.explorer-item-content');
         content.addEventListener('click', () => {
-            dir.classList.toggle('expanded');
+            // Toggle expanded state
+            const isExpanded = dir.classList.toggle('expanded');
+            
+            // Get directory path
+            const dirPath = getDirectoryPath(dir);
+            if (dirPath) {
+                // Update the expandedFolders set in explorerDisplay
+                if (isExpanded) {
+                    // Add to expanded folders set
+                    explorerDisplay.saveExpandedFoldersState();
+                } else {
+                    // Remove from expanded folders set
+                    explorerDisplay.saveExpandedFoldersState();
+                }
+            }
         });
     });
 

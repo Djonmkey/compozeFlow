@@ -1,6 +1,6 @@
 /**
  * explorerDisplay.js
- * 
+ *
  * Coordinates the display of the explorer area with three modes:
  * - Content Sources (folder icon)
  * - Search (magnifier icon)
@@ -17,6 +17,12 @@ const pluginsModule = require('./pluginsDisplay');
 
 // Current active mode
 let currentMode = 'content-sources'; // Default mode
+
+// Track expanded folders in the explorer
+let expandedFolders = new Set();
+
+// Track the active scroll position
+let explorerScrollPosition = 0;
 
 /**
  * Generates HTML for the explorer area based on the current mode
@@ -90,6 +96,12 @@ function handleExplorerRefresh(event, videoAssemblyData) {
             return;
         }
         
+        // Save the current expanded folders state before refreshing
+        saveExpandedFoldersState();
+        
+        // Save the current scroll position
+        explorerScrollPosition = explorer.scrollTop;
+        
         // Update the explorer content based on the current mode
         explorer.innerHTML = generateExplorerHtml(videoAssemblyData);
         
@@ -113,8 +125,14 @@ function handleExplorerRefresh(event, videoAssemblyData) {
             default:
                 contentSourcesModule.initializeContentSources(videoAssemblyData);
                 console.log('Content Sources Explorer updated');
+                
+                // Restore the expanded folders state after initialization
+                restoreExpandedFoldersState();
                 break;
         }
+        
+        // Restore scroll position
+        explorer.scrollTop = explorerScrollPosition;
         
         // Update the terminal with a message about the view refresh
         const terminal = document.getElementById('terminal');
@@ -122,6 +140,72 @@ function handleExplorerRefresh(event, videoAssemblyData) {
             terminal.innerHTML += `<p>Explorer view updated to reflect file status change</p>`;
         }
     }, 0); // Using 0ms timeout to execute after the current call stack is cleared
+}
+
+/**
+ * Saves the current state of expanded folders in the explorer
+ */
+function saveExpandedFoldersState() {
+    if (currentMode !== 'content-sources') return;
+    
+    // Clear the previous state
+    expandedFolders.clear();
+    
+    // Find all expanded directories and save their paths
+    document.querySelectorAll('.explorer-directory.expanded').forEach(dir => {
+        const dirPath = getDirectoryPath(dir);
+        if (dirPath) {
+            expandedFolders.add(dirPath);
+        }
+    });
+    
+    console.log(`Saved state of ${expandedFolders.size} expanded folders`);
+}
+
+/**
+ * Restores the expanded folders state after refresh
+ */
+function restoreExpandedFoldersState() {
+    if (currentMode !== 'content-sources' || expandedFolders.size === 0) return;
+    
+    // Find all directories and expand those that were expanded before
+    document.querySelectorAll('.explorer-directory').forEach(dir => {
+        const dirPath = getDirectoryPath(dir);
+        if (dirPath && expandedFolders.has(dirPath)) {
+            dir.classList.add('expanded');
+        }
+    });
+    
+    console.log(`Restored state of ${expandedFolders.size} expanded folders`);
+}
+
+/**
+ * Gets the full path of a directory element
+ * @param {Element} dirElement - The directory element
+ * @returns {string|null} The directory path or null if not found
+ */
+function getDirectoryPath(dirElement) {
+    // Try to get the path from the data-path attribute
+    let dirPath = dirElement.getAttribute('data-path');
+    
+    // If the directory doesn't have a data-path attribute, try to construct it
+    if (!dirPath) {
+        // Get the section element that contains this directory
+        const section = dirElement.closest('.explorer-section');
+        if (!section) return null;
+        
+        const sectionPath = section.getAttribute('data-path');
+        if (!sectionPath) return null;
+        
+        // Get the directory name
+        const dirName = dirElement.querySelector('.explorer-name')?.textContent;
+        if (!dirName) return null;
+        
+        // Construct the path by combining the section path and directory name
+        dirPath = path.join(sectionPath, dirName);
+    }
+    
+    return dirPath;
 }
 
 /**
@@ -244,5 +328,7 @@ module.exports = {
     generateExplorerHtml,
     initializeExplorer,
     switchMode,
-    handleExplorerRefresh
+    handleExplorerRefresh,
+    saveExpandedFoldersState,
+    restoreExpandedFoldersState
 };
