@@ -411,7 +411,8 @@ function handleGetClipData(params) {
     segmentSequence,
     sceneSequence,
     clipSequence,
-    clipType
+    clipType,
+    clipPath: clip.path || ''
   };
   
   if (clipType === 'video') {
@@ -468,15 +469,20 @@ function handleUpdateClip(clipData) {
   
   // Update the clip with the new data
   if (clipType === 'video') {
+    // Update clip path if provided
+    if (clipData.clipPath) {
+      scene.timeline_clips[clipIndex].path = clipData.clipPath;
+    }
+    
     // Handle trim values - set to null if blank
     scene.timeline_clips[clipIndex].trim_start_minutes = clipData.trimStartMinutes === '' ? null :
-                                                        (parseInt(clipData.trimStartMinutes) || 0);
+                                                       (parseInt(clipData.trimStartMinutes) || 0);
     scene.timeline_clips[clipIndex].trim_start_seconds = clipData.trimStartSeconds === '' ? null :
-                                                        (parseFloat(clipData.trimStartSeconds) || 0);
+                                                       (parseFloat(clipData.trimStartSeconds) || 0);
     scene.timeline_clips[clipIndex].trim_end_minutes = clipData.trimEndMinutes === '' ? null :
-                                                      (parseInt(clipData.trimEndMinutes) || 0);
+                                                     (parseInt(clipData.trimEndMinutes) || 0);
     scene.timeline_clips[clipIndex].trim_end_seconds = clipData.trimEndSeconds === '' ? null :
-                                                      (parseFloat(clipData.trimEndSeconds) || 0);
+                                                     (parseFloat(clipData.trimEndSeconds) || 0);
     
     // Update comments field (could be either comments or comment in the original data)
     if ('comment' in scene.timeline_clips[clipIndex]) {
@@ -485,9 +491,14 @@ function handleUpdateClip(clipData) {
       scene.timeline_clips[clipIndex].comments = clipData.comments;
     }
   } else if (clipType === 'image') {
+    // Update clip path if provided
+    if (clipData.clipPath) {
+      scene.timeline_clips[clipIndex].path = clipData.clipPath;
+    }
+    
     // Handle duration - set to null if blank
     scene.timeline_clips[clipIndex].duration_seconds = clipData.durationSeconds === '' ? null :
-                                                      (parseFloat(clipData.durationSeconds) || 0);
+                                                     (parseFloat(clipData.durationSeconds) || 0);
     
     // Update comments field (could be either comments or comment in the original data)
     if ('comment' in scene.timeline_clips[clipIndex]) {
@@ -584,6 +595,71 @@ function handleDeleteClip(params) {
   }
 }
 
+/**
+ * Function to handle updating a clip path
+ * @param {Object} params - Parameters containing segment, scene, clip sequence numbers, and new path
+ * @returns {boolean} - Whether the update was successful
+ */
+function handleUpdateClipPath(params) {
+  const { segmentSequence, sceneSequence, clipSequence, clipType, newPath } = params;
+  
+  if (!currentVideoAssemblyData || !currentVideoAssemblyData.cut || !currentVideoAssemblyData.cut.segments) {
+    console.error('No video assembly data available');
+    return false;
+  }
+  
+  // Find the segment
+  const segment = currentVideoAssemblyData.cut.segments.find(s =>
+    (s.sequence === parseInt(segmentSequence) || s.order === parseInt(segmentSequence)));
+  
+  if (!segment || !segment.scenes) {
+    console.error(`Segment with sequence ${segmentSequence} not found`);
+    return false;
+  }
+  
+  // Find the scene
+  const scene = segment.scenes.find(s =>
+    (s.sequence === parseInt(sceneSequence) || s.order === parseInt(sceneSequence)));
+  
+  if (!scene || !scene.timeline_clips) {
+    console.error(`Scene with sequence ${sceneSequence} not found in segment ${segmentSequence}`);
+    return false;
+  }
+  
+  // Find the clip
+  const clipIndex = scene.timeline_clips.findIndex(c => c.sequence === parseInt(clipSequence));
+  
+  if (clipIndex === -1) {
+    console.error(`Clip with sequence ${clipSequence} not found in scene ${sceneSequence}, segment ${segmentSequence}`);
+    return false;
+  }
+  
+  // Update the clip path
+  scene.timeline_clips[clipIndex].path = newPath;
+  
+  // Save the updated data to the file
+  if (currentVideoAssemblyPath) {
+    const success = saveVideoAssemblyToFile(currentVideoAssemblyPath, currentVideoAssemblyData);
+    
+    if (success) {
+      // Update the terminal with a message
+      const terminal = document.getElementById('terminal');
+      terminal.innerHTML += `<p>Clip path updated successfully</p>`;
+      
+      // Update the editor content to reflect the changes
+      uiManager.updateEditorContent(currentVideoAssemblyData);
+      
+      return true;
+    } else {
+      console.error('Failed to save updated clip path');
+      return false;
+    }
+  } else {
+    console.error('No file path available for saving');
+    return false;
+  }
+}
+
 // Export the functions and variables
 module.exports = {
   getCurrentVideoAssemblyData: () => currentVideoAssemblyData,
@@ -607,5 +683,6 @@ module.exports = {
   clearVideoAssemblyData,
   handleGetClipData,
   handleUpdateClip,
-  handleDeleteClip
+  handleDeleteClip,
+  handleUpdateClipPath
 };

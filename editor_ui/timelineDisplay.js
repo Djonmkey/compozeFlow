@@ -240,6 +240,14 @@ function generateHtmlFromVideoAssembly(data) {
                     clipData[key] = value;
                 }
                 
+                // Get the clip path based on the clip type
+                const clipType = clipData.clipType;
+                if (clipType === 'video') {
+                    clipData.clipPath = document.getElementById('clip-path').value;
+                } else if (clipType === 'image') {
+                    clipData.clipPath = document.getElementById('image-path').value;
+                }
+                
                 // Send the updated clip data to the parent window
                 window.parent.postMessage({
                     type: 'update-clip',
@@ -251,6 +259,18 @@ function generateHtmlFromVideoAssembly(data) {
                 
                 // Prevent form submission
                 return false;
+            }
+            
+            // Function to open a file dialog to select a new clip path
+            function openFileDialog() {
+                // Send a message to the parent window to open a file dialog
+                window.parent.postMessage({
+                    type: 'open-file-dialog',
+                    segmentSequence: document.getElementById('segment-sequence').value,
+                    sceneSequence: document.getElementById('scene-sequence').value,
+                    clipSequence: document.getElementById('clip-sequence').value,
+                    clipType: document.getElementById('clip-type').value
+                }, '*');
             }
             
             // Function to populate the edit form with clip data
@@ -265,6 +285,7 @@ function generateHtmlFromVideoAssembly(data) {
                 
                 // Set visible fields based on clip type
                 if (clipData.clipType === 'video') {
+                    document.getElementById('clip-path').value = clipData.clipPath || '';
                     document.getElementById('trim-start-minutes').value = clipData.trimStartMinutes || 0;
                     document.getElementById('trim-start-seconds').value = clipData.trimStartSeconds || 0;
                     document.getElementById('trim-end-minutes').value = clipData.trimEndMinutes || 0;
@@ -275,6 +296,7 @@ function generateHtmlFromVideoAssembly(data) {
                     document.getElementById('video-fields').style.display = 'block';
                     document.getElementById('image-fields').style.display = 'none';
                 } else if (clipData.clipType === 'image') {
+                    document.getElementById('image-path').value = clipData.clipPath || '';
                     document.getElementById('duration-seconds').value = clipData.durationSeconds || 0;
                     document.getElementById('image-comments').value = clipData.comments || '';
                     
@@ -297,6 +319,15 @@ function generateHtmlFromVideoAssembly(data) {
                 // Check if the message is clip data for editing
                 if (event.data && event.data.type === 'clip-data-for-edit') {
                     populateEditForm(event.data.clipData);
+                }
+                // Check if the message is a new clip path
+                else if (event.data && event.data.type === 'new-clip-path') {
+                    // Update the clip path in the form
+                    if (document.getElementById('clip-type').value === 'video') {
+                        document.getElementById('clip-path').value = event.data.newPath;
+                    } else {
+                        document.getElementById('image-path').value = event.data.newPath;
+                    }
                 }
             });
             
@@ -494,6 +525,13 @@ function generateHtmlFromVideoAssembly(data) {
                 <!-- Video-specific fields -->
                 <div id="video-fields">
                     <div class="form-group">
+                        <label for="clip-path">Clip Path:</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" id="clip-path" name="clipPath" style="flex: 1;">
+                            <button type="button" class="btn btn-secondary" onclick="openFileDialog()" title="Browse for a new clip file">Browse...</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
                         <label>Trim Start:</label>
                         <div style="display: flex; gap: 10px;">
                             <div style="flex: 1;">
@@ -527,6 +565,13 @@ function generateHtmlFromVideoAssembly(data) {
                 
                 <!-- Image-specific fields -->
                 <div id="image-fields" style="display: none;">
+                    <div class="form-group">
+                        <label for="image-path">Image Path:</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="text" id="image-path" name="clipPath" style="flex: 1;">
+                            <button type="button" class="btn btn-secondary" onclick="openFileDialog()" title="Browse for a new image file">Browse...</button>
+                        </div>
+                    </div>
                     <div class="form-group">
                         <label for="duration-seconds">Duration (seconds):</label>
                         <input type="number" id="duration-seconds" name="durationSeconds" min="0" step="0.1">

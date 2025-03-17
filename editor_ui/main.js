@@ -532,6 +532,38 @@ ipcMain.handle('show-output-path-dialog', async (event, title = 'Select Output P
   }
 });
 
+// Handle showing open file dialog for clip selection
+ipcMain.handle('show-open-file-dialog', async (event, filters = []) => {
+  try {
+    console.log('Showing open file dialog for clip selection');
+    
+    // If no filters provided, use default ones
+    if (!filters || filters.length === 0) {
+      filters = [
+        { name: 'Media Files', extensions: ['mp4', 'mov', 'avi', 'mkv', 'webm', 'jpg', 'jpeg', 'png', 'gif'] },
+        { name: 'All Files', extensions: ['*'] }
+      ];
+    }
+    
+    const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
+      title: 'Select Media File',
+      filters: filters,
+      properties: ['openFile']
+    });
+    
+    if (canceled || filePaths.length === 0) {
+      console.log('File selection was canceled');
+      return { canceled: true };
+    }
+    
+    console.log('Selected file path:', filePaths[0]);
+    return { canceled: false, filePath: filePaths[0] };
+  } catch (error) {
+    console.error('Error showing open file dialog:', error);
+    return { canceled: true, error: error.message };
+  }
+});
+
 // Handle saving video assembly data
 ipcMain.handle('save-video-assembly-data', async (event, videoAssemblyData) => {
   try {

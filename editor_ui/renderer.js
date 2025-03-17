@@ -129,6 +129,10 @@ window.addEventListener('message', (event) => {
   else if (event.data && event.data.type === 'delete-clip') {
     videoAssemblyManager.handleDeleteClip(event.data);
   }
+  // Check if the message is to open a file dialog for a clip
+  else if (event.data && event.data.type === 'open-file-dialog') {
+    handleOpenFileDialogForClip(event.data);
+  }
 });
 
 // Expose the saveVideoAssemblyToFile function to the window object
@@ -146,6 +150,73 @@ window.electronSetup = electronSetup;
 // Expose the updateGettingStartedVisibility function to the window object
 // so it can be accessed from other modules
 window.updateGettingStartedVisibility = updateGettingStartedVisibility;
+
+/**
+ * Function to handle opening a file dialog for a clip
+ * @param {Object} data - Data containing segment, scene, and clip sequence numbers
+ */
+async function handleOpenFileDialogForClip(data) {
+  const { segmentSequence, sceneSequence, clipSequence, clipType } = data;
+  
+  if (electronSetup.isElectron && electronSetup.ipcRenderer) {
+    try {
+      // Determine file filters based on clip type
+      let filters = [];
+      if (clipType === 'video') {
+        filters = [
+          { name: 'Video Files', extensions: ['mp4', 'mov', 'avi', 'mkv', 'webm'] },
+          { name: 'All Files', extensions: ['*'] }
+        ];
+      } else if (clipType === 'image') {
+        filters = [
+          { name: 'Image Files', extensions: ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'] },
+          { name: 'All Files', extensions: ['*'] }
+        ];
+      }
+      
+      // Show the open file dialog
+      const result = await electronSetup.ipcRenderer.invoke('show-open-file-dialog', filters);
+      
+      if (!result.canceled && result.filePath) {
+        // Update the clip path in the video assembly data
+        const success = videoAssemblyManager.handleUpdateClipPath({
+          segmentSequence,
+          sceneSequence,
+          clipSequence,
+          clipType,
+          newPath: result.filePath
+        });
+        
+        if (success) {
+          // Send the new path back to the iframe
+          const iframe = document.getElementById('video-assembly-frame');
+          if (iframe && iframe.contentWindow) {
+            iframe.contentWindow.postMessage({
+              type: 'new-clip-path',
+              newPath: result.filePath
+            }, '*');
+          }
+          
+          // Update the terminal with a message
+          const terminal = document.getElementById('terminal');
+          terminal.innerHTML += `<p>Clip path updated to: ${result.filePath}</p>`;
+        }
+      }
+    } catch (error) {
+      console.error('Error opening file dialog:', error);
+      
+      // Update the terminal with an error message
+      const terminal = document.getElementById('terminal');
+      terminal.innerHTML += `<p>Error opening file dialog: ${error.message}</p>`;
+    }
+  } else {
+    console.error('Cannot open file dialog in browser mode');
+    
+    // Update the terminal with an error message
+    const terminal = document.getElementById('terminal');
+    terminal.innerHTML += `<p>Cannot open file dialog in browser mode</p>`;
+  }
+}
 
 const { getCurrentVideoAssemblyData } = require('./videoAssemblyManager');
 
