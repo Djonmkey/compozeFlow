@@ -156,8 +156,28 @@ window.addEventListener('message', (event) => {
     );
     
     if (success) {
+      // Get the iframe and save its scroll position before updating
+      const iframe = document.getElementById('video-assembly-frame');
+      let scrollPosition = 0;
+      
+      if (iframe && iframe.contentWindow) {
+        scrollPosition = iframe.contentWindow.scrollY || 0;
+      }
+      
       // Update the editor content to reflect the changes
       uiManager.updateEditorContent(videoAssemblyManager.getCurrentVideoAssemblyData());
+      
+      // Restore the scroll position after the iframe content is loaded
+      setTimeout(() => {
+        const updatedIframe = document.getElementById('video-assembly-frame');
+        if (updatedIframe && updatedIframe.contentWindow) {
+          updatedIframe.contentWindow.scrollTo(0, scrollPosition);
+          
+          // Update the terminal with a message
+          const terminal = document.getElementById('terminal');
+          terminal.innerHTML += `<p>Restored scroll position to ${scrollPosition}px after moving clip</p>`;
+        }
+      }, 100); // Small delay to ensure the iframe content is fully loaded
     }
   }
 });
