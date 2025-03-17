@@ -517,8 +517,28 @@ function handleUpdateClip(clipData) {
       const terminal = document.getElementById('terminal');
       terminal.innerHTML += `<p>Clip updated successfully</p>`;
       
+      // Get the iframe and save its scroll position before updating
+      const iframe = document.getElementById('video-assembly-frame');
+      let scrollPosition = 0;
+      
+      if (iframe && iframe.contentWindow) {
+        scrollPosition = iframe.contentWindow.scrollY || 0;
+      }
+      
       // Update the editor content to reflect the changes
       uiManager.updateEditorContent(currentVideoAssemblyData);
+      
+      // Restore the scroll position after the iframe content is loaded
+      setTimeout(() => {
+        const updatedIframe = document.getElementById('video-assembly-frame');
+        if (updatedIframe && updatedIframe.contentWindow) {
+          updatedIframe.contentWindow.scrollTo(0, scrollPosition);
+          
+          // Update the terminal with a message
+          const terminal = document.getElementById('terminal');
+          terminal.innerHTML += `<p>Restored scroll position to ${scrollPosition}px</p>`;
+        }
+      }, 100); // Small delay to ensure the iframe content is fully loaded
       
       return true;
     } else {
@@ -581,8 +601,28 @@ function handleDeleteClip(params) {
       const terminal = document.getElementById('terminal');
       terminal.innerHTML += `<p>Clip deleted successfully</p>`;
       
+      // Get the iframe and save its scroll position before updating
+      const iframe = document.getElementById('video-assembly-frame');
+      let scrollPosition = 0;
+      
+      if (iframe && iframe.contentWindow) {
+        scrollPosition = iframe.contentWindow.scrollY || 0;
+      }
+      
       // Update the editor content to reflect the changes
       uiManager.updateEditorContent(currentVideoAssemblyData);
+      
+      // Restore the scroll position after the iframe content is loaded
+      setTimeout(() => {
+        const updatedIframe = document.getElementById('video-assembly-frame');
+        if (updatedIframe && updatedIframe.contentWindow) {
+          updatedIframe.contentWindow.scrollTo(0, scrollPosition);
+          
+          // Update the terminal with a message
+          const terminal = document.getElementById('terminal');
+          terminal.innerHTML += `<p>Restored scroll position to ${scrollPosition}px</p>`;
+        }
+      }, 100); // Small delay to ensure the iframe content is fully loaded
       
       return true;
     } else {
@@ -646,8 +686,28 @@ function handleUpdateClipPath(params) {
       const terminal = document.getElementById('terminal');
       terminal.innerHTML += `<p>Clip path updated successfully</p>`;
       
+      // Get the iframe and save its scroll position before updating
+      const iframe = document.getElementById('video-assembly-frame');
+      let scrollPosition = 0;
+      
+      if (iframe && iframe.contentWindow) {
+        scrollPosition = iframe.contentWindow.scrollY || 0;
+      }
+      
       // Update the editor content to reflect the changes
       uiManager.updateEditorContent(currentVideoAssemblyData);
+      
+      // Restore the scroll position after the iframe content is loaded
+      setTimeout(() => {
+        const updatedIframe = document.getElementById('video-assembly-frame');
+        if (updatedIframe && updatedIframe.contentWindow) {
+          updatedIframe.contentWindow.scrollTo(0, scrollPosition);
+          
+          // Update the terminal with a message
+          const terminal = document.getElementById('terminal');
+          terminal.innerHTML += `<p>Restored scroll position to ${scrollPosition}px</p>`;
+        }
+      }, 100); // Small delay to ensure the iframe content is fully loaded
       
       return true;
     } else {
