@@ -178,29 +178,19 @@ async function handleOpenFileDialogForClip(data) {
       const result = await electronSetup.ipcRenderer.invoke('show-open-file-dialog', filters);
       
       if (!result.canceled && result.filePath) {
-        // Update the clip path in the video assembly data
-        const success = videoAssemblyManager.handleUpdateClipPath({
-          segmentSequence,
-          sceneSequence,
-          clipSequence,
-          clipType,
-          newPath: result.filePath
-        });
-        
-        if (success) {
-          // Send the new path back to the iframe
-          const iframe = document.getElementById('video-assembly-frame');
-          if (iframe && iframe.contentWindow) {
-            iframe.contentWindow.postMessage({
-              type: 'new-clip-path',
-              newPath: result.filePath
-            }, '*');
-          }
-          
-          // Update the terminal with a message
-          const terminal = document.getElementById('terminal');
-          terminal.innerHTML += `<p>Clip path updated to: ${result.filePath}</p>`;
+        // Send the new path back to the iframe without updating the video assembly data
+        // The actual update will happen when the user clicks "Save Changes" in the dialog
+        const iframe = document.getElementById('video-assembly-frame');
+        if (iframe && iframe.contentWindow) {
+          iframe.contentWindow.postMessage({
+            type: 'new-clip-path',
+            newPath: result.filePath
+          }, '*');
         }
+        
+        // Update the terminal with a message
+        const terminal = document.getElementById('terminal');
+        terminal.innerHTML += `<p>Selected new clip path: ${result.filePath}</p>`;
       }
     } catch (error) {
       console.error('Error opening file dialog:', error);
