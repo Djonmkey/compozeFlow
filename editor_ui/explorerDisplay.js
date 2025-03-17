@@ -96,8 +96,12 @@ function handleExplorerRefresh(event, videoAssemblyData) {
             return;
         }
         
-        // Save the current expanded folders state before refreshing
-        saveExpandedFoldersState();
+        // Save the current state before refreshing based on mode
+        if (currentMode === 'content-sources') {
+            saveExpandedFoldersState();
+        } else if (currentMode === 'search') {
+            searchModule.saveSearchDirectoryState();
+        }
         
         // Save the current scroll position
         explorerScrollPosition = explorer.scrollTop;
@@ -117,6 +121,8 @@ function handleExplorerRefresh(event, videoAssemblyData) {
                     searchInput.dispatchEvent(searchEvent);
                     console.log('Search results refreshed');
                 }
+                // Restore search directory state after refresh
+                searchModule.restoreSearchDirectoryState();
                 break;
             case 'plugins':
                 pluginsModule.initializePlugins();
@@ -250,6 +256,13 @@ function switchMode(mode, videoAssemblyData) {
     // If already in this mode, do nothing
     if (currentMode === mode) return;
 
+    // Save state of the current mode
+    if (currentMode === 'content-sources') {
+        saveExpandedFoldersState();
+    } else if (currentMode === 'search') {
+        searchModule.saveSearchDirectoryState();
+    }
+
     // Update the current mode
     currentMode = mode;
 
@@ -259,6 +272,13 @@ function switchMode(mode, videoAssemblyData) {
 
     // Initialize the new mode
     initializeExplorer(videoAssemblyData);
+
+    // Restore state for the new mode if applicable
+    if (mode === 'content-sources') {
+        restoreExpandedFoldersState();
+    } else if (mode === 'search') {
+        searchModule.restoreSearchDirectoryState();
+    }
 
     // Update the terminal with a message
     const terminal = document.getElementById('terminal');

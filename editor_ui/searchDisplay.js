@@ -8,6 +8,21 @@ const fs = require('fs');
 const path = require('path');
 const fileOccurrenceCounter = require('./fileOccurrenceCounter');
 
+// Track the current directory in search results
+let currentSearchDirectory = null;
+// Track expanded directories in search results
+let expandedSearchDirectories = new Set();
+// Track search criteria for saving/restoring state
+let savedSearchState = {
+    searchText: '',
+    options: {
+        caseSensitive: false,
+        wholeWord: false,
+        useRegex: false,
+        includeUnsupported: true
+    }
+};
+
 /**
  * Generates HTML for the search mode in the explorer area
  * @returns {string} HTML content for the search explorer
@@ -65,14 +80,20 @@ function initializeSearch(videoAssemblyData) {
             return;
         }
         
-        // Perform the search with default options
-        performSearch(videoAssemblyData, searchText, {
-            caseSensitive: false,
-            wholeWord: false,
-            useRegex: false,
-            includeUnsupported: true
-        });
+        // Use the saved options for the search
+        performSearch(videoAssemblyData, searchText, savedSearchState.options);
     });
+    
+    // If there's a saved search state, restore it
+    if (savedSearchState.searchText && savedSearchState.searchText.length >= 2) {
+        searchInput.value = savedSearchState.searchText;
+        performSearch(videoAssemblyData, savedSearchState.searchText, savedSearchState.options);
+    }
+    // Otherwise, if there's an active search in the input field, trigger it
+    else if (searchInput.value.trim().length >= 2) {
+        const searchEvent = new Event('input', { bubbles: true });
+        searchInput.dispatchEvent(searchEvent);
+    }
 }
 
 /**
@@ -85,6 +106,10 @@ function performSearch(videoAssemblyData, searchText, options) {
     if (!videoAssemblyData || !videoAssemblyData.cut || !videoAssemblyData.cut.content_sources) {
         return;
     }
+    
+    // Save the search text and options to the saved state
+    savedSearchState.searchText = searchText;
+    savedSearchState.options = { ...options };
     
     // Get content sources
     const contentSources = videoAssemblyData.cut.content_sources;
@@ -361,14 +386,19 @@ function displaySearchResults(container, results, searchText, videoAssemblyData)
         const dirResults = groupedResults[dirPath];
         const dirName = path.basename(dirPath);
         
+        // Check if this directory should be expanded
+        const isExpanded = expandedSearchDirectories.has(dirPath) ||
+                          (currentSearchDirectory && dirPath === currentSearchDirectory);
+        const expandedClass = isExpanded ? 'expanded' : '';
+        
         html += `
-            <div class="search-result-group">
-                <div class="search-result-group-header">
+            <div class="search-result-group explorer-directory ${expandedClass}" data-path="${dirPath}">
+                <div class="search-result-group-header explorer-item-content">
                     <span class="explorer-icon">📁</span>
                     <span class="explorer-name">${dirName}</span>
                     <span class="search-result-count">(${dirResults.length})</span>
                 </div>
-                <ul class="search-result-list">
+                <ul class="search-result-list" style="${isExpanded ? '' : 'display: none;'}">
         `;
         
         // Add each file in this directory
@@ -429,11 +459,41 @@ function displaySearchResults(container, results, searchText, videoAssemblyData)
     // Update the container
     container.innerHTML = html;
     
+    // Add click event listeners for directory headers to expand/collapse
+    document.querySelectorAll('.search-result-group-header').forEach(header => {
+        header.addEventListener('click', (event) => {
+            const dirGroup = header.closest('.search-result-group');
+            const dirPath = dirGroup.getAttribute('data-path');
+            const resultsList = dirGroup.querySelector('.search-result-list');
+            
+            // Toggle expanded state
+            const isExpanded = dirGroup.classList.toggle('expanded');
+            resultsList.style.display = isExpanded ? '' : 'none';
+            
+            // Update current directory and expanded directories set
+            if (isExpanded) {
+                currentSearchDirectory = dirPath;
+                expandedSearchDirectories.add(dirPath);
+            } else {
+                if (currentSearchDirectory === dirPath) {
+                    currentSearchDirectory = null;
+                }
+                expandedSearchDirectories.delete(dirPath);
+            }
+            
+            // Prevent the click from triggering file clicks
+            event.stopPropagation();
+        });
+    });
+    
     // Add click event listeners for search results
     document.querySelectorAll('.search-result-item').forEach(item => {
         item.addEventListener('click', () => {
             const filePath = item.getAttribute('data-path');
             console.log(`Search result clicked: ${filePath}`);
+            
+            // Set current directory to the directory containing this file
+            currentSearchDirectory = path.dirname(filePath);
             
             // Import the fileTabsDisplay module
             const fileTabsDisplay = require('./fileTabsDisplay');
@@ -622,7 +682,57 @@ searchStyle.textContent = `
 `;
 document.head.appendChild(searchStyle);
 
+/**
+ * Saves the current state of the search directory and search criteria
+ */
+function saveSearchDirectoryState() {
+    // Save the current search text
+    const searchInput = document.getElementById('global-search-input');
+    if (searchInput) {
+        savedSearchState.searchText = searchInput.value.trim();
+    }
+    
+    // The directory state is already maintained in currentSearchDirectory and expandedSearchDirectories
+    console.log(`Saved search state: text="${savedSearchState.searchText}", current=${currentSearchDirectory}, expanded=${expandedSearchDirectories.size} directories`);
+}
+
+/**
+ * Restores the search directory state and search criteria
+ * @param {Object} [videoAssemblyData] - The video assembly data needed to perform the search
+ */
+function restoreSearchDirectoryState(videoAssemblyData) {
+    console.log(`Restoring search state: text="${savedSearchState.searchText}", current=${currentSearchDirectory}, expanded=${expandedSearchDirectories.size} directories`);
+    
+    // Restore the search text in the input field
+    const searchInput = document.getElementById('global-search-input');
+    if (searchInput && savedSearchState.searchText) {
+        searchInput.value = savedSearchState.searchText;
+        
+        // If there was a search text and we have videoAssemblyData, trigger the search
+        if (savedSearchState.searchText.length >= 2 && videoAssemblyData) {
+            // Perform the search with the saved options
+            performSearch(videoAssemblyData, savedSearchState.searchText, savedSearchState.options);
+        }
+        // If we don't have videoAssemblyData but there's a search input value, we'll rely on
+        // the input event listener in initializeSearch to trigger the search when it's called
+    }
+    
+    // If there are search results displayed, apply the expanded state
+    document.querySelectorAll('.search-result-group').forEach(group => {
+        const dirPath = group.getAttribute('data-path');
+        if (dirPath && (expandedSearchDirectories.has(dirPath) || dirPath === currentSearchDirectory)) {
+            group.classList.add('expanded');
+            const resultsList = group.querySelector('.search-result-list');
+            if (resultsList) {
+                resultsList.style.display = '';
+            }
+        }
+    });
+}
+
 module.exports = {
     generateSearchHtml,
-    initializeSearch
+    initializeSearch,
+    saveSearchDirectoryState,
+    restoreSearchDirectoryState
 };
