@@ -130,6 +130,9 @@ function generateDismissedFilesSection(dismissedFiles, supportedExtensions) {
                     <span class="explorer-icon">${icon}</span>
                     <span class="explorer-name">${fileName}</span>
                 </div>
+                <button class="restore-dismissed-file-btn" title="Restore file" data-path="${filePath}">
+                    <span class="restore-icon">✓</span>
+                </button>
             </li>
         `;
     });

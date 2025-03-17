@@ -77,7 +77,12 @@ function initializeContentSources(videoAssemblyData) {
 
     // Add click event listeners for files
     document.querySelectorAll('.explorer-file').forEach(file => {
-        file.addEventListener('click', () => {
+        file.addEventListener('click', (event) => {
+            // Don't trigger file selection if the restore button was clicked
+            if (event.target.closest('.restore-dismissed-file-btn')) {
+                return;
+            }
+            
             const filePath = file.getAttribute('data-path');
             console.log(`File clicked: ${filePath}`);
             
@@ -90,6 +95,23 @@ function initializeContentSources(videoAssemblyData) {
             // Update the terminal with a message
             const terminal = document.getElementById('terminal');
             terminal.innerHTML += `<p>File selected: ${filePath}</p>`;
+        });
+    });
+    
+    // Add click event listeners for restore buttons in dismissed files section
+    document.querySelectorAll('.restore-dismissed-file-btn').forEach(button => {
+        button.addEventListener('click', (event) => {
+            // Prevent the click from propagating to parent elements
+            event.stopPropagation();
+            
+            const filePath = button.getAttribute('data-path');
+            console.log(`Restore button clicked for file: ${filePath}`);
+            
+            // Get the fileOperationsUI module to use the toggleFileDismissStatus function
+            const fileOperationsUI = require('../fileTabs/fileOperationsUI');
+            
+            // Call the toggleFileDismissStatus function to restore the file
+            fileOperationsUI.toggleFileDismissStatus(filePath);
         });
     });
     
@@ -226,7 +248,12 @@ function initializeExplorerContent(section, videoAssemblyData) {
 
     // Add click event listeners for files
     section.querySelectorAll('.explorer-file').forEach(file => {
-        file.addEventListener('click', () => {
+        file.addEventListener('click', (event) => {
+            // Don't trigger file selection if the restore button was clicked
+            if (event.target.closest('.restore-dismissed-file-btn')) {
+                return;
+            }
+            
             const filePath = file.getAttribute('data-path');
             console.log(`File clicked: ${filePath}`);
             
@@ -239,6 +266,23 @@ function initializeExplorerContent(section, videoAssemblyData) {
             // Update the terminal with a message
             const terminal = document.getElementById('terminal');
             terminal.innerHTML += `<p>File selected: ${filePath}</p>`;
+        });
+    });
+    
+    // Add click event listeners for restore buttons in dismissed files section
+    section.querySelectorAll('.restore-dismissed-file-btn').forEach(button => {
+        button.addEventListener('click', (event) => {
+            // Prevent the click from propagating to parent elements
+            event.stopPropagation();
+            
+            const filePath = button.getAttribute('data-path');
+            console.log(`Restore button clicked for file: ${filePath}`);
+            
+            // Get the fileOperationsUI module to use the toggleFileDismissStatus function
+            const fileOperationsUI = require('../fileTabs/fileOperationsUI');
+            
+            // Call the toggleFileDismissStatus function to restore the file
+            fileOperationsUI.toggleFileDismissStatus(filePath);
         });
     });
     

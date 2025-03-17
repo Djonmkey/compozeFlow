@@ -40,6 +40,34 @@ function initializeStyles() {
             color: #888;
         }
         
+        .restore-dismissed-file-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background-color: transparent;
+            border: none;
+            color: #4a86e8;
+            cursor: pointer;
+            padding: 2px 5px;
+            margin-left: 5px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        
+        .restore-dismissed-file-btn:hover {
+            background-color: #e6f0ff;
+        }
+        
+        .restore-icon {
+            margin-right: 2px;
+        }
+        
+        .explorer-file {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
         /* Occurrence count styling */
         .occurrence-count {
             font-size: 12px;
