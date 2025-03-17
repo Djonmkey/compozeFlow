@@ -136,37 +136,19 @@ function toggleFileDismissStatus(filePath) {
             const { saveVideoAssemblyData } = require('./fileTimelineIntegration');
             saveVideoAssemblyData(videoAssemblyData);
             
-            console.log('Attempting to update the explorer view');
-            const explorerMode = document.querySelector('.explorer-mode-selector .active');
-            if (explorerMode) {
-                const explorer = document.getElementById('explorer');
-                const activeMode = explorerMode.textContent.trim();
-                console.log(`Active Explorer Mode: ${activeMode}`);
-                
-                // Update based on the active explorer mode
-                if (activeMode === 'Content Sources') {
-                    const contentSourcesDisplay = require('../contentSourcesDisplay');
-                    explorer.innerHTML = contentSourcesDisplay.generateContentSourcesHtml(videoAssemblyData);
-                    contentSourcesDisplay.initializeContentSources(videoAssemblyData);
-                    console.log('Content Sources Explorer updated');
-                } else if (activeMode === 'Search') {
-                    // If in search mode, refresh the search results if there's an active search
-                    const searchInput = document.getElementById('global-search-input');
-                    if (searchInput && searchInput.value.trim().length >= 2) {
-                        const searchDisplay = require('../searchDisplay');
-                        // Re-trigger the search with current input
-                        const searchEvent = new Event('input', { bubbles: true });
-                        searchInput.dispatchEvent(searchEvent);
-                        console.log('Search results refreshed');
-                    }
+            console.log('Dispatching explorer refresh event');
+            
+            // Create and dispatch a custom event to refresh the explorer
+            // This decouples the file operations from the explorer display logic
+            const refreshEvent = new CustomEvent('refreshExplorer', {
+                detail: {
+                    action: isDismissed ? 'restore' : 'dismiss',
+                    filePath: filePath
                 }
-                
-                // Update the terminal with a message about the view refresh
-                const terminal = document.getElementById('terminal');
-                terminal.innerHTML += `<p>Explorer view updated to reflect file status change</p>`;
-            } else {
-                console.log('No active explorer mode found');
-            }
+            });
+            
+            // Dispatch the event to be handled by the explorer display module
+            document.dispatchEvent(refreshEvent);
         } catch (error) {
             console.error('Error toggling file dismiss status:', error);
         }

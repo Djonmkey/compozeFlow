@@ -56,6 +56,72 @@ function initializeExplorer(videoAssemblyData) {
 
     // Set up icon click handlers for mode switching
     setupModeToggleHandlers(videoAssemblyData);
+    
+    // Set up event listener for explorer refresh requests
+    setupExplorerRefreshListener(videoAssemblyData);
+}
+
+/**
+ * Sets up event listener for explorer refresh requests
+ * @param {Object} videoAssemblyData - The video assembly data
+ */
+function setupExplorerRefreshListener(videoAssemblyData) {
+    // Remove any existing listener to prevent duplicates
+    document.removeEventListener('refreshExplorer', handleExplorerRefresh);
+    
+    // Add event listener for the custom refreshExplorer event
+    document.addEventListener('refreshExplorer', (event) => handleExplorerRefresh(event, videoAssemblyData));
+}
+
+/**
+ * Handles the refreshExplorer event
+ * @param {CustomEvent} event - The event object
+ * @param {Object} videoAssemblyData - The video assembly data
+ */
+function handleExplorerRefresh(event, videoAssemblyData) {
+    console.log('Explorer refresh event received');
+    
+    // Use setTimeout to ensure the event is disconnected from the caller
+    setTimeout(() => {
+        // Get the explorer element
+        const explorer = document.getElementById('explorer');
+        if (!explorer) {
+            console.error('Explorer element not found');
+            return;
+        }
+        
+        // Update the explorer content based on the current mode
+        explorer.innerHTML = generateExplorerHtml(videoAssemblyData);
+        
+        // Re-initialize the explorer with the updated content
+        switch (currentMode) {
+            case 'search':
+                searchModule.initializeSearch(videoAssemblyData);
+                // If in search mode, refresh the search results if there's an active search
+                const searchInput = document.getElementById('global-search-input');
+                if (searchInput && searchInput.value.trim().length >= 2) {
+                    // Re-trigger the search with current input
+                    const searchEvent = new Event('input', { bubbles: true });
+                    searchInput.dispatchEvent(searchEvent);
+                    console.log('Search results refreshed');
+                }
+                break;
+            case 'plugins':
+                pluginsModule.initializePlugins();
+                break;
+            case 'content-sources':
+            default:
+                contentSourcesModule.initializeContentSources(videoAssemblyData);
+                console.log('Content Sources Explorer updated');
+                break;
+        }
+        
+        // Update the terminal with a message about the view refresh
+        const terminal = document.getElementById('terminal');
+        if (terminal) {
+            terminal.innerHTML += `<p>Explorer view updated to reflect file status change</p>`;
+        }
+    }, 0); // Using 0ms timeout to execute after the current call stack is cleared
 }
 
 /**
@@ -177,5 +243,6 @@ document.head.appendChild(iconStyle);
 module.exports = {
     generateExplorerHtml,
     initializeExplorer,
-    switchMode
+    switchMode,
+    handleExplorerRefresh
 };
