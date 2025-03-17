@@ -18,8 +18,8 @@ function addClipToTimeline(currentFile) {
     }
     
     // Get form values
-    const segmentOrder = parseInt(document.getElementById('segment-select').value);
-    const sceneOrder = parseInt(document.getElementById('scene-select').value);
+    const segmentSequence = parseInt(document.getElementById('segment-select').value);
+    const sceneSequence = parseInt(document.getElementById('scene-select').value);
     
     // Get trim values
     const trimStartMinutes = document.getElementById('trim-start-minutes').value ?
@@ -34,20 +34,20 @@ function addClipToTimeline(currentFile) {
     const trimEndSeconds = document.getElementById('trim-end-seconds').value ?
         parseFloat(document.getElementById('trim-end-seconds').value) : undefined;
     
-    // Get order and comments
-    const clipOrder = document.getElementById('clip-order').value ?
+    // Get sequence and comments
+    const clipSequence = document.getElementById('clip-order').value ?
         parseInt(document.getElementById('clip-order').value) : 9999;
     
     const comments = document.getElementById('clip-comments').value;
     
     // Find the segment and scene
-    const segment = currentVideoAssemblyData.cut.segments.find(s => s.order === segmentOrder);
+    const segment = currentVideoAssemblyData.cut.segments.find(s => s.sequence === segmentSequence);
     if (!segment) {
         console.error('Selected segment not found');
         return;
     }
     
-    const scene = segment.scenes.find(s => s.order === sceneOrder);
+    const scene = segment.scenes.find(s => s.sequence === sceneSequence);
     if (!scene) {
         console.error('Selected scene not found');
         return;
@@ -71,7 +71,7 @@ function addClipToTimeline(currentFile) {
     
     // Create the new clip object
     const newClip = {
-        order: clipOrder,
+        sequence: clipSequence,
         path: relativePath
     };
     
@@ -107,7 +107,7 @@ function addClipToTimeline(currentFile) {
     
     // Update the terminal with a message
     const terminal = document.getElementById('terminal');
-    terminal.innerHTML += `<p>Added ${currentFile.name} to timeline in segment ${segmentOrder}, scene ${sceneOrder}</p>`;
+    terminal.innerHTML += `<p>Added ${currentFile.name} to timeline in segment ${segmentSequence}, scene ${sceneSequence}</p>`;
 }
 
 /**

@@ -123,21 +123,23 @@ function updateEditorContent(currentFile, videoAssemblyData) {
             <div class="add-to-timeline-section">
                 <h3>Add to Timeline</h3>
                 <div class="add-to-timeline-form">
-                    <div class="form-group">
-                        <label for="segment-select">Segment:</label>
-                        <select id="segment-select" class="form-control">
-                            <option value="">Select a segment</option>
-                            ${videoAssemblyData.cut.segments.map(segment =>
-                                `<option value="${segment.order}">${segment.order}. ${segment.title || 'Untitled Segment'}</option>`
-                            ).join('')}
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="scene-select">Scene:</label>
-                        <select id="scene-select" class="form-control" disabled>
-                            <option value="">Select a segment first</option>
-                        </select>
+                    <div class="form-row">
+                        <div class="form-group half-width">
+                            <label for="segment-select">Segment:</label>
+                            <select id="segment-select" class="form-control">
+                                <option value="">Select a segment</option>
+                                ${videoAssemblyData.cut.segments.map(segment =>
+                                    `<option value="${segment.sequence}">${segment.sequence}. ${segment.title || 'Untitled Segment'}</option>`
+                                ).join('')}
+                            </select>
+                        </div>
+                        
+                        <div class="form-group half-width">
+                            <label for="scene-select">Scene:</label>
+                            <select id="scene-select" class="form-control" disabled>
+                                <option value="">Select a segment first</option>
+                            </select>
+                        </div>
                     </div>
                     
                     <div class="form-row">
@@ -165,7 +167,7 @@ function updateEditorContent(currentFile, videoAssemblyData) {
                     </div>
                     
                     <div class="form-group">
-                        <label for="clip-order">Order (defaults to 9999 if empty):</label>
+                        <label for="clip-order">Sequence (defaults to 9999 if empty):</label>
                         <input type="number" id="clip-order" class="form-control" min="1" step="1" placeholder="9999">
                     </div>
                     
@@ -280,10 +282,10 @@ function setupTimelineEventListeners(currentFile) {
     const addToTimelineBtn = document.getElementById('add-to-timeline-btn');
     
     segmentSelect.addEventListener('change', () => {
-        const segmentOrder = parseInt(segmentSelect.value);
+        const segmentSequence = parseInt(segmentSelect.value);
         
         // Clear and disable scene select if no segment is selected
-        if (!segmentOrder) {
+        if (!segmentSequence) {
             sceneSelect.innerHTML = '<option value="">Select a segment first</option>';
             sceneSelect.disabled = true;
             addToTimelineBtn.disabled = true;
@@ -292,7 +294,7 @@ function setupTimelineEventListeners(currentFile) {
         
         // Find the selected segment
         const videoAssemblyData = require('./fileTimelineIntegration').getCurrentVideoAssemblyData();
-        const selectedSegment = videoAssemblyData.cut.segments.find(segment => segment.order === segmentOrder);
+        const selectedSegment = videoAssemblyData.cut.segments.find(segment => segment.sequence === segmentSequence);
         
         if (selectedSegment && selectedSegment.scenes) {
             // Enable scene select and populate options
@@ -301,8 +303,8 @@ function setupTimelineEventListeners(currentFile) {
             
             // Add scene options
             selectedSegment.scenes.forEach(scene => {
-                const sceneTitle = scene.title || `Scene ${scene.order}`;
-                sceneSelect.innerHTML += `<option value="${scene.order}">${scene.order}. ${sceneTitle}</option>`;
+                const sceneTitle = scene.title || `Scene ${scene.sequence}`;
+                sceneSelect.innerHTML += `<option value="${scene.sequence}">${scene.sequence}. ${sceneTitle}</option>`;
             });
         } else {
             // No scenes found
