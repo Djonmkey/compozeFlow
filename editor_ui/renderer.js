@@ -107,6 +107,28 @@ window.addEventListener('message', (event) => {
   else if (event.data && event.data.type === 'save-quick-render-settings') {
     videoAssemblyManager.handleSaveQuickRenderSettings(event.data.data);
   }
+  // Check if the message is to get clip data for editing
+  else if (event.data && event.data.type === 'get-clip-data') {
+    const clipData = videoAssemblyManager.handleGetClipData(event.data);
+    if (clipData) {
+      // Send the clip data back to the iframe for editing
+      const iframe = document.getElementById('video-assembly-frame');
+      if (iframe && iframe.contentWindow) {
+        iframe.contentWindow.postMessage({
+          type: 'clip-data-for-edit',
+          clipData: clipData
+        }, '*');
+      }
+    }
+  }
+  // Check if the message is to update a clip
+  else if (event.data && event.data.type === 'update-clip') {
+    videoAssemblyManager.handleUpdateClip(event.data.clipData);
+  }
+  // Check if the message is to delete a clip
+  else if (event.data && event.data.type === 'delete-clip') {
+    videoAssemblyManager.handleDeleteClip(event.data);
+  }
 });
 
 // Expose the saveVideoAssemblyToFile function to the window object

@@ -65,6 +65,128 @@ function generateHtmlFromVideoAssembly(data) {
                 margin-right: 10px;
                 /* Keep the same font size and padding as segment buttons for consistency */
             }
+            
+            /* Styles for edit and delete buttons */
+            .edit-clip-button, .delete-clip-button {
+                padding: 4px 8px;
+                margin-right: 5px;
+                border-radius: 3px;
+                cursor: pointer;
+                font-size: 12px;
+                border: none;
+            }
+            
+            .edit-clip-button {
+                background-color: #2196F3;
+                color: white;
+            }
+            
+            .edit-clip-button:hover {
+                background-color: #0b7dda;
+            }
+            
+            .delete-clip-button {
+                background-color: #f44336;
+                color: white;
+            }
+            
+            .delete-clip-button:hover {
+                background-color: #d32f2f;
+            }
+            
+            /* Modal styles */
+            .modal {
+                display: none;
+                position: fixed;
+                z-index: 1000;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0,0,0,0.4);
+            }
+            
+            .modal-content {
+                background-color: #fefefe;
+                margin: 10% auto;
+                padding: 20px;
+                border: 1px solid #888;
+                width: 80%;
+                max-width: 600px;
+                border-radius: 5px;
+            }
+            
+            .modal-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 15px;
+            }
+            
+            .modal-header h3 {
+                margin: 0;
+            }
+            
+            .close-modal {
+                color: #aaa;
+                font-size: 28px;
+                font-weight: bold;
+                cursor: pointer;
+            }
+            
+            .close-modal:hover {
+                color: #000;
+            }
+            
+            .form-group {
+                margin-bottom: 15px;
+            }
+            
+            .form-group label {
+                display: block;
+                margin-bottom: 5px;
+                font-weight: bold;
+            }
+            
+            .form-group input {
+                width: 100%;
+                padding: 8px;
+                box-sizing: border-box;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+            }
+            
+            .form-actions {
+                display: flex;
+                justify-content: flex-end;
+                gap: 10px;
+                margin-top: 20px;
+            }
+            
+            .btn {
+                padding: 8px 16px;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+            }
+            
+            .btn-primary {
+                background-color: #4CAF50;
+                color: white;
+            }
+            
+            .btn-primary:hover {
+                background-color: #45a049;
+            }
+            
+            .btn-secondary {
+                background-color: #f1f1f1;
+                color: #333;
+            }
+            
+            .btn-secondary:hover {
+                background-color: #ddd;
+            }
         </style>
         <script>
             function renderSegment(segmentSequence) {
@@ -83,6 +205,108 @@ function generateHtmlFromVideoAssembly(data) {
                     sceneSequence: sceneSequence
                 }, '*');
             }
+            
+            function editClip(segmentSequence, sceneSequence, clipSequence, clipType) {
+                // Get the clip data from the parent window
+                window.parent.postMessage({
+                    type: 'get-clip-data',
+                    segmentSequence: segmentSequence,
+                    sceneSequence: sceneSequence,
+                    clipSequence: clipSequence,
+                    clipType: clipType
+                }, '*');
+            }
+            
+            function deleteClip(segmentSequence, sceneSequence, clipSequence, clipType) {
+                if (confirm('Are you sure you want to delete this clip?')) {
+                    // Send a message to the parent window to handle the delete
+                    window.parent.postMessage({
+                        type: 'delete-clip',
+                        segmentSequence: segmentSequence,
+                        sceneSequence: sceneSequence,
+                        clipSequence: clipSequence,
+                        clipType: clipType
+                    }, '*');
+                }
+            }
+            
+            // Function to handle clip edit form submission
+            function submitClipEdit(form) {
+                const formData = new FormData(form);
+                const clipData = {};
+                
+                // Convert form data to object
+                for (const [key, value] of formData.entries()) {
+                    clipData[key] = value;
+                }
+                
+                // Send the updated clip data to the parent window
+                window.parent.postMessage({
+                    type: 'update-clip',
+                    clipData: clipData
+                }, '*');
+                
+                // Close the modal
+                document.getElementById('edit-clip-modal').style.display = 'none';
+                
+                // Prevent form submission
+                return false;
+            }
+            
+            // Function to populate the edit form with clip data
+            function populateEditForm(clipData) {
+                const form = document.getElementById('edit-clip-form');
+                
+                // Set hidden fields
+                document.getElementById('segment-sequence').value = clipData.segmentSequence;
+                document.getElementById('scene-sequence').value = clipData.sceneSequence;
+                document.getElementById('clip-sequence').value = clipData.clipSequence;
+                document.getElementById('clip-type').value = clipData.clipType;
+                
+                // Set visible fields based on clip type
+                if (clipData.clipType === 'video') {
+                    document.getElementById('trim-start-minutes').value = clipData.trimStartMinutes || 0;
+                    document.getElementById('trim-start-seconds').value = clipData.trimStartSeconds || 0;
+                    document.getElementById('trim-end-minutes').value = clipData.trimEndMinutes || 0;
+                    document.getElementById('trim-end-seconds').value = clipData.trimEndSeconds || 0;
+                    document.getElementById('comments').value = clipData.comments || '';
+                    
+                    // Show video-specific fields
+                    document.getElementById('video-fields').style.display = 'block';
+                    document.getElementById('image-fields').style.display = 'none';
+                } else if (clipData.clipType === 'image') {
+                    document.getElementById('duration-seconds').value = clipData.durationSeconds || 0;
+                    document.getElementById('image-comments').value = clipData.comments || '';
+                    
+                    // Show image-specific fields
+                    document.getElementById('video-fields').style.display = 'none';
+                    document.getElementById('image-fields').style.display = 'block';
+                }
+                
+                // Show the modal
+                document.getElementById('edit-clip-modal').style.display = 'block';
+            }
+            
+            // Function to close the modal
+            function closeModal() {
+                document.getElementById('edit-clip-modal').style.display = 'none';
+            }
+            
+            // Listen for messages from the parent window
+            window.addEventListener('message', function(event) {
+                // Check if the message is clip data for editing
+                if (event.data && event.data.type === 'clip-data-for-edit') {
+                    populateEditForm(event.data.clipData);
+                }
+            });
+            
+            // Close modal when clicking outside of it
+            window.onclick = function(event) {
+                const modal = document.getElementById('edit-clip-modal');
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            };
         </script>
     </head>
     <body>
@@ -103,9 +327,9 @@ function generateHtmlFromVideoAssembly(data) {
         const scenes = segment.scenes || [];
         scenes.forEach(scene => {
             const sceneTitle = scene.title;
+            const sceneSequence = scene.sequence || scene.order || 0;
+            
             if (sceneTitle) {
-                const sceneSequence = scene.sequence || scene.order || 0;
-                
                 htmlContent += `
                 <div class="scene-header">
                     <button class="scene-render-button render-button-common" onclick="renderScene(${segmentSequence}, ${sceneSequence})" title="Export/Render this scene">${ICONS.RENDER} Render</button>
@@ -121,6 +345,7 @@ function generateHtmlFromVideoAssembly(data) {
                     <th>Trim Start (min:sec)</th>
                     <th>Trim End (min:sec)</th>
                     <th>Duration (min:sec)</th>
+                    <th>Actions</th>
                 </tr>
             `;
 
@@ -191,6 +416,14 @@ function generateHtmlFromVideoAssembly(data) {
                         <td>${clipStart}</td>
                         <td>${clipEnd}</td>
                         <td>${duration}</td>
+                        <td>
+                            <button class="edit-clip-button" 
+                                onclick="editClip(${segmentSequence}, ${sceneSequence}, ${sequence}, 'video')"
+                                title="Edit this clip">✏️ Edit</button>
+                            <button class="delete-clip-button" 
+                                onclick="deleteClip(${segmentSequence}, ${sceneSequence}, ${sequence}, 'video')"
+                                title="Delete this clip">🗑️ Delete</button>
+                        </td>
                     </tr>
                     `;
                 });
@@ -200,8 +433,8 @@ function generateHtmlFromVideoAssembly(data) {
                     const sequence = image.sequence !== undefined ? image.sequence : "N/A";
                     const clipPath = image.path || "Unknown Path";
 
-                    const clipStart = "Start of clip";
-                    const clipEnd = "End of clip";
+                    const clipStart = "N/A";
+                    const clipEnd = "N/A";
                     let duration = "";
                     
                     // Calculate duration for images
@@ -224,9 +457,17 @@ function generateHtmlFromVideoAssembly(data) {
                             <div class="clip-path">${filePath}</div>
                             <div class="clip-name">${fileName}</div>
                         </td>
-                        <td>N/A</td>
-                        <td>N/A</td>
+                        <td>${clipStart}</td>
+                        <td>${clipEnd}</td>
                         <td>${duration}</td>
+                        <td>
+                            <button class="edit-clip-button" 
+                                onclick="editClip(${segmentSequence}, ${sceneSequence}, ${sequence}, 'image')"
+                                title="Edit this clip">✏️ Edit</button>
+                            <button class="delete-clip-button" 
+                                onclick="deleteClip(${segmentSequence}, ${sceneSequence}, ${sequence}, 'image')"
+                                title="Delete this clip">🗑️ Delete</button>
+                        </td>
                     </tr>
                     `;
                 });
@@ -234,6 +475,76 @@ function generateHtmlFromVideoAssembly(data) {
             htmlContent += "</table>\n";
         });
     });
+
+    // Add the edit clip modal
+    htmlContent += `
+    <div id="edit-clip-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Clip</h3>
+                <span class="close-modal" onclick="closeModal()">&times;</span>
+            </div>
+            <form id="edit-clip-form" onsubmit="return submitClipEdit(this)">
+                <!-- Hidden fields for clip identification -->
+                <input type="hidden" id="segment-sequence" name="segmentSequence">
+                <input type="hidden" id="scene-sequence" name="sceneSequence">
+                <input type="hidden" id="clip-sequence" name="clipSequence">
+                <input type="hidden" id="clip-type" name="clipType">
+                
+                <!-- Video-specific fields -->
+                <div id="video-fields">
+                    <div class="form-group">
+                        <label>Trim Start:</label>
+                        <div style="display: flex; gap: 10px;">
+                            <div style="flex: 1;">
+                                <label for="trim-start-minutes">Minutes:</label>
+                                <input type="number" id="trim-start-minutes" name="trimStartMinutes" min="0" step="1">
+                            </div>
+                            <div style="flex: 1;">
+                                <label for="trim-start-seconds">Seconds:</label>
+                                <input type="number" id="trim-start-seconds" name="trimStartSeconds" min="0" step="0.01">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Trim End:</label>
+                        <div style="display: flex; gap: 10px;">
+                            <div style="flex: 1;">
+                                <label for="trim-end-minutes">Minutes:</label>
+                                <input type="number" id="trim-end-minutes" name="trimEndMinutes" min="0" step="1">
+                            </div>
+                            <div style="flex: 1;">
+                                <label for="trim-end-seconds">Seconds:</label>
+                                <input type="number" id="trim-end-seconds" name="trimEndSeconds" min="0" step="0.01">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="comments">Comments:</label>
+                        <input type="text" id="comments" name="comments">
+                    </div>
+                </div>
+                
+                <!-- Image-specific fields -->
+                <div id="image-fields" style="display: none;">
+                    <div class="form-group">
+                        <label for="duration-seconds">Duration (seconds):</label>
+                        <input type="number" id="duration-seconds" name="durationSeconds" min="0" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="image-comments">Comments:</label>
+                        <input type="text" id="image-comments" name="comments">
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    `;
 
     htmlContent += `
     </body>

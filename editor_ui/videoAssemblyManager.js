@@ -368,6 +368,222 @@ function clearVideoAssemblyData() {
   terminal.innerHTML += `<p>Video assembly data cleared</p>`;
 }
 
+/**
+ * Function to handle getting clip data for editing
+ * @param {Object} params - Parameters containing segment, scene, and clip sequence numbers
+ */
+function handleGetClipData(params) {
+  const { segmentSequence, sceneSequence, clipSequence, clipType } = params;
+  
+  if (!currentVideoAssemblyData || !currentVideoAssemblyData.cut || !currentVideoAssemblyData.cut.segments) {
+    console.error('No video assembly data available');
+    return null;
+  }
+  
+  // Find the segment
+  const segment = currentVideoAssemblyData.cut.segments.find(s =>
+    (s.sequence === segmentSequence || s.order === segmentSequence));
+  
+  if (!segment || !segment.scenes) {
+    console.error(`Segment with sequence ${segmentSequence} not found`);
+    return null;
+  }
+  
+  // Find the scene
+  const scene = segment.scenes.find(s =>
+    (s.sequence === sceneSequence || s.order === sceneSequence));
+  
+  if (!scene || !scene.timeline_clips) {
+    console.error(`Scene with sequence ${sceneSequence} not found in segment ${segmentSequence}`);
+    return null;
+  }
+  
+  // Find the clip
+  const clip = scene.timeline_clips.find(c => c.sequence === clipSequence);
+  
+  if (!clip) {
+    console.error(`Clip with sequence ${clipSequence} not found in scene ${sceneSequence}, segment ${segmentSequence}`);
+    return null;
+  }
+  
+  // Prepare clip data for editing
+  const clipData = {
+    segmentSequence,
+    sceneSequence,
+    clipSequence,
+    clipType
+  };
+  
+  if (clipType === 'video') {
+    clipData.trimStartMinutes = clip.trim_start_minutes || 0;
+    clipData.trimStartSeconds = clip.trim_start_seconds || 0;
+    clipData.trimEndMinutes = clip.trim_end_minutes || 0;
+    clipData.trimEndSeconds = clip.trim_end_seconds || 0;
+    clipData.comments = clip.comments || clip.comment || '';
+  } else if (clipType === 'image') {
+    clipData.durationSeconds = clip.duration_seconds || 0;
+    clipData.comments = clip.comments || clip.comment || '';
+  }
+  
+  return clipData;
+}
+
+/**
+ * Function to handle updating a clip with new data
+ * @param {Object} clipData - The updated clip data
+ */
+function handleUpdateClip(clipData) {
+  const { segmentSequence, sceneSequence, clipSequence, clipType } = clipData;
+  
+  if (!currentVideoAssemblyData || !currentVideoAssemblyData.cut || !currentVideoAssemblyData.cut.segments) {
+    console.error('No video assembly data available');
+    return false;
+  }
+  
+  // Find the segment
+  const segment = currentVideoAssemblyData.cut.segments.find(s =>
+    (s.sequence === parseInt(segmentSequence) || s.order === parseInt(segmentSequence)));
+  
+  if (!segment || !segment.scenes) {
+    console.error(`Segment with sequence ${segmentSequence} not found`);
+    return false;
+  }
+  
+  // Find the scene
+  const scene = segment.scenes.find(s =>
+    (s.sequence === parseInt(sceneSequence) || s.order === parseInt(sceneSequence)));
+  
+  if (!scene || !scene.timeline_clips) {
+    console.error(`Scene with sequence ${sceneSequence} not found in segment ${segmentSequence}`);
+    return false;
+  }
+  
+  // Find the clip
+  const clipIndex = scene.timeline_clips.findIndex(c => c.sequence === parseInt(clipSequence));
+  
+  if (clipIndex === -1) {
+    console.error(`Clip with sequence ${clipSequence} not found in scene ${sceneSequence}, segment ${segmentSequence}`);
+    return false;
+  }
+  
+  // Update the clip with the new data
+  if (clipType === 'video') {
+    // Handle trim values - set to null if blank
+    scene.timeline_clips[clipIndex].trim_start_minutes = clipData.trimStartMinutes === '' ? null :
+                                                        (parseInt(clipData.trimStartMinutes) || 0);
+    scene.timeline_clips[clipIndex].trim_start_seconds = clipData.trimStartSeconds === '' ? null :
+                                                        (parseFloat(clipData.trimStartSeconds) || 0);
+    scene.timeline_clips[clipIndex].trim_end_minutes = clipData.trimEndMinutes === '' ? null :
+                                                      (parseInt(clipData.trimEndMinutes) || 0);
+    scene.timeline_clips[clipIndex].trim_end_seconds = clipData.trimEndSeconds === '' ? null :
+                                                      (parseFloat(clipData.trimEndSeconds) || 0);
+    
+    // Update comments field (could be either comments or comment in the original data)
+    if ('comment' in scene.timeline_clips[clipIndex]) {
+      scene.timeline_clips[clipIndex].comment = clipData.comments;
+    } else {
+      scene.timeline_clips[clipIndex].comments = clipData.comments;
+    }
+  } else if (clipType === 'image') {
+    // Handle duration - set to null if blank
+    scene.timeline_clips[clipIndex].duration_seconds = clipData.durationSeconds === '' ? null :
+                                                      (parseFloat(clipData.durationSeconds) || 0);
+    
+    // Update comments field (could be either comments or comment in the original data)
+    if ('comment' in scene.timeline_clips[clipIndex]) {
+      scene.timeline_clips[clipIndex].comment = clipData.comments;
+    } else {
+      scene.timeline_clips[clipIndex].comments = clipData.comments;
+    }
+  }
+  
+  // Save the updated data to the file
+  if (currentVideoAssemblyPath) {
+    const success = saveVideoAssemblyToFile(currentVideoAssemblyPath, currentVideoAssemblyData);
+    
+    if (success) {
+      // Update the terminal with a message
+      const terminal = document.getElementById('terminal');
+      terminal.innerHTML += `<p>Clip updated successfully</p>`;
+      
+      // Update the editor content to reflect the changes
+      uiManager.updateEditorContent(currentVideoAssemblyData);
+      
+      return true;
+    } else {
+      console.error('Failed to save updated clip data');
+      return false;
+    }
+  } else {
+    console.error('No file path available for saving');
+    return false;
+  }
+}
+
+/**
+ * Function to handle deleting a clip
+ * @param {Object} params - Parameters containing segment, scene, and clip sequence numbers
+ */
+function handleDeleteClip(params) {
+  const { segmentSequence, sceneSequence, clipSequence, clipType } = params;
+  
+  if (!currentVideoAssemblyData || !currentVideoAssemblyData.cut || !currentVideoAssemblyData.cut.segments) {
+    console.error('No video assembly data available');
+    return false;
+  }
+  
+  // Find the segment
+  const segment = currentVideoAssemblyData.cut.segments.find(s =>
+    (s.sequence === segmentSequence || s.order === segmentSequence));
+  
+  if (!segment || !segment.scenes) {
+    console.error(`Segment with sequence ${segmentSequence} not found`);
+    return false;
+  }
+  
+  // Find the scene
+  const scene = segment.scenes.find(s =>
+    (s.sequence === sceneSequence || s.order === sceneSequence));
+  
+  if (!scene || !scene.timeline_clips) {
+    console.error(`Scene with sequence ${sceneSequence} not found in segment ${segmentSequence}`);
+    return false;
+  }
+  
+  // Find the clip
+  const clipIndex = scene.timeline_clips.findIndex(c => c.sequence === clipSequence);
+  
+  if (clipIndex === -1) {
+    console.error(`Clip with sequence ${clipSequence} not found in scene ${sceneSequence}, segment ${segmentSequence}`);
+    return false;
+  }
+  
+  // Remove the clip from the array
+  scene.timeline_clips.splice(clipIndex, 1);
+  
+  // Save the updated data to the file
+  if (currentVideoAssemblyPath) {
+    const success = saveVideoAssemblyToFile(currentVideoAssemblyPath, currentVideoAssemblyData);
+    
+    if (success) {
+      // Update the terminal with a message
+      const terminal = document.getElementById('terminal');
+      terminal.innerHTML += `<p>Clip deleted successfully</p>`;
+      
+      // Update the editor content to reflect the changes
+      uiManager.updateEditorContent(currentVideoAssemblyData);
+      
+      return true;
+    } else {
+      console.error('Failed to save after deleting clip');
+      return false;
+    }
+  } else {
+    console.error('No file path available for saving');
+    return false;
+  }
+}
+
 // Export the functions and variables
 module.exports = {
   getCurrentVideoAssemblyData: () => currentVideoAssemblyData,
@@ -388,5 +604,8 @@ module.exports = {
   handleSaveHighQualitySettings,
   handleSaveQuickRenderSettings,
   handleVideoAssemblyData,
-  clearVideoAssemblyData
+  clearVideoAssemblyData,
+  handleGetClipData,
+  handleUpdateClip,
+  handleDeleteClip
 };
