@@ -12,6 +12,11 @@ let currentVideoAssemblyData = null;
  * @param {Object} currentFile - The current file object
  */
 function addClipToTimeline(currentFile) {
+    // Get the current video assembly data from the window object if not available locally
+    if (!currentVideoAssemblyData && window.currentVideoAssemblyData) {
+        currentVideoAssemblyData = window.currentVideoAssemblyData;
+    }
+    
     if (!currentFile || !currentVideoAssemblyData) {
         console.error('No file or video assembly data available');
         return;
@@ -147,6 +152,14 @@ function resequenceTimelineClips(scene) {
  * @param {Object} videoAssemblyData - The video assembly data to save
  */
 function saveVideoAssemblyData(videoAssemblyData) {
+    // Update the global video assembly data
+    if (window.currentVideoAssemblyData) {
+        window.currentVideoAssemblyData = videoAssemblyData;
+    }
+    
+    // Update the local reference
+    currentVideoAssemblyData = videoAssemblyData;
+    
     // Check if we're running in Electron
     if (typeof window !== 'undefined' && window.process && window.process.type === 'renderer') {
         try {
@@ -199,6 +212,11 @@ function switchToTimelineTab() {
  */
 function setCurrentVideoAssemblyData(videoAssemblyData) {
     currentVideoAssemblyData = videoAssemblyData;
+    
+    // Also update the global reference if it exists
+    if (typeof window !== 'undefined') {
+        window.currentVideoAssemblyData = videoAssemblyData;
+    }
 }
 
 /**

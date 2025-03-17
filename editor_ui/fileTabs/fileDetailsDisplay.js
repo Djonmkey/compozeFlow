@@ -329,6 +329,11 @@ function setupTimelineEventListeners(currentFile) {
     sceneSelect.addEventListener('change', () => {
         // Enable the Add to Timeline button if a scene is selected
         addToTimelineBtn.disabled = !sceneSelect.value;
+        
+        // Log the selection for debugging
+        if (sceneSelect.value) {
+            console.log(`Scene selected: ${sceneSelect.value}`);
+        }
     });
     
     // Add event listener for clip order selection
