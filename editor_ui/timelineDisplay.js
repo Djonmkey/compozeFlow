@@ -94,6 +94,25 @@ function generateHtmlFromVideoAssembly(data) {
                 background-color: #d32f2f;
             }
             
+            /* Sequence arrow styles */
+            .sequence-arrows {
+                display: inline-flex;
+                align-items: center;
+                margin-left: 8px;
+            }
+            
+            .sequence-arrow {
+                cursor: pointer;
+                font-size: 10px;
+                color: #555;
+                margin: 0 2px;
+                transition: color 0.2s ease;
+            }
+            
+            .sequence-arrow:hover {
+                color: #000;
+            }
+            
             /* Modal styles */
             .modal {
                 display: none;
@@ -316,6 +335,32 @@ function generateHtmlFromVideoAssembly(data) {
                 document.getElementById('edit-clip-modal').style.display = 'none';
             }
             
+            // Function to move a clip up in sequence
+            function moveClipUp(segmentSequence, sceneSequence, clipSequence, clipType) {
+                // Send a message to the parent window to handle the move
+                window.parent.postMessage({
+                    type: 'move-clip',
+                    segmentSequence: segmentSequence,
+                    sceneSequence: sceneSequence,
+                    clipSequence: clipSequence,
+                    clipType: clipType,
+                    direction: 'up'
+                }, '*');
+            }
+            
+            // Function to move a clip down in sequence
+            function moveClipDown(segmentSequence, sceneSequence, clipSequence, clipType) {
+                // Send a message to the parent window to handle the move
+                window.parent.postMessage({
+                    type: 'move-clip',
+                    segmentSequence: segmentSequence,
+                    sceneSequence: sceneSequence,
+                    clipSequence: clipSequence,
+                    clipType: clipType,
+                    direction: 'down'
+                }, '*');
+            }
+            
             // Listen for messages from the parent window
             window.addEventListener('message', function(event) {
                 // Check if the message is clip data for editing
@@ -390,6 +435,14 @@ function generateHtmlFromVideoAssembly(data) {
                     // Ensure sequence is properly displayed as the Order value
                     const sequence = clip.sequence !== undefined ? clip.sequence : "N/A";
                     const clipPath = clip.path || "Unknown Path";
+                    
+                    // Determine if up/down arrows should be shown
+                    const isFirstClip = timelineClips.findIndex(c => c.sequence === Math.min(...timelineClips.map(c => c.sequence))) === timelineClips.findIndex(c => c.sequence === sequence);
+                    const isLastClip = timelineClips.findIndex(c => c.sequence === Math.max(...timelineClips.map(c => c.sequence))) === timelineClips.findIndex(c => c.sequence === sequence);
+                    
+                    // Create up/down arrow HTML
+                    const upArrowHtml = !isFirstClip ? `<span class="sequence-arrow up-arrow" onclick="moveClipUp(${segmentSequence}, ${sceneSequence}, ${sequence}, 'video')" title="Move clip up">▲</span>` : '';
+                    const downArrowHtml = !isLastClip ? `<span class="sequence-arrow down-arrow" onclick="moveClipDown(${segmentSequence}, ${sceneSequence}, ${sequence}, 'video')" title="Move clip down">▼</span>` : '';
 
                     let clipStart = "";
                     let clipEnd = "";
@@ -441,7 +494,13 @@ function generateHtmlFromVideoAssembly(data) {
 
                     htmlContent += `
                     <tr>
-                        <td>${sequence}</td>
+                        <td>
+                            <span>${sequence}</span>
+                            <span class="sequence-arrows">
+                                ${upArrowHtml}
+                                ${downArrowHtml}
+                            </span>
+                        </td>
                         <td>
                             <div class="clip-path">${filePath}</div>
                             <div class="clip-name">${fileName}</div>
@@ -477,6 +536,14 @@ function generateHtmlFromVideoAssembly(data) {
                     // Ensure sequence is properly displayed as the Order value
                     const sequence = image.sequence !== undefined ? image.sequence : "N/A";
                     const clipPath = image.path || "Unknown Path";
+                    
+                    // Determine if up/down arrows should be shown
+                    const isFirstClip = timelineClips.findIndex(c => c.sequence === Math.min(...timelineClips.map(c => c.sequence))) === timelineClips.findIndex(c => c.sequence === sequence);
+                    const isLastClip = timelineClips.findIndex(c => c.sequence === Math.max(...timelineClips.map(c => c.sequence))) === timelineClips.findIndex(c => c.sequence === sequence);
+                    
+                    // Create up/down arrow HTML
+                    const upArrowHtml = !isFirstClip ? `<span class="sequence-arrow up-arrow" onclick="moveClipUp(${segmentSequence}, ${sceneSequence}, ${sequence}, 'image')" title="Move clip up">▲</span>` : '';
+                    const downArrowHtml = !isLastClip ? `<span class="sequence-arrow down-arrow" onclick="moveClipDown(${segmentSequence}, ${sceneSequence}, ${sequence}, 'image')" title="Move clip down">▼</span>` : '';
 
                     const clipStart = "N/A";
                     const clipEnd = "N/A";
@@ -497,7 +564,13 @@ function generateHtmlFromVideoAssembly(data) {
 
                     htmlContent += `
                     <tr>
-                        <td>${sequence}</td>
+                        <td>
+                            <span>${sequence}</span>
+                            <span class="sequence-arrows">
+                                ${upArrowHtml}
+                                ${downArrowHtml}
+                            </span>
+                        </td>
                         <td>
                             <div class="clip-path">${filePath}</div>
                             <div class="clip-name">${fileName}</div>

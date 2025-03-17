@@ -387,11 +387,121 @@ function switchToTimelineTab() {
     });
 }
 
+/**
+ * Moves a clip up or down in the timeline
+ * @param {number} segmentSequence - The sequence number of the segment
+ * @param {number} sceneSequence - The sequence number of the scene
+ * @param {number} clipSequence - The sequence number of the clip to move
+ * @param {string} direction - The direction to move the clip ('up' or 'down')
+ * @param {Object} videoAssemblyData - The video assembly data
+ * @returns {boolean} - Whether the operation was successful
+ */
+function moveClip(segmentSequence, sceneSequence, clipSequence, direction, videoAssemblyData) {
+    if (!videoAssemblyData || !videoAssemblyData.cut || !videoAssemblyData.cut.segments) {
+        console.error('No video assembly data available');
+        return false;
+    }
+    
+    // Find the segment
+    const segment = videoAssemblyData.cut.segments.find(s =>
+        (s.sequence === segmentSequence || s.order === segmentSequence));
+    
+    if (!segment || !segment.scenes) {
+        console.error(`Segment with sequence ${segmentSequence} not found`);
+        return false;
+    }
+    
+    // Find the scene
+    const scene = segment.scenes.find(s =>
+        (s.sequence === sceneSequence || s.order === sceneSequence));
+    
+    if (!scene || !scene.timeline_clips) {
+        console.error(`Scene with sequence ${sceneSequence} not found in segment ${segmentSequence}`);
+        return false;
+    }
+    
+    // Find the clip
+    const clipIndex = scene.timeline_clips.findIndex(c => c.sequence === clipSequence);
+    
+    if (clipIndex === -1) {
+        console.error(`Clip with sequence ${clipSequence} not found in scene ${sceneSequence}, segment ${segmentSequence}`);
+        return false;
+    }
+    
+    // Get the current clip
+    const currentClip = scene.timeline_clips[clipIndex];
+    
+    // Determine the target index based on direction
+    let targetIndex;
+    if (direction === 'up') {
+        // Find the clip with the next lower sequence
+        const sequences = scene.timeline_clips.map(c => c.sequence).sort((a, b) => a - b);
+        const currentIndex = sequences.indexOf(clipSequence);
+        
+        if (currentIndex <= 0) {
+            console.error('Clip is already at the top');
+            return false;
+        }
+        
+        const targetSequence = sequences[currentIndex - 1];
+        targetIndex = scene.timeline_clips.findIndex(c => c.sequence === targetSequence);
+    } else if (direction === 'down') {
+        // Find the clip with the next higher sequence
+        const sequences = scene.timeline_clips.map(c => c.sequence).sort((a, b) => a - b);
+        const currentIndex = sequences.indexOf(clipSequence);
+        
+        if (currentIndex >= sequences.length - 1) {
+            console.error('Clip is already at the bottom');
+            return false;
+        }
+        
+        const targetSequence = sequences[currentIndex + 1];
+        targetIndex = scene.timeline_clips.findIndex(c => c.sequence === targetSequence);
+    } else {
+        console.error(`Invalid direction: ${direction}`);
+        return false;
+    }
+    
+    if (targetIndex === -1) {
+        console.error('Target clip not found');
+        return false;
+    }
+    
+    // Swap the sequences
+    const targetClip = scene.timeline_clips[targetIndex];
+    const tempSequence = currentClip.sequence;
+    currentClip.sequence = targetClip.sequence;
+    targetClip.sequence = tempSequence;
+    
+    // Resequence all timeline clips starting at 1
+    resequenceTimelineClips(scene);
+    
+    // Save the updated data
+    saveVideoAssemblyData(videoAssemblyData);
+    
+    // Update the terminal with a message
+    const terminal = document.getElementById('terminal');
+    terminal.innerHTML += `<p>Clip moved ${direction}</p>`;
+    
+    // Dispatch an event to refresh the explorer display
+    console.log('Dispatching explorer refresh event after moving clip');
+    const refreshEvent = new CustomEvent('refreshExplorer', {
+        detail: {
+            action: 'update',
+            filePath: currentClip.path
+        }
+    });
+    document.dispatchEvent(refreshEvent);
+    
+    return true;
+}
+
 // Export functions
 module.exports = {
     addClipToTimeline,
     updateClipInTimeline,
     deleteClipFromTimeline,
     getClipData,
-    switchToTimelineTab
+    switchToTimelineTab,
+    moveClip
 };

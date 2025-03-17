@@ -143,6 +143,23 @@ window.addEventListener('message', (event) => {
       timelineClipOperations.switchToTimelineTab();
     }
   }
+  // Check if the message is to move a clip up or down in sequence
+  else if (event.data && event.data.type === 'move-clip') {
+    const { segmentSequence, sceneSequence, clipSequence, clipType, direction } = event.data;
+    const timelineClipOperations = require('./timelineClipOperations');
+    const success = timelineClipOperations.moveClip(
+      segmentSequence,
+      sceneSequence,
+      clipSequence,
+      direction,
+      videoAssemblyManager.getCurrentVideoAssemblyData()
+    );
+    
+    if (success) {
+      // Update the editor content to reflect the changes
+      uiManager.updateEditorContent(videoAssemblyManager.getCurrentVideoAssemblyData());
+    }
+  }
 });
 
 // Expose the saveVideoAssemblyToFile function to the window object
