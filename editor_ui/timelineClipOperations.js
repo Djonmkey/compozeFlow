@@ -123,6 +123,16 @@ function addClipToTimeline(currentFile, formData, videoAssemblyData) {
     const terminal = document.getElementById('terminal');
     terminal.innerHTML += `<p>Added ${currentFile.name} to timeline in segment ${segmentSequence}, scene ${sceneSequence}</p>`;
     
+    // Dispatch an event to refresh the explorer display
+    console.log('Dispatching explorer refresh event after adding clip to timeline');
+    const refreshEvent = new CustomEvent('refreshExplorer', {
+        detail: {
+            action: 'add',
+            filePath: currentFile.path
+        }
+    });
+    document.dispatchEvent(refreshEvent);
+    
     return true;
 }
 
@@ -207,12 +217,25 @@ function updateClipInTimeline(clipData, videoAssemblyData) {
         }
     }
     
+    // Resequence all timeline clips starting at 1
+    resequenceTimelineClips(scene);
+    
     // Save the updated data
     saveVideoAssemblyData(videoAssemblyData);
     
     // Update the terminal with a message
     const terminal = document.getElementById('terminal');
     terminal.innerHTML += `<p>Clip updated successfully</p>`;
+    
+    // Dispatch an event to refresh the explorer display
+    console.log('Dispatching explorer refresh event after updating clip');
+    const refreshEvent = new CustomEvent('refreshExplorer', {
+        detail: {
+            action: 'update',
+            filePath: scene.timeline_clips[clipIndex].path
+        }
+    });
+    document.dispatchEvent(refreshEvent);
     
     return true;
 }
@@ -257,8 +280,14 @@ function deleteClipFromTimeline(params, videoAssemblyData) {
         return false;
     }
     
+    // Store the file path before removing the clip
+    const filePath = scene.timeline_clips[clipIndex].path;
+    
     // Remove the clip from the array
     scene.timeline_clips.splice(clipIndex, 1);
+    
+    // Resequence all timeline clips starting at 1
+    resequenceTimelineClips(scene);
     
     // Save the updated data
     saveVideoAssemblyData(videoAssemblyData);
@@ -266,6 +295,16 @@ function deleteClipFromTimeline(params, videoAssemblyData) {
     // Update the terminal with a message
     const terminal = document.getElementById('terminal');
     terminal.innerHTML += `<p>Clip deleted successfully</p>`;
+    
+    // Dispatch an event to refresh the explorer display
+    console.log('Dispatching explorer refresh event after deleting clip');
+    const refreshEvent = new CustomEvent('refreshExplorer', {
+        detail: {
+            action: 'delete',
+            filePath: filePath
+        }
+    });
+    document.dispatchEvent(refreshEvent);
     
     return true;
 }
