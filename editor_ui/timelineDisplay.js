@@ -450,15 +450,27 @@ function generateHtmlFromVideoAssembly(data) {
                         <td>${clipEnd}</td>
                         <td>${duration}</td>
                         <td>
-                            <button class="edit-clip-button" 
+                            <button class="edit-clip-button"
                                 onclick="editClip(${segmentSequence}, ${sceneSequence}, ${sequence}, 'video')"
                                 title="Edit this clip">✏️ Edit</button>
-                            <button class="delete-clip-button" 
+                            <button class="delete-clip-button"
                                 onclick="deleteClip(${segmentSequence}, ${sceneSequence}, ${sequence}, 'video')"
                                 title="Delete this clip">🗑️ Delete</button>
                         </td>
                     </tr>
                     `;
+                    
+                    // Add a row for comments if they exist (check both comments and comment properties)
+                    const clipComment = clip.comments || clip.comment;
+                    if (clipComment && clipComment.trim() !== '') {
+                        htmlContent += `
+                        <tr>
+                            <td colspan="6" style="background-color: #f9f9f9; font-style: italic; padding-left: 20px;">
+                                <strong>Comment:</strong> ${clipComment}
+                            </td>
+                        </tr>
+                        `;
+                    }
                 });
             } else if (timelineClipType === "image") {
                 timelineClips.forEach(image => {
@@ -494,15 +506,27 @@ function generateHtmlFromVideoAssembly(data) {
                         <td>${clipEnd}</td>
                         <td>${duration}</td>
                         <td>
-                            <button class="edit-clip-button" 
+                            <button class="edit-clip-button"
                                 onclick="editClip(${segmentSequence}, ${sceneSequence}, ${sequence}, 'image')"
                                 title="Edit this clip">✏️ Edit</button>
-                            <button class="delete-clip-button" 
+                            <button class="delete-clip-button"
                                 onclick="deleteClip(${segmentSequence}, ${sceneSequence}, ${sequence}, 'image')"
                                 title="Delete this clip">🗑️ Delete</button>
                         </td>
                     </tr>
                     `;
+                    
+                    // Add a row for comments if they exist (check both comments and comment properties)
+                    const imageComment = image.comments || image.comment;
+                    if (imageComment && imageComment.trim() !== '') {
+                        htmlContent += `
+                        <tr>
+                            <td colspan="6" style="background-color: #f9f9f9; font-style: italic; padding-left: 20px;">
+                                <strong>Comment:</strong> ${imageComment}
+                            </td>
+                        </tr>
+                        `;
+                    }
                 });
             }
             htmlContent += "</table>\n";
