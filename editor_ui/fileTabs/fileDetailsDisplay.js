@@ -167,8 +167,16 @@ function updateEditorContent(currentFile, videoAssemblyData) {
                     </div>
                     
                     <div class="form-group">
-                        <label for="clip-order">Sequence (defaults to 9999 if empty):</label>
-                        <input type="number" id="clip-order" class="form-control" min="1" step="1" placeholder="9999">
+                        <label for="clip-order">Sequence:</label>
+                        <select id="clip-order" class="form-control">
+                            <option value="9999">Add to End</option>
+                            <option value="0">Add to Front</option>
+                            <option value="custom">Custom Position</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="custom-sequence-container" style="display: none;">
+                        <label for="custom-sequence">Custom Sequence Number:</label>
+                        <input type="number" id="custom-sequence" class="form-control" min="1" step="1" placeholder="Enter sequence number">
                     </div>
                     
                     <div class="form-group">
@@ -279,6 +287,9 @@ function setupTimelineEventListeners(currentFile) {
     // Add event listener for segment selection
     const segmentSelect = document.getElementById('segment-select');
     const sceneSelect = document.getElementById('scene-select');
+    const clipOrderSelect = document.getElementById('clip-order');
+    const customSequenceContainer = document.getElementById('custom-sequence-container');
+    const customSequenceInput = document.getElementById('custom-sequence');
     const addToTimelineBtn = document.getElementById('add-to-timeline-btn');
     
     segmentSelect.addEventListener('change', () => {
@@ -318,6 +329,15 @@ function setupTimelineEventListeners(currentFile) {
     sceneSelect.addEventListener('change', () => {
         // Enable the Add to Timeline button if a scene is selected
         addToTimelineBtn.disabled = !sceneSelect.value;
+    });
+    
+    // Add event listener for clip order selection
+    clipOrderSelect.addEventListener('change', () => {
+        if (clipOrderSelect.value === 'custom') {
+            customSequenceContainer.style.display = 'block';
+        } else {
+            customSequenceContainer.style.display = 'none';
+        }
     });
     
     // Add event listener for the Add to Timeline button

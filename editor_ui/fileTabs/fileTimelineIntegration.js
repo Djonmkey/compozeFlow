@@ -35,8 +35,15 @@ function addClipToTimeline(currentFile) {
         parseFloat(document.getElementById('trim-end-seconds').value) : undefined;
     
     // Get sequence and comments
-    const clipSequence = document.getElementById('clip-order').value ?
-        parseInt(document.getElementById('clip-order').value) : 9999;
+    let clipSequence;
+    const clipOrderSelect = document.getElementById('clip-order');
+    
+    if (clipOrderSelect.value === 'custom') {
+        const customSequence = document.getElementById('custom-sequence').value;
+        clipSequence = customSequence ? parseInt(customSequence) : 9999;
+    } else {
+        clipSequence = parseInt(clipOrderSelect.value); // Will be 0 for "Add to Front" or 9999 for "Add to End"
+    }
     
     const comments = document.getElementById('clip-comments').value;
     
@@ -99,6 +106,9 @@ function addClipToTimeline(currentFile) {
     // Add the clip to the timeline
     scene.timeline_clips.push(newClip);
     
+    // Resequence all timeline clips starting at 1
+    resequenceTimelineClips(scene);
+    
     // Save the updated video assembly data
     saveVideoAssemblyData(currentVideoAssemblyData);
     
@@ -108,6 +118,28 @@ function addClipToTimeline(currentFile) {
     // Update the terminal with a message
     const terminal = document.getElementById('terminal');
     terminal.innerHTML += `<p>Added ${currentFile.name} to timeline in segment ${segmentSequence}, scene ${sceneSequence}</p>`;
+}
+
+/**
+ * Resequences all timeline clips in a scene starting at 1
+ * @param {Object} scene - The scene object containing timeline_clips
+ */
+function resequenceTimelineClips(scene) {
+    if (!scene || !scene.timeline_clips || !Array.isArray(scene.timeline_clips)) {
+        return;
+    }
+    
+    // Sort the clips by their current sequence
+    scene.timeline_clips.sort((a, b) => {
+        const seqA = a.sequence !== undefined ? a.sequence : 9999;
+        const seqB = b.sequence !== undefined ? b.sequence : 9999;
+        return seqA - seqB;
+    });
+    
+    // Resequence starting at 1
+    scene.timeline_clips.forEach((clip, index) => {
+        clip.sequence = index + 1;
+    });
 }
 
 /**
@@ -183,5 +215,6 @@ module.exports = {
     saveVideoAssemblyData,
     switchToTimelineTab,
     setCurrentVideoAssemblyData,
-    getCurrentVideoAssemblyData
+    getCurrentVideoAssemblyData,
+    resequenceTimelineClips
 };
