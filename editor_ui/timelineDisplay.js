@@ -240,12 +240,14 @@ function generateHtmlFromVideoAssembly(data) {
                     clipData[key] = value;
                 }
                 
-                // Get the clip path based on the clip type
+                // Get the clip path and comments based on the clip type
                 const clipType = clipData.clipType;
                 if (clipType === 'video') {
                     clipData.clipPath = document.getElementById('clip-path').value;
+                    clipData.comments = document.getElementById('comments').value;
                 } else if (clipType === 'image') {
                     clipData.clipPath = document.getElementById('image-path').value;
+                    clipData.comments = document.getElementById('image-comments').value;
                 }
                 
                 // Send the updated clip data to the parent window
