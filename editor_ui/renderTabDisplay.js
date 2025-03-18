@@ -250,13 +250,13 @@ function addRenderTabStyles() {
             margin-bottom: 10px;
         }
         
-        .files-table {
+        table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 20px;
         }
         
-        .files-table th, .files-table td {
+        th, td {
             border: 1px solid #ddd;
             padding: 8px;
             text-align: left;

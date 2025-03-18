@@ -7,7 +7,7 @@
 const { formatDate, formatFileSize, determineFileType } = require('./fileTypeUtils');
 const { setCurrentVideoAssemblyData } = require('./fileTimelineIntegration');
 const { findFileUsages } = require('./fileUsageTracker');
-const timelineClipOperations = require('../timelineClipOperations');
+const timeline = require('../timeline');
 
 /**
  * Checks if a file is a video or audio file based on its extension

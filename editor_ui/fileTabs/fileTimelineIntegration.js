@@ -7,8 +7,8 @@
 // Store the current video assembly data
 let currentVideoAssemblyData = null;
 
-// Import the common timeline clip operations
-const timelineClipOperations = require('../timelineClipOperations');
+// Import the timeline module
+const timeline = require('../timeline');
 
 /**
  * Resequences all timeline clips in a scene starting at 1

@@ -22,7 +22,9 @@ function updateEditorContent(currentVideoAssemblyData) {
   let htmlContent = '';
   
   if (activeTab === 'Timeline') {
-    htmlContent = electronSetup.generateHtmlFromVideoAssembly(currentVideoAssemblyData);
+    // Use the refactored timeline module
+    const timelineModule = require('./timeline');
+    htmlContent = timelineModule.generateTimelineHtml(currentVideoAssemblyData);
   } else if (activeTab === 'Overlay Images') {
     htmlContent = electronSetup.generateOverlayImagesHtml(currentVideoAssemblyData);
   } else if (activeTab === 'Mixed Audio') {

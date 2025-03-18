@@ -1,3 +1,16 @@
+/* Table styles */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
 /* Root layout: full height, a row-based flex container for the entire app. */
 html, body {
   margin: 0;

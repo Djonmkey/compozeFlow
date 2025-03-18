@@ -136,18 +136,18 @@ window.addEventListener('message', (event) => {
   // Check if the message is to add a file to the timeline from the File tab
   else if (event.data && event.data.type === 'add-to-timeline-from-file-tab') {
     const { currentFile, formData } = event.data;
-    const timelineClipOperations = require('./timelineClipOperations');
-    const success = timelineClipOperations.addClipToTimeline(currentFile, formData, videoAssemblyManager.getCurrentVideoAssemblyData());
+    const timeline = require('./timeline');
+    const success = timeline.addClipToTimeline(currentFile, formData, videoAssemblyManager.getCurrentVideoAssemblyData());
     
     if (success) {
-      timelineClipOperations.switchToTimelineTab();
+      timeline.switchToTimelineTab();
     }
   }
   // Check if the message is to move a clip up or down in sequence
   else if (event.data && event.data.type === 'move-clip') {
     const { segmentSequence, sceneSequence, clipSequence, clipType, direction } = event.data;
-    const timelineClipOperations = require('./timelineClipOperations');
-    const success = timelineClipOperations.moveClip(
+    const timeline = require('./timeline');
+    const success = timeline.moveClip(
       segmentSequence,
       sceneSequence,
       clipSequence,

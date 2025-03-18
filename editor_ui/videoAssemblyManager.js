@@ -7,7 +7,7 @@
 // Import required modules
 const electronSetup = require('./electronSetup');
 const uiManager = require('./uiManager');
-const timelineClipOperations = require('./timelineClipOperations');
+const timeline = require('./timeline');
 
 // Store the current video assembly data and file path
 let currentVideoAssemblyData = null;
@@ -374,7 +374,7 @@ function clearVideoAssemblyData() {
  * @param {Object} params - Parameters containing segment, scene, and clip sequence numbers
  */
 function handleGetClipData(params) {
-  return timelineClipOperations.getClipData(params, currentVideoAssemblyData);
+  return timeline.getClipData(params, currentVideoAssemblyData);
 }
 
 /**
@@ -382,7 +382,7 @@ function handleGetClipData(params) {
  * @param {Object} clipData - The updated clip data
  */
 function handleUpdateClip(clipData) {
-  const success = timelineClipOperations.updateClipInTimeline(clipData, currentVideoAssemblyData);
+  const success = timeline.updateClipInTimeline(clipData, currentVideoAssemblyData);
   
   if (success) {
     // Get the iframe and save its scroll position before updating
@@ -417,7 +417,7 @@ function handleUpdateClip(clipData) {
  * @param {Object} params - Parameters containing segment, scene, and clip sequence numbers
  */
 function handleDeleteClip(params) {
-  const success = timelineClipOperations.deleteClipFromTimeline(params, currentVideoAssemblyData);
+  const success = timeline.deleteClipFromTimeline(params, currentVideoAssemblyData);
   
   if (success) {
     // Get the iframe and save its scroll position before updating

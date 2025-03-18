@@ -35,7 +35,7 @@ if (isElectron) {
     fs = require('fs');
     child_process = require('child_process');
     path = require('path');
-    generateHtmlFromVideoAssembly = require('./timelineDisplay');
+    generateHtmlFromVideoAssembly = require('./timeline').generateTimelineHtml;
     generateOverlayImagesHtml = require('./overlayImagesDisplay');
     generateMixedAudioHtml = require('./mixedAudioDisplay');
     generateGeneralHtml = require('./generalDisplay');
