@@ -39,18 +39,14 @@ def load_video_clip(video_clip_meta, aspect_ratio, render_settings, video_clips_
 def process_video_time_codes(video_clip_meta, video_clips_to_close, watermark, video_clip):
     if (video_clip_meta.get("trim_start_seconds") is not None and video_clip_meta.get("trim_end_seconds") is not None):
         trim_start_minutes = video_clip_meta.get("trim_start_minutes")
-        if trim_start_minutes is not None:
-            trim_start_minutes = int(trim_start_minutes, 0)
-        else:
-            trim_start_minutes = 0  # or any appropriate default value
+        if trim_start_minutes is None:
+            trim_start_minutes = 0  # convert null to 0
 
         trim_start_seconds = float(video_clip_meta["trim_start_seconds"])
 
         trim_end_minutes = video_clip_meta.get("trim_end_minutes")
-        if trim_end_minutes is not None:
-            trim_end_minutes = int(trim_end_minutes)
-        else:
-            trim_end_minutes = 0  # or another default value as appropriate
+        if trim_end_minutes is None:
+            trim_end_minutes = 0 # convert null to 0
 
         trim_end_seconds = float(video_clip_meta["trim_end_seconds"])
 
@@ -73,10 +69,8 @@ def process_video_time_codes(video_clip_meta, video_clips_to_close, watermark, v
 
     elif (video_clip_meta.get("trim_start_seconds") is not None and video_clip_meta.get("trim_end_seconds") is None):
         trim_start_minutes = video_clip_meta.get("trim_start_minutes")
-        if trim_start_minutes is not None:
-            trim_start_minutes = int(trim_start_minutes, 0)
-        else:
-            trim_start_minutes = 0  # or any appropriate default value
+        if trim_start_minutes is None:
+            trim_start_minutes = 0  # convert null to 0
 
         trim_start_seconds = float(video_clip_meta["trim_start_seconds"])
 
@@ -92,10 +86,8 @@ def process_video_time_codes(video_clip_meta, video_clips_to_close, watermark, v
 
     elif (video_clip_meta.get("trim_start_seconds") is None and video_clip_meta.get("trim_end_seconds") is not None):
         trim_end_minutes = video_clip_meta.get("trim_end_minutes")
-        if trim_end_minutes is not None:
-            trim_end_minutes = int(trim_end_minutes)
-        else:
-            trim_end_minutes = 0  # or another default value as appropriate
+        if trim_end_minutes is None:
+            trim_end_minutes = 0  # convert null to 0
         
         trim_end_seconds = float(video_clip_meta["trim_end_seconds"])
 

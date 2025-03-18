@@ -106,9 +106,6 @@ def write_video(
     cpu_count = multiprocessing.cpu_count() # Get max available CPU cores
     num_threads = render_settings.get("threads", cpu_count)
 
-    # Start time
-    start_time = time.time()
-
     if clip.duration is None:
         raise ValueError(
             "Clip duration is None. Check source video or composition process."
@@ -128,6 +125,20 @@ def write_video(
         clip.audio.samplerate = 44100  # Set a default sample rate
 
     ensure_directory_exists(output_file_pathname)
+
+        # Start time
+    start_time = time.time()
+
+    """
+    # Handle Resize
+    width = render_settings.get("width")    # Can be None
+    height = render_settings.get("height")   # Can be None
+
+    if width:
+        clip = clip.set_size(width=width, maintain_aspect_ratio=True)
+    elif height:
+        clip = clip.set_size(height=height, maintain_aspect_ratio=True)
+    """
 
     clip.write_videofile(
             output_file_pathname,

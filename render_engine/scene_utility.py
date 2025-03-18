@@ -6,7 +6,6 @@ import datetime
 from typing import List, Dict
 from video_utility import write_video, crop_video_to_aspect_ratio, video_file_exists
 from moviepy import VideoFileClip, concatenate_videoclips, AudioFileClip, concatenate_audioclips, CompositeVideoClip
-#from moviepy.video.fx.speedx import speedx
 from clip_utility import load_video_clip, process_video_time_codes
 from audio_helper import append_audio, process_audio_time_codes
 from image_helper import create_video_from_image
