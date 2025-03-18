@@ -25,12 +25,6 @@ def clear_this_run_only(video_assembly, video_assembly_file_pathname):
     if "this_run_only" in video_assembly:
         del video_assembly["this_run_only"]
 
-        video_assembly_updated_json_text = json.dumps(video_assembly)
-
-        # save the updated JSON
-        with open(video_assembly_file_pathname, "w") as file:
-            file.write(video_assembly_updated_json_text)
-
 def skip_segment_render(video_assembly, segment):
     skip_segment = False
 

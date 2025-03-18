@@ -30,7 +30,7 @@ def sort_timeline_clips_by_sequence(scene: Dict) -> List[Dict]:
     """
     return sorted(scene.get("timeline_clips", []), key=lambda clip: clip["sequence"])
     
-def crop_and_process_sequential_audio_clips(scene, video_clips, audio_clips, aspect_ratio, clips_to_close, output_path, quick_and_dirty):
+def crop_and_process_sequential_audio_clips(scene, video_clips, audio_clips, aspect_ratio, clips_to_close, output_path, render_output, quick_and_dirty):
     if len(video_clips) > 0:
         cropped_video_clip = None 
 
@@ -63,7 +63,12 @@ def crop_and_process_sequential_audio_clips(scene, video_clips, audio_clips, asp
                 cropped_video_clip = append_audio(sequential_audio_clip, cropped_video_clip, sequential_audio_timeline_clips_volume, clips_to_close)
                 clips_to_close.append(cropped_video_clip)
 
-        write_video(cropped_video_clip, output_path, quick_and_dirty)
+        if quick_and_dirty:
+            render_settings = render_output["quick_render"]["render_settings"]
+        else:
+            render_settings = render_output["high_quality_render"]["render_settings"]
+
+        write_video(cropped_video_clip, output_path, render_settings)
 
         for video_clip_item in clips_to_close:
             try:
@@ -75,7 +80,7 @@ def crop_and_process_sequential_audio_clips(scene, video_clips, audio_clips, asp
     else:
         return None
     
-def load_image_clips(segment, scene, image_list, audio_clips, aspect_ratio, quick_and_dirty, source_file_watermark = False):
+def load_image_clips(segment, scene, image_list, audio_clips, aspect_ratio, render_output, quick_and_dirty, source_file_watermark = False):
     # Load all video clips
     video_clips = []
     clips_to_close = []
@@ -96,15 +101,38 @@ def load_image_clips(segment, scene, image_list, audio_clips, aspect_ratio, quic
             video_clips.append(video_clip)
 
         # Concatenate video clips
-        output_path = crop_and_process_sequential_audio_clips(scene, video_clips, audio_clips, aspect_ratio, clips_to_close, output_path, quick_and_dirty)
+        output_path = crop_and_process_sequential_audio_clips(scene, video_clips, audio_clips, aspect_ratio, clips_to_close, output_path, render_output, quick_and_dirty)
         return output_path
     else:
         return output_path
 
-def load_video_clips(segment, scene, video_clip_list, audio_clips, aspect_ratio, quick_and_dirty, source_file_watermark = False):
-    # Load all video clips
-    video_clips = []
-    clips_to_close = []
+def build_video_segment_output_file_pathname(
+    cut,
+    segment,
+    scene,
+    render_output,
+    quick_and_dirty: bool,
+    aspect_ratio_text: str
+) -> str:
+    """
+    Constructs the full file path for the rendered video output.
+
+    Args:
+        cut (Dict[str, Any]): A function or callable object that provides metadata for the cut. 
+            Expected to accept a key (such as 'title') and return a string value.
+        render_output (Dict[str, Any]): Dictionary containing output path configurations.
+        quick_and_dirty (bool): Flag indicating if the render is a quick/low-quality version.
+        aspect_ratio_text (str): Text describing the aspect ratio (e.g., '16x9', '9x16').
+
+    Returns:
+        str: The full file path for the rendered video output file.
+    """
+    cut_title = cut["title"]
+    output_paths = render_output["output_paths"]
+    segment_scene_path = output_paths["segment_scene"]
+
+    # Sanitize `cut_title` to remove problematic characters
+    safe_cut_title = re.sub(r'[^a-zA-Z0-9_-]', '_', cut_title)[:100]
 
     segment_title = segment["title"]
     scene_title = scene.get("title", "default-scene")
@@ -112,8 +140,26 @@ def load_video_clips(segment, scene, video_clip_list, audio_clips, aspect_ratio,
 
     # Sanitize `segment_title` to remove problematic characters
     safe_segment_title = re.sub(r'[^a-zA-Z0-9_-]', '_', segment_title)[:50]  # Keep it safe & under 50 chars
-    
-    output_path = f"temp_video_pipeline_clip_{safe_segment_title}_{scene_sequence}_{scene_title}_{aspect_ratio}.mp4"
+
+    if quick_and_dirty:
+        output_filename = f"{safe_cut_title}_{safe_segment_title}_{scene_sequence}_{scene_title}_{aspect_ratio_text}_quick.mp4"
+    else:
+        output_filename = f"{safe_cut_title}_{safe_segment_title}_{scene_sequence}_{scene_title}_{aspect_ratio_text}_high_quality.mp4"
+
+    # Correctly concatenate paths using os.path.join
+    output_path = os.path.join(segment_scene_path, output_filename)
+
+    return output_path
+
+
+def load_video_clips(cut, segment, scene, video_clip_list, audio_clips, aspect_ratio, quick_and_dirty, render_output, source_file_watermark = False):
+    # Load all video clips
+    video_clips = []
+    clips_to_close = []
+
+    output_path = build_video_segment_output_file_pathname(cut, segment, scene, render_output, quick_and_dirty, aspect_ratio)
+
+    segment["rendered_video_path"] = output_path
 
     if video_file_exists(output_path) == False:
         for video in video_clip_list:
@@ -128,7 +174,7 @@ def load_video_clips(segment, scene, video_clip_list, audio_clips, aspect_ratio,
             video_clips.append(video_clip)
 
         # Concatenate video clips
-        output_path = crop_and_process_sequential_audio_clips(scene, video_clips, audio_clips, aspect_ratio, clips_to_close, output_path, quick_and_dirty)
+        output_path = crop_and_process_sequential_audio_clips(scene, video_clips, audio_clips, aspect_ratio, clips_to_close, output_path, render_output, quick_and_dirty)
         return output_path
     else:
         return output_path
@@ -178,7 +224,7 @@ def load_audio_clips(audio_clip_list, clips_to_close):
     
     
 
-def generate_video_scene(segment, scene, quick_and_dirty, manifest_last_modified_timestamp, aspect_ratio, source_file_watermark = False):
+def generate_video_scene(cut, segment, scene, quick_and_dirty, manifest_last_modified_timestamp, aspect_ratio, render_output, source_file_watermark = False):
     timeline_clip_type = scene.get("timeline_clip_type", "video").lower()
     sorted_timeline_clips = sort_timeline_clips_by_sequence(scene)
     sorted_sequential_audio_clips = sort_sequential_audio_clips_by_sequence(scene)
@@ -189,10 +235,10 @@ def generate_video_scene(segment, scene, quick_and_dirty, manifest_last_modified
 
     if enabled:
         if timeline_clip_type == "image":
-            timeline_video_clip = load_image_clips(segment, scene, sorted_timeline_clips, sorted_sequential_audio_clips, aspect_ratio, quick_and_dirty, source_file_watermark)
+            timeline_video_clip = load_image_clips(segment, scene, sorted_timeline_clips, sorted_sequential_audio_clips, aspect_ratio, quick_and_dirty, render_output, source_file_watermark)
 
         else:
-            timeline_video_clip = load_video_clips(segment, scene, sorted_timeline_clips, sorted_sequential_audio_clips, aspect_ratio, quick_and_dirty, source_file_watermark)
+            timeline_video_clip = load_video_clips(cut, segment, scene, sorted_timeline_clips, sorted_sequential_audio_clips, aspect_ratio, quick_and_dirty, render_output, source_file_watermark)
 
     if timeline_video_clip != None:
         scene_video = VideoFileClip(timeline_video_clip)

@@ -66,8 +66,25 @@ def resize_clips_to_max_resolution(clips):
     return resized_clips
 
 
+def ensure_directory_exists(file_path: str) -> None:
+    """
+    Ensures the directory for the given file path exists. If the directory does not exist,
+    it will be created along with any intermediate directories required.
+
+    :param file_path: The fully qualified file path.
+    :type file_path: str
+
+    :raises OSError: If the directory creation fails due to permission or filesystem issues.
+
+    :return: None
+    """
+    directory = os.path.dirname(os.path.abspath(file_path))
+    if directory and not os.path.exists(directory):
+        os.makedirs(directory, exist_ok=True)
+
+
 def write_video(
-    clip, output_path: str, quick_and_dirty=False
+    clip, output_file_pathname: str, render_settings
 ) -> None:
     """
     Process a video file using MoviePy with multithreading and hardware acceleration.
@@ -81,7 +98,13 @@ def write_video(
     :type threads: int
     """
 
-    hardware_codec = "h264_videotoolbox"
+    codec = render_settings.get("codec", "libx264")
+    audio_codec = render_settings.get("audio", {}).get("codec", "aac")
+    quality_preset = render_settings.get("quality_preset", "medium")
+    fps = render_settings.get("fps", 30)
+
+    cpu_count = multiprocessing.cpu_count() # Get max available CPU cores
+    num_threads = render_settings.get("threads", cpu_count)
 
     # Start time
     start_time = time.time()
@@ -104,92 +127,16 @@ def write_video(
     ):
         clip.audio.samplerate = 44100  # Set a default sample rate
 
-    if quick_and_dirty:
-        USE_HARDWARE_ACCELERATION_APPLES_VIDEO_TOOL_BOX = True
+    ensure_directory_exists(output_file_pathname)
 
-        if USE_HARDWARE_ACCELERATION_APPLES_VIDEO_TOOL_BOX:
-            USE_MULTI_CORE_PROCESSING = True
-
-            if USE_MULTI_CORE_PROCESSING:
-                num_threads = multiprocessing.cpu_count()  # Get max available CPU cores
-
-                clip.write_videofile(
-                    output_path,
-                    codec="h264_videotoolbox",  # Apple's hardware encoder
-                    fps=10,
-                    audio_codec="aac",
-                    preset="ultrafast",  # Faster encoding with no quality loss,
-                    threads=num_threads,  # Use all available CPU cores
-                )
-                clip.close()
-            else:
-                clip.write_videofile(
-                    output_path,
-                    codec="h264_videotoolbox",  # Apple's hardware encoder
-                    fps=10,
-                    audio_codec="aac",
-                    preset="ultrafast",  # Faster encoding with no quality loss
-                )
-                clip.close()
-        else:
-            # Write the processed video to a file with multithreading and hardware acceleration
-            clip.write_videofile(
-                output_path,
-                codec="libx264",  # Use h264 for compatibility
-                fps=10,
-                audio_codec="aac",
-                preset="medium",
-            )
-            clip.close()
-    else:
-        USE_HARDWARE_ACCELERATION_APPLES_VIDEO_TOOL_BOX = True
-
-        if USE_HARDWARE_ACCELERATION_APPLES_VIDEO_TOOL_BOX:
-            USE_MULTI_CORE_PROCESSING = True
-
-            if USE_MULTI_CORE_PROCESSING:
-                num_threads = multiprocessing.cpu_count()  # Get max available CPU cores
-
-                USE_GPU_ACCERLATION = True
-                if USE_GPU_ACCERLATION:
-                    clip.write_videofile(
-                        output_path,
-                        codec=hardware_codec,  # Apple's hardware encoder
-                        fps=60,
-                        audio_codec="aac",         
-                        preset="ultrafast",         # Faster encoding with no quality loss,
-                        threads=num_threads,        # Use all available CPU cores
-                    )
-                else:
-                    clip.write_videofile(
-                        output_path,
-                        codec=hardware_codec,  # Apple's hardware encoder
-                        fps=60,
-                        audio_codec="aac",
-                        preset="ultrafast",  # Faster encoding with no quality loss,
-                        threads=num_threads,  # Use all available CPU cores
-                    )
-
-                clip.close()
-            else:
-                clip.write_videofile(
-                    output_path,
-                    codec="h264_videotoolbox",  # Apple's hardware encoder
-                    fps=60,
-                    audio_codec="aac",
-                    preset="ultrafast",  # Faster encoding with no quality loss
-                )
-                clip.close()
-        else:
-            # Write the processed video to a file with multithreading and hardware acceleration
-            clip.write_videofile(
-                output_path,
-                codec="libx264",  # Use h264 for compatibility
-                fps=60,
-                audio_codec="aac",
-                preset="medium",
-            )
-            clip.close()
+    clip.write_videofile(
+            output_file_pathname,
+            codec=codec,
+            fps=fps,
+            audio_codec=audio_codec,         
+            preset=quality_preset,         
+            threads=num_threads
+        )
 
     # End time
     end_time = time.time()
@@ -198,10 +145,16 @@ def write_video(
     elapsed_time = end_time - start_time
 
     # Print the elapsed time
-    print(
-        f"Time taken for processing '{output_path}': {elapsed_time:.2f} seconds. quick_and_dirty: {quick_and_dirty}"
-    )
+    minutes, seconds = divmod(elapsed_time, 60)
 
+    print(
+        f"Processed '{output_file_pathname}' in {int(minutes)}m {seconds:.2f}s.\n"
+        f"  - Codec: {codec}\n"
+        f"  - FPS: {fps}\n"
+        f"  - Audio Codec: {audio_codec}\n"
+        f"  - Quality Preset: {quality_preset}\n"
+        f"  - Threads: {num_threads}"
+    )
 
 def get_last_modified_timestamp(file_path: str) -> Union[str, None]:
     """

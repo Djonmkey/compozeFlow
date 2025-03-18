@@ -4,7 +4,7 @@ from video_assembly_helper import skip_scene_render
 
 
 def generate_video_segment(
-    video_assembly, cut, segment, quick_and_dirty, manifest_last_modified_timestamp, aspect_ratio, source_file_watermark = False
+    video_assembly, cut, segment, quick_and_dirty, manifest_last_modified_timestamp, aspect_ratio, render_output, source_file_watermark = False
 ):
     # Sort scenes by sequence value before looping
     sorted_scenes = sorted(
@@ -24,12 +24,13 @@ def generate_video_segment(
                 scene["overlay_images"] = []
             scene["overlay_images"].extend(segment["overlay_images"])
     
-        scene_video = generate_video_scene(
+        scene_video = generate_video_scene(cut, 
             segment,
             scene,
             quick_and_dirty,
             manifest_last_modified_timestamp,
             aspect_ratio,
+            render_output,
             source_file_watermark
         )
         if scene_video != None:

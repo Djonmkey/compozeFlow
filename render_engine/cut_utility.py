@@ -1,4 +1,5 @@
 import os
+import re
 
 from video_utility import write_video, resize_clips_to_max_resolution, video_file_exists
 from segment_utility import generate_video_segment
@@ -133,6 +134,39 @@ def generate_html_from_video_assembly(data: dict, output_html_path: str) -> None
     
     print(f"HTML file successfully created: {output_html_path}")
 
+def build_video_cut_output_file_pathname(
+    cut, aspect_ratio_text, render_output, quick_and_dirty
+) -> str:
+    """
+    Constructs the full file path for the rendered video output.
+
+    Args:
+        cut (Dict[str, Any]): A function or callable object that provides metadata for the cut. 
+            Expected to accept a key (such as 'title') and return a string value.
+        render_output (Dict[str, Any]): Dictionary containing output path configurations.
+        quick_and_dirty (bool): Flag indicating if the render is a quick/low-quality version.
+        aspect_ratio_text (str): Text describing the aspect ratio (e.g., '16x9', '9x16').
+
+    Returns:
+        str: The full file path for the rendered video output file.
+    """
+    cut_title = cut["title"]
+    output_paths = render_output["output_paths"]
+    cut_path = output_paths["cut"]
+
+    # Sanitize `cut_title` to remove problematic characters
+    safe_cut_title = re.sub(r'[^a-zA-Z0-9_-]', '_', cut_title)[:100]
+
+    if quick_and_dirty:
+        output_filename = f"{safe_cut_title}_{aspect_ratio_text}_quick.mp4"
+    else:
+        output_filename = f"{safe_cut_title}_{aspect_ratio_text}_high_quality.mp4"
+
+    # Correctly concatenate paths using os.path.join
+    output_path = os.path.join(cut_path, output_filename)
+
+    return output_path
+    
 
 def generate_video_cut(video_assembly, cut, video_assembly_last_modified_timestamp):
     # Read settings with default values safely
@@ -142,51 +176,62 @@ def generate_video_cut(video_assembly, cut, video_assembly_last_modified_timesta
     quick_and_dirty = settings.get("quick_and_dirty", False)
     source_file_watermark = settings.get("source_file_watermark", False)
 
-    # Loop through each aspect ratio
-    for aspect_ratio in cut["aspect_ratios"]:
-        video_output_file_pathname = aspect_ratio["output_pathname"]
+    render_output = cut["render_output"]
+    aspect_ratio_text = render_output["aspect_ratio"]
 
-        if video_file_exists(video_output_file_pathname, video_assembly_last_modified_timestamp) == False:
-            html_output_file_pathname = os.path.splitext(video_output_file_pathname)[0] + ".video_assembly_timeline.html"
+    render_settings = {}
+    
+    if quick_and_dirty:
+        render_settings = render_output["quick_render"]
+    else:
+        render_settings = render_output["high_quality_render"]
 
-            generate_html_from_video_assembly(video_assembly, html_output_file_pathname)
+    video_output_file_pathname = build_video_cut_output_file_pathname(cut, aspect_ratio_text, render_output, quick_and_dirty)
 
-            aspect_ratio_text = aspect_ratio["aspect_ratio"]
-            # Sort segments by sequence value before looping
-            sorted_segments = sorted(cut["segments"], key=lambda segment: segment["sequence"])
+    cut["rendered_video_path"] = video_output_file_pathname
 
-            segments_for_aspect_ratio = []
+    if video_file_exists(video_output_file_pathname, video_assembly_last_modified_timestamp) == False:
+        html_output_file_pathname = os.path.splitext(video_output_file_pathname)[0] + ".video_assembly_timeline.html"
 
-            video_clips_to_close = []
+        generate_html_from_video_assembly(video_assembly, html_output_file_pathname)
 
-            for segment in sorted_segments:
-                if skip_segment_render(video_assembly, segment):
-                    continue
+        # Sort segments by sequence value before looping
+        sorted_segments = sorted(cut["segments"], key=lambda segment: segment["sequence"])
 
-                print(f"  Segment Title: {segment['title']}")
-                print(f"  Min Length: {segment['min_len_seconds']} seconds")
-                print(f"  Max Length: {segment['max_len_seconds']} seconds") 
+        segments_for_aspect_ratio = []
 
-                segment_video = generate_video_segment(video_assembly, cut, segment, quick_and_dirty, video_assembly_last_modified_timestamp, aspect_ratio_text, source_file_watermark)
+        video_clips_to_close = []
 
-                if segment_video != None:
-                    segments_for_aspect_ratio.append(segment_video)
-                    
-            if len(segments_for_aspect_ratio) > 0:
-                if len(segments_for_aspect_ratio) == 1:
-                    cut_for_aspect_ratio = segments_for_aspect_ratio[0]
-                else:
-                    segments_for_aspect_ratio = resize_clips_to_max_resolution(segments_for_aspect_ratio)
-                    cut_for_aspect_ratio = concatenate_videoclips(segments_for_aspect_ratio)
+        for segment in sorted_segments:
+            if skip_segment_render(video_assembly, segment):
+                continue
 
-                # Save video
-                write_video(cut_for_aspect_ratio, video_output_file_pathname, quick_and_dirty)     
+            print(f"  Segment Title: {segment['title']}")
+            print(f"  Min Length: {segment['min_len_seconds']} seconds")
+            print(f"  Max Length: {segment['max_len_seconds']} seconds") 
 
-            for video_clip_item in video_clips_to_close:
-                try:
-                    video_clip_item.close()
-                except:
-                    pass 
+            segment_video = generate_video_segment(video_assembly, cut, segment, quick_and_dirty, video_assembly_last_modified_timestamp, aspect_ratio_text, render_output, source_file_watermark)
+
+            if segment_video != None:
+                segments_for_aspect_ratio.append(segment_video)
+                
+        if len(segments_for_aspect_ratio) > 0:
+            if len(segments_for_aspect_ratio) == 1:
+                cut_for_aspect_ratio = segments_for_aspect_ratio[0]
+            else:
+                segments_for_aspect_ratio = resize_clips_to_max_resolution(segments_for_aspect_ratio)
+                cut_for_aspect_ratio = concatenate_videoclips(segments_for_aspect_ratio)
 
             if quick_and_dirty:
-                return
+                render_settings = render_output["quick_render"]
+            else:
+                render_settings = render_output["high_quality_render"]
+
+            # Save video
+            write_video(cut_for_aspect_ratio, video_output_file_pathname, render_settings)     
+
+        for video_clip_item in video_clips_to_close:
+            try:
+                video_clip_item.close()
+            except:
+                pass

@@ -189,6 +189,13 @@ def main():
     if check_file_existence(video_assembly):
         generate_video_cut(video_assembly, cut, video_assembly_last_modified_timestamp)
         clear_this_run_only(video_assembly, video_assembly_file_pathname)
+
+        # Save the video assembly file with meta information.
+        video_assembly_updated_json_text = json.dumps(video_assembly)
+
+        # save the updated JSON
+        with open(video_assembly_file_pathname, "w") as file:
+            file.write(video_assembly_updated_json_text)
     else:
         print("Video Assembly Processing Stopped due to missing files.")
 
