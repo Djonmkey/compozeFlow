@@ -46,7 +46,7 @@ function generateRenderTabHtml() {
     let html = `
         <div class="render-tab-container">
             <h2>Render Output</h2>
-            <p>Showing files from render output paths. ${isRendering ? '<span class="rendering-status">Render in progress...</span>' : ''}</p>
+            <p class="title-container">Showing files from render output paths. ${isRendering ? '<span class="rendering-status">Render in progress...</span>' : ''}</p>
             <p class="last-refresh">Last refreshed: ${new Date().toLocaleTimeString()}</p>
     `;
     
@@ -84,7 +84,10 @@ function generateRenderTabHtml() {
         // Create the section HTML
         let sectionHtml = `
             <div class="output-path-section">
-                <h3>${pathType} Output</h3>
+                <div class="output-section-header">
+                    <button class="play-button" data-folder-path="${path}" title="Open folder">📂 Open Folder</button>
+                    <h3>${pathType} Output</h3>
+                </div>
                 <p class="output-path">Path: ${path}</p>
         `;
         
@@ -111,12 +114,15 @@ function generateRenderTabHtml() {
                 
                 sectionHtml += `
                     <tr>
-                        <td>${file.name}</td>
+                        <td>
+                            <div class="clip-path">${electronSetup.path.dirname(file.path)}</div>
+                            <div class="file-name">${file.name}</div>
+                        </td>
                         <td>${file.size}</td>
                         <td>${file.mtime.toLocaleString()}</td>
                         <td>
-                            ${isVideoFile ? 
-                                `<button class="play-button" data-path="${file.path}" ${playButtonDisabled} title="${playButtonTooltip}">${ICONS.PLAY}</button>` : 
+                            ${isVideoFile ?
+                                `<button class="play-button" data-path="${file.path}" ${playButtonDisabled} title="${playButtonTooltip}">${ICONS.PLAY} Play</button>` :
                                 ''}
                         </td>
                     </tr>
@@ -174,16 +180,37 @@ function initializeRenderTab() {
     // Add CSS styles for the Render tab
     addRenderTabStyles();
     
-    // Set up event delegation for play buttons
+    // Set up event delegation for play buttons and folder open buttons
     document.addEventListener('click', (event) => {
         // Check if the clicked element is a play button
         if (event.target.classList.contains('play-button') && !event.target.hasAttribute('disabled')) {
             const filePath = event.target.getAttribute('data-path');
+            const folderPath = event.target.getAttribute('data-folder-path');
+            
             if (filePath) {
                 playVideo(filePath);
+            } else if (folderPath) {
+                openFolder(folderPath);
             }
         }
     });
+}
+
+/**
+ * Open a folder in the system's file explorer
+ * @param {string} folderPath - Path to the folder
+ */
+function openFolder(folderPath) {
+    if (electronSetup.isElectron && electronSetup.ipcRenderer) {
+        // Use Electron's shell.openPath to open the folder
+        electronSetup.ipcRenderer.send('open-external-link', `file://${folderPath}`);
+        
+        // Update the terminal with a message
+        const terminal = document.getElementById('terminal');
+        if (terminal) {
+            terminal.innerHTML += `<p>Opening folder: ${folderPath}</p>`;
+        }
+    }
 }
 
 /**
@@ -198,25 +225,26 @@ function addRenderTabStyles() {
         .render-tab-container {
             padding: 20px;
             font-family: Arial, sans-serif;
+            line-height: 1.6;
         }
         
         .render-tab-container h2 {
-            margin-top: 0;
-            margin-bottom: 10px;
+            text-align: center;
+            margin-bottom: 5px;
             color: #333;
         }
         
         .render-tab-container h3 {
             margin-top: 20px;
-            margin-bottom: 10px;
+            display: inline-block;
+            margin-right: 10px;
             color: #444;
-            border-bottom: 1px solid #ddd;
-            padding-bottom: 5px;
         }
         
         .output-path {
             font-family: monospace;
-            background-color: #f5f5f5;
+            font-size: 8pt;
+            color: gray;
             padding: 5px;
             border-radius: 3px;
             margin-bottom: 10px;
@@ -225,7 +253,7 @@ function addRenderTabStyles() {
         .files-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
+            margin-bottom: 20px;
         }
         
         .files-table th, .files-table td {
@@ -235,7 +263,7 @@ function addRenderTabStyles() {
         }
         
         .files-table th {
-            background-color: #f2f2f2;
+            background-color: #f4f4f4;
             font-weight: bold;
         }
         
@@ -248,13 +276,19 @@ function addRenderTabStyles() {
         }
         
         .play-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 4px;
             background-color: #4CAF50;
             color: white;
-            border: none;
-            border-radius: 3px;
-            padding: 5px 10px;
             cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
             font-size: 14px;
+            font-weight: 500;
         }
         
         .play-button:hover:not([disabled]) {
@@ -275,6 +309,7 @@ function addRenderTabStyles() {
         .last-refresh {
             font-size: 12px;
             color: #777;
+            text-align: center;
             margin-bottom: 20px;
         }
         
@@ -296,6 +331,16 @@ function addRenderTabStyles() {
             border-radius: 5px;
             padding: 15px;
             background-color: #fafafa;
+        }
+        
+        .output-section-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .file-name {
+            font-weight: bold;
         }
     `;
     
