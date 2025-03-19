@@ -3,7 +3,7 @@ import time
 import multiprocessing
 
 from typing import Union
-from moviepy import VideoFileClip
+from moviepy import *
 from datetime import datetime, MINYEAR
 
 
