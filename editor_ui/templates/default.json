@@ -1,0 +1,108 @@
+{
+  "composeflow.org": {
+    "description": "An open-source video batch processing framework",
+    "version": "0.2.0",
+    "website": "https://composeflow.org",
+    "settings": {
+      "quick_and_dirty": true,
+      "source_file_watermark": false,
+      "common_base_file_path": "/Volumes/RED T7 1TB/",
+      "update_paths_with_content_source_paths": true,
+      "render_individual_clips": false
+    },
+    "supported_video_file_extensions": [
+      ".mp4",
+      ".avi",
+      ".mov",
+      ".mkv",
+      ".flv",
+      ".webm",
+      ".ogv"
+    ],
+    "supported_audio_file_extensions": [
+      ".mp3",
+      ".wav",
+      ".aac",
+      ".ogg",
+      ".flac",
+      ".m4a"
+    ],
+    "supported_image_file_extensions": [
+      ".jpg",
+      ".jpeg",
+      ".png",
+      ".bmp",
+      ".gif",
+      ".tiff"
+    ]
+  },
+  "composeflow.com": {
+    "description": "User Interface and Related tools for use with the open-source composeFlow project.",
+    "version": "0.2.0",
+    "website": "https://composeflow.com",
+    "settings": {}
+  },
+  "template": {
+    "uuid": "e9177250-660d-4d98-8b3d-dcba0a31b4e1"
+  },
+  "cut": {
+    "content_sources": [],
+    "dismissed_files": [],
+    "render_output": {
+      "output_paths": {
+        "cut": "",
+        "segment_scene": "",
+        "clip": ""
+      },
+      "high_quality_render": {
+        "aspect_ratio": "16:9",
+        "fps": null,
+        "width": null,
+        "height": null,
+        "render_settings": {
+          "codec": "h264_videotoolbox",
+          "quality_preset": "ultrafast",
+          "threads": null,
+          "audio": {
+            "codec": "aac"
+          }
+        }
+      },
+      "quick_render": {
+        "aspect_ratio": "16:9",
+        "fps": 10,
+        "width": 1920,
+        "height": null,
+        "render_settings": {
+          "codec": "h264_videotoolbox",
+          "quality_preset": "ultrafast",
+          "threads": null,
+          "audio": {
+            "codec": "aac"
+          }
+        }
+      }
+    },
+    "title": "Default",
+    "subtitle": "Default Segment and Default Scene only.",
+    "description": "This template provides an unstructured approach to creating engaging videos, perfect for quick trims.",
+    "segments": [
+      {
+        "sequence": 1,
+        "title": "Default",
+        "overlay_images": [],
+        "min_len_seconds": 5,
+        "max_len_seconds": 10,
+        "scenes": [
+          {
+            "sequence": 1,
+            "timeline_clip_type": "video",
+            "timeline_clips": [],
+            "sequential_audio_clips": [],
+            "overlay_images": []
+          }
+        ]
+      }
+    ]
+  }
+}

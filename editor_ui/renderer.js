@@ -2,188 +2,70 @@
  * renderer.js
  *
  * Handles communication between the main process and the renderer process,
- * and updates the UI accordingly.
+ * and coordinates the various modules of the application.
  *
  * @sourceMappingURL=renderer.js.map
  */
 
-// Check if we're running in Electron or a browser
-const isElectron = typeof window !== 'undefined' && window.process && window.process.type === 'renderer';
+// Import the modules
+const electronSetup = require('./electronSetup');
+const uiManager = require('./uiManager');
+const videoAssemblyManager = require('./videoAssemblyManager');
+const renderProcessManager = require('./renderProcessManager');
+const renderTabDisplay = require('./renderTabDisplay');
+const pluginManager = require('./pluginManager');
+const { FEATURE_FLAGS } = require('./featureFlags');
 
-// Install source map support for better debugging
-if (isElectron) {
-  try {
-    require('source-map-support').install({
-      handleUncaughtExceptions: true,
-      environment: 'node',
-      hookRequire: true
-    });
-    console.log('Source map support installed in renderer process');
-  } catch (error) {
-    console.error('Failed to install source map support in renderer:', error);
-  }
-}
-
-// Initialize variables that would normally come from required modules
-let ipcRenderer, fs, generateHtmlFromVideoAssembly, generateOverlayImagesHtml,
-    generateMixedAudioHtml, generateGeneralHtml, generateExplorerHtml, initializeExplorer,
-    fileTabsDisplay;
-
-// Only try to require modules if we're in Electron
-if (isElectron) {
-  try {
-    const electron = require('electron');
-    ipcRenderer = electron.ipcRenderer;
-    fs = require('fs');
-    generateHtmlFromVideoAssembly = require('./timelineDisplay');
-    generateOverlayImagesHtml = require('./overlayImagesDisplay');
-    generateMixedAudioHtml = require('./mixedAudioDisplay');
-    generateGeneralHtml = require('./generalDisplay');
-    
-    // Load explorer modules
-    const explorerModule = require('./explorerDisplay');
-    generateExplorerHtml = explorerModule.generateExplorerHtml;
-    initializeExplorer = explorerModule.initializeExplorer;
-    switchExplorerMode = explorerModule.switchMode;
-    
-    // Make sure the content sources, search, and plugins modules are loaded
-    require('./contentSourcesDisplay');
-    require('./searchDisplay');
-    require('./pluginsDisplay');
-    
-    // Load the file tabs display module
-    fileTabsDisplay = require('./fileTabsDisplay');
-  } catch (error) {
-    console.error('Error loading modules:', error);
-  }
-}
+// Getting Started UI elements
+let gettingStartedContainer;
+let newAssemblyBtn;
+let openAssemblyBtn;
+let githubLink;
+let docsLink;
+let communityLink;
+let issuesLink;
 
 // DOM elements
 const editorContent = document.getElementById('editor-content');
 const tabs = document.querySelectorAll('.tab');
 const tab1 = document.querySelector('.tab:nth-child(1)');
 
-// Keep track of the currently active tab
-let activeTab = 'Timeline';
-
-// Store the current video assembly data and file path
-let currentVideoAssemblyData = null;
-let currentVideoAssemblyPath = null;
-
-// Function to update the editor content based on the active tab
-function updateEditorContent() {
-  if (!currentVideoAssemblyData) return;
-  
-  let htmlContent = '';
-  
-  if (activeTab === 'Timeline') {
-    htmlContent = generateHtmlFromVideoAssembly(currentVideoAssemblyData);
-  } else if (activeTab === 'Overlay Images') {
-    htmlContent = generateOverlayImagesHtml(currentVideoAssemblyData);
-  } else if (activeTab === 'Mixed Audio') {
-    htmlContent = generateMixedAudioHtml(currentVideoAssemblyData);
-  } else if (activeTab === 'General') {
-    htmlContent = generateGeneralHtml(currentVideoAssemblyData);
-  } else {
-    // For other tabs, show a placeholder
-    htmlContent = `<h2>Content for ${activeTab} tab</h2><p>This tab is not yet implemented.</p>`;
-  }
-  
-  // Update the editor content with the generated HTML
-  editorContent.innerHTML = `
-    <iframe
-      id="video-assembly-frame"
-      style="width: 100%; height: 100%; border: none;"
-      srcdoc="${htmlContent.replace(/"/g, '&quot;')}"
-    ></iframe>
-  `;
-  
-  // Update the terminal with a message
-  const terminal = document.getElementById('terminal');
-  terminal.innerHTML += `<p>Displaying ${activeTab} view</p>`;
-}
-
-// Initialize tab click handlers
-tabs.forEach(tab => {
-  tab.addEventListener('click', () => {
-    // Update active tab styling
-    tabs.forEach(t => {
-      t.style.backgroundColor = t.textContent === tab.textContent ? '#ddd' : '';
-      t.style.fontWeight = t.textContent === tab.textContent ? 'bold' : 'normal';
-    });
-    
-    activeTab = tab.textContent;
-    updateEditorContent();
-  });
-});
-
-// Function to update the explorer with content sources from the video assembly
-function updateExplorer() {
-  if (!currentVideoAssemblyData) return;
-  
-  const explorer = document.getElementById('explorer');
-  
-  // Only use generateExplorerHtml if it's available (in Electron)
-  if (typeof generateExplorerHtml === 'function') {
-    // Generate the explorer HTML
-    const explorerHtml = generateExplorerHtml(currentVideoAssemblyData);
-    
-    // Update the explorer content
-    explorer.innerHTML = explorerHtml;
-    
-    // Initialize explorer event handlers
-    if (typeof initializeExplorer === 'function') {
-      initializeExplorer(currentVideoAssemblyData);
-    }
-  } else {
-    // In browser mode, show a placeholder
-    explorer.innerHTML = `
-      <div class="explorer-empty">
-        Explorer functionality requires Electron environment.
-        <br><br>
-        <small>(Resize handle will still work in browser mode)</small>
-      </div>
-    `;
-  }
-  
-  // Update the terminal with a message
-  const terminal = document.getElementById('terminal');
-  terminal.innerHTML += `<p>Explorer updated with content sources</p>`;
-}
-
 // Set up event listeners for Electron if available
-if (isElectron && ipcRenderer) {
+if (electronSetup.isElectron && electronSetup.ipcRenderer) {
   // Listen for the 'video-assembly-opened' event from the main process
-  ipcRenderer.on('video-assembly-opened', (event, data) => {
-    console.log('Received video assembly data:', data);
+  electronSetup.ipcRenderer.on('video-assembly-opened', (event, data) => {
+    videoAssemblyManager.handleVideoAssemblyData(data);
     
-    // Store the current data
-    currentVideoAssemblyData = data;
-    
-    // Update the application title with the video assembly title
-    if (data && data.cut && data.cut.title) {
-      document.title = `compozeFlow - ${data.cut.title}`;
-    } else {
-      document.title = 'compozeFlow';
+    // Fire a resize event after a short delay to ensure UI is fully updated
+    setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+      console.log('Resize event fired after file load');
+    }, 100);
+  });
+  
+  // Listen for the current file path from the main process
+  electronSetup.ipcRenderer.on('current-file-path', (event, filePath) => {
+    videoAssemblyManager.setCurrentVideoAssemblyPath(filePath);
+  });
+  
+  // Listen for file state changes from the main process
+  electronSetup.ipcRenderer.on('file-state-changed', (event, data) => {
+    if (typeof updateGettingStartedVisibility === 'function') {
+      updateGettingStartedVisibility();
+      
+      // Fire a resize event after a short delay to ensure UI is fully updated
+      setTimeout(() => {
+        window.dispatchEvent(new Event('resize'));
+        console.log('Resize event fired after file state change');
+      }, 100);
     }
-    
-    // Make sure Timeline tab is active
-    tabs.forEach(tab => {
-      tab.style.backgroundColor = tab.textContent === 'Timeline' ? '#ddd' : '';
-      tab.style.fontWeight = tab.textContent === 'Timeline' ? 'bold' : 'normal';
-    });
-    
-    activeTab = 'Timeline';
-    
-    // Update the editor content based on the active tab
-    updateEditorContent();
-    
-    // Update the explorer with content sources
-    updateExplorer();
-    
-    // Update the terminal with a message
-    const terminal = document.getElementById('terminal');
-    terminal.innerHTML += `<p>Video assembly loaded and displayed in Timeline tab</p>`;
+  });
+  
+  // Listen for requests to get the current content
+  electronSetup.ipcRenderer.on('request-current-content', (event) => {
+    console.log('Main process requested current content');
+    const currentContent = videoAssemblyManager.getCurrentVideoAssemblyData();
+    electronSetup.ipcRenderer.send('current-content-response', currentContent);
   });
 }
 
@@ -191,319 +73,386 @@ if (isElectron && ipcRenderer) {
 window.addEventListener('message', (event) => {
   // Check if the message is a title update
   if (event.data && event.data.type === 'title-updated') {
-    const newTitle = event.data.newTitle;
-    
-    // Update the title in the current data
-    if (currentVideoAssemblyData && currentVideoAssemblyData.cut) {
-      currentVideoAssemblyData.cut.title = newTitle;
-      
-      // Update the application title
-      document.title = `compozeFlow - ${newTitle}`;
-      
-      // Only try to save if we're in Electron
-      if (isElectron && ipcRenderer) {
-        // Get the current file path from the main process
-        ipcRenderer.invoke('get-current-file-path').then((filePath) => {
-          if (filePath) {
-            // Save the updated data to the file
-            saveVideoAssemblyToFile(filePath, currentVideoAssemblyData);
-          } else {
-            console.error('No file path available for saving');
-          }
-        });
-      } else {
-        // In browser mode, just log the change
-        console.log('Title updated to:', newTitle);
-        // Update the terminal with a message
-        const terminal = document.getElementById('terminal');
-        terminal.innerHTML += `<p>Title updated to: ${newTitle} (changes not saved in browser mode)</p>`;
-      }
-    }
+    videoAssemblyManager.handleTitleUpdate(event.data.newTitle);
   }
   // Check if the message is a subtitle update
   else if (event.data && event.data.type === 'subtitle-updated') {
-    const newSubtitle = event.data.newSubtitle;
-    
-    // Update the subtitle in the current data
-    if (currentVideoAssemblyData && currentVideoAssemblyData.cut) {
-      currentVideoAssemblyData.cut.subtitle = newSubtitle;
-      
-      // Only try to save if we're in Electron
-      if (isElectron && ipcRenderer) {
-        // Get the current file path from the main process
-        ipcRenderer.invoke('get-current-file-path').then((filePath) => {
-          if (filePath) {
-            // Save the updated data to the file
-            saveVideoAssemblyToFile(filePath, currentVideoAssemblyData);
-          } else {
-            console.error('No file path available for saving');
-          }
-        });
-      } else {
-        // In browser mode, just log the change
-        console.log('Subtitle updated to:', newSubtitle);
-        // Update the terminal with a message
-        const terminal = document.getElementById('terminal');
-        terminal.innerHTML += `<p>Subtitle updated to: ${newSubtitle} (changes not saved in browser mode)</p>`;
+    videoAssemblyManager.handleSubtitleUpdate(event.data.newSubtitle);
+  }
+  // Check if the message is a render segment request
+  else if (event.data && event.data.type === 'render-segment') {
+    // Switch to the Render tab before handling the render request
+    if (window.uiManager) {
+      window.uiManager.setActiveTab('Render');
+    }
+    videoAssemblyManager.handleRenderSegmentRequest(event.data.segmentSequence);
+  }
+  // Check if the message is a render scene request
+  else if (event.data && event.data.type === 'render-scene') {
+    // Switch to the Render tab before handling the render request
+    if (window.uiManager) {
+      window.uiManager.setActiveTab('Render');
+    }
+    videoAssemblyManager.handleRenderSceneRequest(event.data.segmentSequence, event.data.sceneSequence);
+  }
+  // Check if the message is to save output paths
+  else if (event.data && event.data.type === 'save-output-paths') {
+    videoAssemblyManager.handleSaveOutputPaths(event.data.data);
+  }
+  // Check if the message is to save high quality render settings
+  else if (event.data && event.data.type === 'save-high-quality-settings') {
+    videoAssemblyManager.handleSaveHighQualitySettings(event.data.data);
+  }
+  // Check if the message is to save quick render settings
+  else if (event.data && event.data.type === 'save-quick-render-settings') {
+    videoAssemblyManager.handleSaveQuickRenderSettings(event.data.data);
+  }
+  // Check if the message is to get clip data for editing
+  else if (event.data && event.data.type === 'get-clip-data') {
+    const clipData = videoAssemblyManager.handleGetClipData(event.data);
+    if (clipData) {
+      // Send the clip data back to the iframe for editing
+      const iframe = document.getElementById('video-assembly-frame');
+      if (iframe && iframe.contentWindow) {
+        iframe.contentWindow.postMessage({
+          type: 'clip-data-for-edit',
+          clipData: clipData
+        }, '*');
       }
+    }
+  }
+  // Check if the message is to update a clip
+  else if (event.data && event.data.type === 'update-clip') {
+    videoAssemblyManager.handleUpdateClip(event.data.clipData);
+  }
+  // Check if the message is to delete a clip
+  else if (event.data && event.data.type === 'delete-clip') {
+    videoAssemblyManager.handleDeleteClip(event.data);
+  }
+  // Check if the message is to open a file dialog for a clip
+  else if (event.data && event.data.type === 'open-file-dialog') {
+    handleOpenFileDialogForClip(event.data);
+  }
+  // Check if the message is to add a file to the timeline from the File tab
+  else if (event.data && event.data.type === 'add-to-timeline-from-file-tab') {
+    const { currentFile, formData } = event.data;
+    const timeline = require('./timeline');
+    const success = timeline.addClipToTimeline(currentFile, formData, videoAssemblyManager.getCurrentVideoAssemblyData());
+    
+    if (success) {
+      timeline.switchToTimelineTab();
+    }
+  }
+  // Check if the message is to move a clip up or down in sequence
+  else if (event.data && event.data.type === 'move-clip') {
+    const { segmentSequence, sceneSequence, clipSequence, clipType, direction } = event.data;
+    const timeline = require('./timeline');
+    const success = timeline.moveClip(
+      segmentSequence,
+      sceneSequence,
+      clipSequence,
+      direction,
+      videoAssemblyManager.getCurrentVideoAssemblyData()
+    );
+    
+    if (success) {
+      // Get the iframe and save its scroll position before updating
+      const iframe = document.getElementById('video-assembly-frame');
+      let scrollPosition = 0;
+      
+      if (iframe && iframe.contentWindow) {
+        scrollPosition = iframe.contentWindow.scrollY || 0;
+      }
+      
+      // Update the editor content to reflect the changes
+      uiManager.updateEditorContent(videoAssemblyManager.getCurrentVideoAssemblyData());
+      
+      // Restore the scroll position after the iframe content is loaded
+      setTimeout(() => {
+        const updatedIframe = document.getElementById('video-assembly-frame');
+        if (updatedIframe && updatedIframe.contentWindow) {
+          updatedIframe.contentWindow.scrollTo(0, scrollPosition);
+          
+          // Update the terminal with a message
+          const terminal = document.getElementById('terminal');
+          terminal.innerHTML += `<p>Restored scroll position to ${scrollPosition}px after moving clip</p>`;
+        }
+      }, 100); // Small delay to ensure the iframe content is fully loaded
     }
   }
 });
 
-// Function to save video assembly data to a file
-function saveVideoAssemblyToFile(filePath, data) {
-  // Only try to save if we're in Electron and have fs
-  if (!isElectron || !fs) {
-    console.error('Cannot save file in browser mode');
-    return;
-  }
-  
-  try {
-    // Convert data to JSON string
-    const jsonContent = JSON.stringify(data, null, 4);
-    
-    // Write to file
-    fs.writeFileSync(filePath, jsonContent, 'utf-8');
-    
-    // Update the terminal with a message
-    const terminal = document.getElementById('terminal');
-    terminal.innerHTML += `<p>Video assembly saved with updated data</p>`;
-    
-    console.log(`File saved to: ${filePath}`);
-  } catch (error) {
-    console.error('Error saving file:', error);
-    
-    // Update the terminal with an error message
-    const terminal = document.getElementById('terminal');
-    terminal.innerHTML += `<p>Error saving file: ${error.message}</p>`;
-  }
-}
-
 // Expose the saveVideoAssemblyToFile function to the window object
 // so it can be accessed from other modules
-window.saveVideoAssemblyToFile = saveVideoAssemblyToFile;
+window.saveVideoAssemblyToFile = videoAssemblyManager.saveVideoAssemblyToFile;
 
-// Function to load and display installed plugins
-async function loadInstalledPlugins() {
-  // Get the container for installed plugin icons
-  const installedPluginsContainer = document.getElementById('installed-plugins-icons');
+// Expose the handleRenderButtonClick function to the window object
+// so it can be accessed from the renderOptionsDisplay module
+window.handleRenderButtonClick = renderProcessManager.handleRenderButtonClick;
+
+// Expose the electronSetup module to the window object
+// to avoid circular dependencies with modules that need it
+window.electronSetup = electronSetup;
+
+// Expose the updateGettingStartedVisibility function to the window object
+// so it can be accessed from other modules
+window.updateGettingStartedVisibility = updateGettingStartedVisibility;
+
+/**
+ * Function to handle opening a file dialog for a clip
+ * @param {Object} data - Data containing segment, scene, and clip sequence numbers
+ */
+async function handleOpenFileDialogForClip(data) {
+  const { segmentSequence, sceneSequence, clipSequence, clipType } = data;
   
-  // Clear any existing content
-  installedPluginsContainer.innerHTML = '';
-  
-  if (isElectron && fs) {
+  if (electronSetup.isElectron && electronSetup.ipcRenderer) {
     try {
-      // Read the installed plugins JSON file
-      const installedPluginsData = fs.readFileSync('./plugins/installed_plugins.json', 'utf-8');
-      const installedPlugins = JSON.parse(installedPluginsData).installedPlugins;
+      // Determine file filters based on clip type
+      let filters = [];
+      if (clipType === 'video') {
+        filters = [
+          { name: 'Video Files', extensions: ['mp4', 'mov', 'avi', 'mkv', 'webm'] },
+          { name: 'All Files', extensions: ['*'] }
+        ];
+      } else if (clipType === 'image') {
+        filters = [
+          { name: 'Image Files', extensions: ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'] },
+          { name: 'All Files', extensions: ['*'] }
+        ];
+      }
       
-      // Read the available plugins JSON file to get icon URLs
-      const availablePluginsData = fs.readFileSync('./plugins/available_plugins.json', 'utf-8');
-      const availablePlugins = JSON.parse(availablePluginsData).plugins;
+      // Show the open file dialog
+      const result = await electronSetup.ipcRenderer.invoke('show-open-file-dialog', filters);
       
-      // Create a map of plugin IDs to their details for quick lookup
-      const pluginDetailsMap = {};
-      availablePlugins.forEach(plugin => {
-        pluginDetailsMap[plugin.id] = plugin;
-      });
-      
-      // Create an icon for each installed plugin
-      installedPlugins.forEach(plugin => {
-        const pluginIcon = document.createElement('div');
-        pluginIcon.className = `plugin-icon ${plugin.active ? 'active' : 'inactive'}`;
-        
-        // Get the plugin details from the available plugins
-        const pluginDetails = pluginDetailsMap[plugin.id];
-        
-        // Check if we have details and an icon URL
-        if (pluginDetails && pluginDetails.iconUrl) {
-          // Use the actual icon URL
-          // In a real implementation, you would load the image from the URL
-          // For this example, we'll use a placeholder
-          pluginIcon.textContent = '🖼️'; // Image icon as placeholder
-          pluginIcon.title = `${pluginDetails.displayName} (v${plugin.version})${plugin.active ? '' : ' - Inactive'}`;
-        } else {
-          // Use a blue puzzle piece for plugins without icons
-          pluginIcon.textContent = '🧩'; // Puzzle piece
-          pluginIcon.classList.add('default-icon'); // Add class for blue color
-          
-          // Use the plugin ID for the title if we don't have display name
-          const displayName = pluginDetails ? pluginDetails.displayName : plugin.id;
-          pluginIcon.title = `${displayName} (v${plugin.version})${plugin.active ? '' : ' - Inactive'}`;
+      if (!result.canceled && result.filePath) {
+        // Send the new path back to the iframe without updating the video assembly data
+        // The actual update will happen when the user clicks "Save Changes" in the dialog
+        const iframe = document.getElementById('video-assembly-frame');
+        if (iframe && iframe.contentWindow) {
+          iframe.contentWindow.postMessage({
+            type: 'new-clip-path',
+            newPath: result.filePath
+          }, '*');
         }
         
-        // Add click event to toggle plugin active state
-        pluginIcon.addEventListener('click', () => {
-          // Toggle the active state in the UI
-          plugin.active = !plugin.active;
-          pluginIcon.classList.toggle('active');
-          pluginIcon.classList.toggle('inactive');
-          
-          // Update the title
-          const displayName = pluginDetails ? pluginDetails.displayName : plugin.id;
-          pluginIcon.title = `${displayName} (v${plugin.version})${plugin.active ? '' : ' - Inactive'}`;
-          
-          // In a real implementation, you would also update the JSON file
-          // and possibly notify the main process about the change
-          
-          // Update the terminal with a message
-          const terminal = document.getElementById('terminal');
-          terminal.innerHTML += `<p>Plugin ${displayName} ${plugin.active ? 'activated' : 'deactivated'}</p>`;
-        });
-        
-        // Add the plugin icon to the container
-        installedPluginsContainer.appendChild(pluginIcon);
-      });
-      
-      console.log('Installed plugins loaded successfully');
+        // Update the terminal with a message
+        const terminal = document.getElementById('terminal');
+        terminal.innerHTML += `<p>Selected new clip path: ${result.filePath}</p>`;
+      }
     } catch (error) {
-      console.error('Error loading installed plugins:', error);
+      console.error('Error opening file dialog:', error);
       
       // Update the terminal with an error message
       const terminal = document.getElementById('terminal');
-      terminal.innerHTML += `<p>Error loading installed plugins: ${error.message}</p>`;
-      
-      // Add placeholder plugins for browser mode
-      addPlaceholderPlugins(installedPluginsContainer);
+      terminal.innerHTML += `<p>Error opening file dialog: ${error.message}</p>`;
     }
   } else {
-    // In browser mode, add placeholder plugins
-    addPlaceholderPlugins(installedPluginsContainer);
+    console.error('Cannot open file dialog in browser mode');
     
-    // Update the terminal with a message
+    // Update the terminal with an error message
     const terminal = document.getElementById('terminal');
-    terminal.innerHTML += `<p>Running in browser mode - showing placeholder plugins</p>`;
+    terminal.innerHTML += `<p>Cannot open file dialog in browser mode</p>`;
   }
 }
 
-// Helper function to add placeholder plugins in browser mode
-function addPlaceholderPlugins(container) {
-  // Add a few placeholder plugin icons for demonstration
-  const placeholderPlugins = [
-    { icon: '🧩', name: 'Plugin 1', active: true },
-    { icon: '🖼️', name: 'Plugin 2', active: true },
-    { icon: '📊', name: 'Plugin 3', active: false }
-  ];
+const { getCurrentVideoAssemblyData } = require('./videoAssemblyManager');
+
+/**
+ * Initialize the Getting Started UI
+ */
+function initializeGettingStartedUI() {
+  // Get references to UI elements
+  gettingStartedContainer = document.getElementById('getting-started-container');
+  newAssemblyBtn = document.getElementById('new-assembly-btn');
+  openAssemblyBtn = document.getElementById('open-assembly-btn');
+  githubLink = document.getElementById('github-link');
+  docsLink = document.getElementById('docs-link');
+  communityLink = document.getElementById('community-link');
+  issuesLink = document.getElementById('issues-link');
   
-  placeholderPlugins.forEach(plugin => {
-    const pluginIcon = document.createElement('div');
-    pluginIcon.className = `plugin-icon ${plugin.active ? 'active' : 'inactive'}`;
-    pluginIcon.textContent = plugin.icon;
-    
-    if (!plugin.active) {
-      pluginIcon.classList.add('inactive');
-    }
-    
-    if (plugin.icon === '🧩') {
-      pluginIcon.classList.add('default-icon');
-    }
-    
-    pluginIcon.title = `${plugin.name}${plugin.active ? '' : ' - Inactive'}`;
-    
-    // Add click event to toggle active state
-    pluginIcon.addEventListener('click', () => {
-      // Toggle the active state in the UI
-      plugin.active = !plugin.active;
-      pluginIcon.classList.toggle('active');
-      pluginIcon.classList.toggle('inactive');
-      
-      // Update the title
-      pluginIcon.title = `${plugin.name}${plugin.active ? '' : ' - Inactive'}`;
-      
-      // Update the terminal with a message
-      const terminal = document.getElementById('terminal');
-      terminal.innerHTML += `<p>Plugin ${plugin.name} ${plugin.active ? 'activated' : 'deactivated'}</p>`;
+  // Add event listeners for the action buttons
+  if (newAssemblyBtn) {
+    newAssemblyBtn.addEventListener('click', () => {
+      if (electronSetup.isElectron && electronSetup.ipcRenderer) {
+        // Trigger the New Video Assembly action in the main process
+        electronSetup.ipcRenderer.send('menu-action', 'new-video-assembly');
+      }
     });
-    
-    // Add the plugin icon to the container
-    container.appendChild(pluginIcon);
-  });
-}
-
-// Function to initialize the resize handle for the explorer section
-function initializeResizeHandle() {
-  const resizeHandle = document.getElementById('resize-handle');
-  const explorer = document.getElementById('explorer');
-  const app = document.getElementById('app');
-  
-  let isResizing = false;
-  let startX = 0;
-  let startWidth = 0;
-  
-  // Update the resize handle position to match the explorer width
-  function updateResizeHandlePosition() {
-    // Position the handle at the right edge of the explorer
-    // Subtract the width of the handle (8px) to align it with the right edge
-    resizeHandle.style.left = `${explorer.offsetWidth + 42}px`;
   }
   
-  // Initialize the resize handle position
-  updateResizeHandlePosition();
+  if (openAssemblyBtn) {
+    openAssemblyBtn.addEventListener('click', () => {
+      if (electronSetup.isElectron && electronSetup.ipcRenderer) {
+        // Trigger the Open Video Assembly action in the main process
+        electronSetup.ipcRenderer.send('menu-action', 'open-video-assembly');
+      }
+    });
+  }
   
-  // Mouse down event on the resize handle
-  resizeHandle.addEventListener('mousedown', (e) => {
-    isResizing = true;
-    startX = e.clientX;
-    startWidth = explorer.offsetWidth;
-    
-    // Add a class to the body to indicate resizing is in progress
-    document.body.classList.add('resizing');
-    
-    // Prevent text selection during resize
-    e.preventDefault();
-  });
-  
-  // Mouse move event to handle resizing
-  document.addEventListener('mousemove', (e) => {
-    if (!isResizing) return;
-    
-    // Calculate the new width based on mouse movement
-    const newWidth = startWidth + (e.clientX - startX);
-    
-    // Apply min and max constraints
-    const minWidth = 150;
-    const maxWidth = 500;
-    const constrainedWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
-    
-    // Update the explorer width
-    explorer.style.width = `${constrainedWidth}px`;
-    
-    // Update the resize handle position
-    updateResizeHandlePosition();
-  });
-  
-  // Mouse up event to stop resizing
-  document.addEventListener('mouseup', () => {
-    if (isResizing) {
-      isResizing = false;
-      document.body.classList.remove('resizing');
-      
-      // Update the terminal with a message
-      const terminal = document.getElementById('terminal');
-      terminal.innerHTML += `<p>Explorer width adjusted to ${explorer.offsetWidth}px</p>`;
+  // Add event listeners for the external links
+  const externalLinks = [githubLink, docsLink, communityLink, issuesLink];
+  externalLinks.forEach(link => {
+    if (link) {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (electronSetup.isElectron && electronSetup.ipcRenderer) {
+          // Open the link in the default browser
+          electronSetup.ipcRenderer.send('open-external-link', link.href);
+        } else {
+          // Fallback for non-Electron environment
+          window.open(link.href, '_blank');
+        }
+      });
     }
   });
   
-  // Handle window resize to ensure the resize handle stays in the correct position
-  window.addEventListener('resize', () => {
-    updateResizeHandlePosition();
-  });
+  // Show or hide the getting started UI based on whether a file is active
+  updateGettingStartedVisibility();
+}
+
+/**
+ * Update the visibility of the Getting Started UI based on whether a file is active
+ */
+function updateGettingStartedVisibility() {
+  const hasActiveFile = videoAssemblyManager.getCurrentVideoAssemblyPath() !== null;
+  
+  if (gettingStartedContainer) {
+    if (hasActiveFile) {
+      // Hide the getting started UI and show the regular UI
+      gettingStartedContainer.style.display = 'none';
+      showRegularUI();
+    } else {
+      // Show the getting started UI and hide the regular UI
+      gettingStartedContainer.style.display = 'block';
+      hideRegularUI();
+    }
+    
+    // Fire a resize event after a short delay to ensure UI is fully updated
+    setTimeout(() => {
+      window.dispatchEvent(new Event('resize'));
+      console.log('Resize event fired after UI visibility change');
+    }, 100);
+  }
+}
+
+/**
+ * Show the regular UI components
+ */
+function showRegularUI() {
+  const iconBar = document.getElementById('icon-bar');
+  const explorer = document.getElementById('explorer');
+  const resizeHandle = document.getElementById('resize-handle');
+  const mainSection = document.getElementById('main-section');
+  
+  if (iconBar) iconBar.style.display = 'flex';
+  if (explorer) explorer.style.display = 'block';
+  if (resizeHandle) resizeHandle.style.display = 'block';
+  if (mainSection) mainSection.style.display = 'flex';
+  
+  // Ensure resize handles are properly positioned by calling the initialize functions
+  setTimeout(() => {
+    if (typeof uiManager.initializeResizeHandle === 'function') {
+      uiManager.initializeResizeHandle();
+    }
+    if (typeof uiManager.initializeTerminalResizeHandle === 'function') {
+      uiManager.initializeTerminalResizeHandle();
+    }
+  }, 50);
+}
+
+/**
+ * Hide the regular UI components
+ */
+function hideRegularUI() {
+  const iconBar = document.getElementById('icon-bar');
+  const explorer = document.getElementById('explorer');
+  const resizeHandle = document.getElementById('resize-handle');
+  const mainSection = document.getElementById('main-section');
+  
+  if (iconBar) iconBar.style.display = 'none';
+  if (explorer) explorer.style.display = 'none';
+  if (resizeHandle) resizeHandle.style.display = 'none';
+  if (mainSection) mainSection.style.display = 'none';
 }
 
 // Initialize the UI
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('Renderer process initialized');
-  
-  // Load and display installed plugins
-  loadInstalledPlugins();
-  
-  // Initialize the resize handle for the explorer
-  initializeResizeHandle();
-});
+    console.log('Renderer process initialized');
+    
+    // Initialize tabs
+    uiManager.initializeTabs();
 
-// Listen for the current file path from the main process (only in Electron)
-if (isElectron && ipcRenderer) {
-  ipcRenderer.on('current-file-path', (event, filePath) => {
-    currentVideoAssemblyPath = filePath;
-  });
-}
+    // Add event listener for Raw tab
+    const rawTab = document.querySelector('.tab:nth-child(7)'); // Updated index due to added Render tab
+    rawTab.addEventListener('click', () => {
+        const data = getCurrentVideoAssemblyData();
+        if (data) {
+            const prettyPrintedJson = JSON.stringify(data, null, 2);
+            editorContent.innerText = prettyPrintedJson;
+        } else {
+            editorContent.innerText = 'No video assembly data available.';
+        }
+    });
+    
+    // Initialize the Getting Started UI
+    initializeGettingStartedUI();
+    
+    // Initialize the Render tab
+    renderTabDisplay.initializeRenderTab();
+    
+    // Start the refresh interval for the Render tab
+    renderTabDisplay.startRefreshInterval();
+  
+    // Load and display installed plugins if the feature is enabled
+    if (FEATURE_FLAGS.ENABLE_PLUGINS) {
+        pluginManager.loadInstalledPlugins();
+    } else {
+        console.log('Plugins feature is disabled by feature flag');
+        
+        // Hide the plugins icon and container when the feature is disabled
+        const pluginsIcon = document.getElementById('plugins-icon');
+        const installedPluginsContainer = document.getElementById('installed-plugins-icons');
+        
+        if (pluginsIcon) {
+            pluginsIcon.style.display = 'none';
+        }
+        
+        if (installedPluginsContainer) {
+            installedPluginsContainer.style.display = 'none';
+        }
+    }
+    
+    // Check if account icon should be displayed
+    if (!FEATURE_FLAGS.ENABLE_ACCOUNT_FEATURES) {
+        console.log('Account icon is disabled by feature flag');
+        
+        // Hide the account icon when the feature is disabled
+        const accountIcon = document.getElementById('account-icon');
+        
+        if (accountIcon) {
+            accountIcon.style.display = 'none';
+        }
+    }
+    
+    // Check if settings icon should be displayed
+    if (!FEATURE_FLAGS.ENABLE_SETTINGS_FEATURE) {
+        console.log('Settings icon is disabled by feature flag');
+        
+        // Hide the settings icon when the feature is disabled
+        const settingsIcon = document.getElementById('settings-icon');
+        
+        if (settingsIcon) {
+            settingsIcon.style.display = 'none';
+        }
+    }
+    
+    // Initialize the resize handles
+    uiManager.initializeResizeHandle(); // For explorer
+    uiManager.initializeTerminalResizeHandle(); // For terminal
+    
+    // Initialize render options
+    if (typeof electronSetup.renderOptionsDisplay !== 'undefined' && 
+        electronSetup.renderOptionsDisplay.initializeRenderOptions) {
+        electronSetup.renderOptionsDisplay.initializeRenderOptions();
+    }
+});

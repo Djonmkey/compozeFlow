@@ -5,7 +5,7 @@
  * such as opening and saving video assembly files.
  */
 
-const { dialog } = require('electron');
+const { dialog, app } = require('electron');
 const fs = require('fs');
 const path = require('path');
 
@@ -62,18 +62,43 @@ async function openVideoAssembly(window) {
 }
 
 /**
- * Saves a video assembly to a JSON file
+ * Generic function to save a JSON file with dialog
  * @param {BrowserWindow} window - The parent window for the dialog
  * @param {Object} content - The content to save
- * @param {string} [filePath] - Optional file path (for Save). If not provided, will prompt for location (for Save As)
+ * @param {Object} options - Options for saving
+ * @param {string} [options.filePath] - Optional file path (for Save). If not provided, will prompt for location (for Save As)
+ * @param {string} [options.defaultDir] - Default directory to save to
+ * @param {string} [options.defaultFilename] - Default filename
+ * @param {string} [options.dialogTitle] - Title for the save dialog
  * @returns {Promise<string|null>} The file path where the content was saved, or null if canceled
  */
-async function saveVideoAssembly(window, content, filePath = null) {
+async function saveJsonFileWithDialog(window, content, options = {}) {
   try {
+    const {
+      filePath = null,
+      defaultDir = path.join(__dirname, 'video_assemblies'),
+      defaultFilename = 'video_assembly.json',
+      dialogTitle = 'Save Video Assembly'
+    } = options;
+
+    let finalFilePath = filePath;
+
     // If no file path is provided (Save As), show a save dialog
-    if (!filePath) {
+    if (!finalFilePath) {
+      // Create the directory if it doesn't exist
+      if (!fs.existsSync(defaultDir)) {
+        fs.mkdirSync(defaultDir, { recursive: true });
+      }
+      
+      // Get a default filename based on title if available
+      let filename = defaultFilename;
+      if (content.cut && content.cut.title) {
+        filename = `${content.cut.title}.json`;
+      }
+      
       const { canceled, filePath: selectedPath } = await dialog.showSaveDialog(window, {
-        title: 'Save Video Assembly',
+        title: dialogTitle,
+        defaultPath: path.join(defaultDir, filename),
         filters: [
           { name: 'Video Assembly Files', extensions: ['json'] },
           { name: 'All Files', extensions: ['*'] }
@@ -86,22 +111,22 @@ async function saveVideoAssembly(window, content, filePath = null) {
         return null;
       }
 
-      filePath = selectedPath;
+      finalFilePath = selectedPath;
     }
 
     // Ensure the file has a .json extension
-    if (!filePath.toLowerCase().endsWith('.json')) {
-      filePath += '.json';
+    if (!finalFilePath.toLowerCase().endsWith('.json')) {
+      finalFilePath += '.json';
     }
 
     // Convert content to JSON string
     const jsonContent = JSON.stringify(content, null, 2);
     
     // Write to file
-    fs.writeFileSync(filePath, jsonContent, 'utf-8');
-    console.log(`File saved to: ${filePath}`);
+    fs.writeFileSync(finalFilePath, jsonContent, 'utf-8');
+    console.log(`File saved to: ${finalFilePath}`);
     
-    return filePath;
+    return finalFilePath;
   } catch (error) {
     console.error('Error saving file:', error);
     dialog.showErrorBox(
@@ -113,55 +138,144 @@ async function saveVideoAssembly(window, content, filePath = null) {
 }
 
 /**
+ * Saves a video assembly to a JSON file
+ * @param {BrowserWindow} window - The parent window for the dialog
+ * @param {Object} content - The content to save
+ * @param {string} [filePath] - Optional file path (for Save). If not provided, will prompt for location (for Save As)
+ * @returns {Promise<string|null>} The file path where the content was saved, or null if canceled
+ */
+async function saveVideoAssembly(window, content, filePath = null) {
+  return saveJsonFileWithDialog(window, content, {
+    filePath,
+    defaultDir: path.join(__dirname, 'video_assemblies'),
+    defaultFilename: 'video_assembly.json',
+    dialogTitle: 'Save Video Assembly'
+  });
+}
+
+/**
  * Saves a video assembly as a template
  * @param {BrowserWindow} window - The parent window for the dialog
  * @param {Object} content - The content to save
  * @returns {Promise<string|null>} The file path where the template was saved, or null if canceled
  */
 async function saveVideoAssemblyAsTemplate(window, content) {
+  return saveJsonFileWithDialog(window, content, {
+    defaultDir: path.join(__dirname, 'templates'),
+    defaultFilename: 'template.json',
+    dialogTitle: 'Save Video Assembly As Template'
+  });
+}
+
+/**
+ * Lists available templates in the templates directory with their metadata
+ * @returns {Promise<Array<{name: string, path: string, title: string, subtitle: string}>>} Array of template objects with name, path, and metadata
+ */
+function listTemplatesWithMetadata() {
   try {
-    // Create templates directory if it doesn't exist
     const templatesDir = path.join(__dirname, 'templates');
     if (!fs.existsSync(templatesDir)) {
       fs.mkdirSync(templatesDir, { recursive: true });
+      return [];
     }
 
-    // Show save dialog with templates directory as default path
-    const { canceled, filePath: selectedPath } = await dialog.showSaveDialog(window, {
-      title: 'Save Video Assembly As Template',
-      defaultPath: path.join(templatesDir, 'template.json'),
-      filters: [
-        { name: 'Template Files', extensions: ['json'] },
-        { name: 'All Files', extensions: ['*'] }
-      ],
-      properties: ['createDirectory', 'showOverwriteConfirmation']
-    });
+    const files = fs.readdirSync(templatesDir);
+    const templates = files
+      .filter(file => file.toLowerCase().endsWith('.json'))
+      .map(file => {
+        const templatePath = path.join(templatesDir, file);
+        const templateName = path.basename(file, '.json');
+        
+        // Try to read title and subtitle from the template
+        let title = '';
+        let subtitle = '';
+        let description = '';
+        
+        try {
+          const content = JSON.parse(fs.readFileSync(templatePath, 'utf-8'));
+          if (content.cut) {
+            title = content.cut.title || '';
+            subtitle = content.cut.subtitle || '';
+            description = content.cut.description || '';
+          }
+        } catch (err) {
+          console.error(`Error reading template metadata for ${templateName}:`, err);
+        }
+        
+        return {
+          name: templateName,
+          path: templatePath,
+          title,
+          subtitle,
+          description
+        };
+      });
+    
+    return templates;
+  } catch (error) {
+    console.error('Error listing templates:', error);
+    return [];
+  }
+}
 
-    if (canceled || !selectedPath) {
-      console.log('Save template was canceled');
+/**
+ * Lists available templates in the templates directory
+ * @returns {Array<{name: string, path: string}>} Array of template objects with name and path
+ */
+function listTemplates() {
+  const templates = listTemplatesWithMetadata();
+  return templates.map(({ name, path }) => ({ name, path }));
+}
+
+/**
+ * Creates a new video assembly from a template
+ * @param {BrowserWindow} window - The parent window for the dialog
+ * @param {string} templatePath - Path to the template file
+ * @param {Object} metadata - Metadata for the new assembly (title, subtitle)
+ * @returns {Promise<{filePath: string, content: Object}|null>} The new file path and content, or null if canceled
+ */
+async function createVideoAssemblyFromTemplate(window, templatePath, metadata) {
+  try {
+    // Read the template file
+    const templateContent = fs.readFileSync(templatePath, 'utf-8');
+    const template = JSON.parse(templateContent);
+    
+    // Update the template with the provided metadata
+    if (template.cut) {
+      // Set title to user-defined value, but set subtitle and description to blank
+      template.cut.title = metadata.title || template.cut.title || '';
+      template.cut.subtitle = ''; // Always set to blank
+      template.cut.description = ''; // Always set to blank
+    } else {
+      // If the template doesn't have a cut property, create a basic structure
+      template.cut = {
+        title: metadata.title || '',
+        subtitle: '', // Always blank
+        description: '', // Always blank
+        segments: []
+      };
+    }
+    
+    // Save the file using our generic function
+    const filePath = await saveJsonFileWithDialog(window, template, {
+      defaultDir: path.join(__dirname, 'video_assemblies'),
+      defaultFilename: `${metadata.title || 'new_video_assembly'}.json`,
+      dialogTitle: 'Save New Video Assembly'
+    });
+    
+    if (!filePath) {
       return null;
     }
-
-    let filePath = selectedPath;
     
-    // Ensure the file has a .json extension
-    if (!filePath.toLowerCase().endsWith('.json')) {
-      filePath += '.json';
-    }
-
-    // Convert content to JSON string
-    const jsonContent = JSON.stringify(content, null, 2);
-    
-    // Write to file
-    fs.writeFileSync(filePath, jsonContent, 'utf-8');
-    console.log(`Template saved to: ${filePath}`);
-    
-    return filePath;
+    return {
+      filePath,
+      content: template
+    };
   } catch (error) {
-    console.error('Error saving template:', error);
+    console.error('Error creating video assembly from template:', error);
     dialog.showErrorBox(
-      'Error Saving Template',
-      `An error occurred while saving the template: ${error.message}`
+      'Error Creating Video Assembly',
+      `An error occurred while creating the video assembly: ${error.message}`
     );
     return null;
   }
@@ -170,5 +284,8 @@ async function saveVideoAssemblyAsTemplate(window, content) {
 module.exports = {
   openVideoAssembly,
   saveVideoAssembly,
-  saveVideoAssemblyAsTemplate
+  saveVideoAssemblyAsTemplate,
+  listTemplates,
+  listTemplatesWithMetadata,
+  createVideoAssemblyFromTemplate
 };

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Select Template</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      margin: 15px;
+      color: #333;
+      background-color: #f5f5f5;
+      min-height: 450px; /* Suggest minimum height to Electron */
+    }
+    h1 {
+      font-size: 18px;
+      margin-bottom: 12px;
+    }
+    .form-group {
+      margin-bottom: 12px;
+    }
+    label {
+      display: block;
+      margin-bottom: 4px;
+      font-weight: bold;
+    }
+    select, input {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+      font-size: 14px;
+    }
+    .template-info {
+      margin-top: 8px;
+      padding: 8px;
+      background-color: #eee;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+    .template-info p {
+      margin: 5px 0;
+    }
+    .description-area {
+      width: 100%;
+      height: 80px; /* Reduced from 100px to 80px */
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+      font-size: 14px;
+      resize: none;
+      background-color: #f9f9f9;
+      overflow-y: auto;
+    }
+    .buttons {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 15px;
+    }
+    button {
+      padding: 8px 16px;
+      margin-left: 10px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    #cancel-btn {
+      background-color: #f1f1f1;
+      color: #333;
+    }
+    #save-btn {
+      background-color: #007bff;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <h1>Create New Video Assembly</h1>
+  
+  <div class="form-group">
+    <label for="template-select">From Template:</label>
+    <select id="template-select"></select>
+    
+    <div class="template-info" id="template-info">
+      <p><strong></strong> <span id="template-title"></span></p>
+      <p><strong></strong> <span id="template-subtitle"></span></p>
+      <textarea id="description-area" class="description-area" readonly></textarea>
+    </div>
+  </div>
+  
+  <div class="form-group">
+    <label for="title-input">Video Title:</label>
+    <input type="text" id="title-input">
+  </div>
+  
+  <div class="buttons">
+    <button id="cancel-btn">Cancel</button>
+    <button id="save-btn">Create & Save As</button>
+  </div>
+
+  <script>
+    const { ipcRenderer } = require('electron');
+    
+    // When the window loads, request template data from the main process
+    window.addEventListener('DOMContentLoaded', () => {
+      // Request templates data
+      ipcRenderer.send('get-templates');
+      
+      // Resize the window to be taller
+      try {
+        // Try to resize using IPC
+        ipcRenderer.send('resize-template-dialog', { width: 400, height: 500 });
+        
+        // As a fallback, try to use direct window sizing if available
+        if (window.innerHeight < 500) {
+          // Inform the main process that we need more height
+          ipcRenderer.send('template-dialog-needs-more-height');
+        }
+      } catch (error) {
+        console.error('Failed to resize window:', error);
+      }
+    });
+    
+    // Handle template data received from main process
+    ipcRenderer.on('templates-data', (event, templates) => {
+      const templateSelect = document.getElementById('template-select');
+      
+      // Clear any existing options
+      templateSelect.innerHTML = '';
+      
+      // Add options for each template
+      templates.forEach((template, index) => {
+        const option = document.createElement('option');
+        option.value = index;
+        option.textContent = template.name;
+        templateSelect.appendChild(option);
+      });
+      
+      // Show info for the first template
+      if (templates.length > 0) {
+        updateTemplateInfo(templates[0]);
+        
+        // Leave title input empty - user must enter a title
+        document.getElementById('title-input').value = '';
+      }
+      
+      // Add change event listener to update info when selection changes
+      templateSelect.addEventListener('change', () => {
+        const selectedIndex = parseInt(templateSelect.value);
+        updateTemplateInfo(templates[selectedIndex]);
+        
+        // Keep title input as is - don't update with template title
+      });
+    });
+    
+    // Update the template info display
+    function updateTemplateInfo(template) {
+      document.getElementById('template-title').textContent = template.title || 'None';
+      document.getElementById('template-subtitle').textContent = template.subtitle || 'None';
+      document.getElementById('description-area').value = template.description || 'None';
+    }
+    
+    // Handle cancel button click
+    document.getElementById('cancel-btn').addEventListener('click', () => {
+      ipcRenderer.send('template-dialog-canceled');
+    });
+    
+    // Handle save button click
+    document.getElementById('save-btn').addEventListener('click', () => {
+      const templateIndex = parseInt(document.getElementById('template-select').value);
+      const title = document.getElementById('title-input').value.trim();
+      
+      // Validate that a title is entered
+      if (!title) {
+        alert('Please enter a video title before saving.');
+        document.getElementById('title-input').focus();
+        return;
+      }
+      
+      ipcRenderer.send('template-dialog-save', {
+        templateIndex,
+        title
+      });
+    });
+  </script>
+</body>
+</html>

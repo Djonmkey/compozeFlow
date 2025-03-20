@@ -4,6 +4,151 @@
   <meta charset="UTF-8">
   <title>compozeFlow</title>
   <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Getting Started Page Styles */
+    #getting-started-container {
+      display: none; /* Initially hidden, will be shown when no file is active */
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #f5f5f5;
+      z-index: 1000;
+      overflow-y: auto;
+    }
+    
+    .getting-started-content {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    .getting-started-header {
+      text-align: center;
+      padding: 20px 0;
+      margin-bottom: 30px;
+    }
+    
+    .getting-started-header h1 {
+      font-size: 32px;
+      margin-bottom: 10px;
+      color: #2c3e50;
+    }
+    
+    .getting-started-header p {
+      color: #7f8c8d;
+    }
+    
+    .quick-actions {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin: 30px 0;
+    }
+    
+    .action-button {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      width: 200px;
+    }
+    
+    .action-button:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+    }
+    
+    .action-button img {
+      width: 64px;
+      height: 64px;
+      margin-bottom: 15px;
+    }
+    
+    .action-button h3 {
+      margin: 0;
+      text-align: center;
+    }
+    
+    .action-button p {
+      margin: 10px 0 0;
+      text-align: center;
+      font-size: 14px;
+      color: #666;
+    }
+    
+    .section {
+      background-color: #fff;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    }
+    
+    .section h2 {
+      font-size: 24px;
+      margin-top: 0;
+      margin-bottom: 15px;
+      color: #2c3e50;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 8px;
+    }
+    
+    .faq-item {
+      margin-bottom: 15px;
+    }
+    
+    .faq-question {
+      font-weight: bold;
+      margin-bottom: 5px;
+      color: #2c3e50;
+    }
+    
+    .faq-answer {
+      margin-left: 15px;
+    }
+    
+    .contribute-links {
+      display: flex;
+      justify-content: space-around;
+      flex-wrap: wrap;
+      margin-top: 15px;
+    }
+    
+    .contribute-link {
+      display: inline-block;
+      padding: 10px 15px;
+      background-color: #3498db;
+      color: white;
+      text-decoration: none;
+      border-radius: 4px;
+      margin: 5px;
+      transition: background-color 0.2s;
+    }
+    
+    .contribute-link:hover {
+      background-color: #2980b9;
+    }
+    
+    .tip {
+      background-color: #f8f9fa;
+      border-left: 4px solid #3498db;
+      padding: 10px 15px;
+      margin: 15px 0;
+    }
+    
+    .tip-title {
+      font-weight: bold;
+      color: #3498db;
+      margin-bottom: 5px;
+    }
+  </style>
 </head>
 <body>
   <div id="app">
@@ -41,6 +186,8 @@
 
     <!-- Main section -->
     <div id="main-section">
+      <!-- Render options will be inserted here by renderOptionsDisplay.js -->
+      
       <!-- Tabs -->
       <div id="tabs-container">
         <div class="tab">Timeline</div>
@@ -48,6 +195,7 @@
         <div class="tab">Mixed Audio</div>
         <div class="tab">Output</div>
         <div class="tab">General</div>
+        <div class="tab">Render</div>
         <div class="tab">Raw</div>
       </div>
 
@@ -57,9 +205,103 @@
         <p>This is a placeholder for the central editing area, akin to the text editor in VS Code.</p>
       </div>
 
+      <!-- Terminal resize handle -->
+      <div id="terminal-resize-handle"></div>
+
       <!-- Terminal section -->
       <div id="terminal">
         <p>Terminal output will appear here...</p>
+      </div>
+    </div>
+    
+    <!-- Getting Started Container -->
+    <div id="getting-started-container">
+      <div class="getting-started-content">
+        <div class="getting-started-header">
+          <h1>Welcome to compozeFlow</h1>
+          <p>An open-source video batch processing framework</p>
+        </div>
+
+        <div class="quick-actions">
+          <div class="action-button" id="new-assembly-btn">
+            <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzNhYTc1NyI+PHBhdGggZD0iTTE5IDEzaC02djZoLTJ2LTZINXYtMmg2VjVoMnY2aDZ2MnoiLz48L3N2Zz4=" alt="New">
+            <h3>New Video Assembly</h3>
+            <p>Create a new video assembly from a template</p>
+          </div>
+          <div class="action-button" id="open-assembly-btn">
+            <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzQyODVmNCI+PHBhdGggZD0iTTIwIDZoLThsLTItMkg0Yy0xLjEgMC0xLjk5LjktMS45OSAyTDIgMThjMCAxLjEuOSAyIDIgMmgxNmMxLjEgMCAyLS45IDItMlY4YzAtMS4xLS45LTItMi0yem0wIDEySDRWOGgxNnYxMHoiLz48L3N2Zz4=" alt="Open">
+            <h3>Open Video Assembly</h3>
+            <p>Open an existing video assembly file</p>
+          </div>
+        </div>
+
+        <div class="section">
+          <h2>About compozeFlow</h2>
+          <p>compozeFlow is a powerful open-source video batch processing framework designed to streamline the creation and editing of video content. Whether you're a content creator, marketer, or video enthusiast, compozeFlow provides the tools you need to efficiently produce high-quality videos.</p>
+          <p>With compozeFlow, you can:</p>
+          <ul>
+            <li>Create video assemblies from templates</li>
+            <li>Process multiple video files in batches</li>
+            <li>Apply consistent styling and branding across videos</li>
+            <li>Automate repetitive video editing tasks</li>
+            <li>Export videos in various formats and resolutions</li>
+          </ul>
+        </div>
+
+        <div class="section">
+          <h2>Tips & Tricks</h2>
+          
+          <div class="tip">
+            <div class="tip-title">Organize Your Content Sources</div>
+            <p>Keep your video files organized in dedicated folders to make them easier to find and use in your video assemblies.</p>
+          </div>
+          
+          <div class="tip">
+            <div class="tip-title">Use Templates for Consistency</div>
+            <p>Create and save templates for recurring video types to maintain a consistent style and save time on future projects.</p>
+          </div>
+          
+          <div class="tip">
+            <div class="tip-title">Keyboard Shortcuts</div>
+            <p>Learn the keyboard shortcuts to speed up your workflow. Press <strong>Ctrl+N</strong> (or <strong>Cmd+N</strong> on Mac) for a new video assembly and <strong>Ctrl+O</strong> (or <strong>Cmd+O</strong> on Mac) to open an existing one.</p>
+          </div>
+        </div>
+
+        <div class="section">
+          <h2>Frequently Asked Questions</h2>
+          
+          <div class="faq-item">
+            <div class="faq-question">What file formats does compozeFlow support?</div>
+            <div class="faq-answer">compozeFlow supports most common video formats including MP4, AVI, MOV, MKV, and more. It also supports various audio formats (MP3, WAV, AAC) and image formats (JPG, PNG, GIF).</div>
+          </div>
+          
+          <div class="faq-item">
+            <div class="faq-question">Can I create my own templates?</div>
+            <div class="faq-answer">Yes! You can create custom templates by saving any video assembly as a template. This allows you to reuse your preferred structure and settings for future projects.</div>
+          </div>
+          
+          <div class="faq-item">
+            <div class="faq-question">How do I add content sources to my project?</div>
+            <div class="faq-answer">You can add content sources by clicking on the "Add Content Source" button in the Content Sources panel and selecting a folder containing your media files.</div>
+          </div>
+          
+          <div class="faq-item">
+            <div class="faq-question">Where are my video assemblies saved?</div>
+            <div class="faq-answer">By default, video assemblies are saved in the "video_assemblies" folder in the application directory, but you can choose to save them anywhere on your computer.</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h2>Contribute to compozeFlow</h2>
+          <p>compozeFlow is an open-source project, and we welcome contributions from the community. Whether you're a developer, designer, or documentation writer, there are many ways to get involved:</p>
+          
+          <div class="contribute-links">
+            <a href="https://github.com/compozeFlow/compozeFlow" class="contribute-link" id="github-link">GitHub Repository</a>
+            <a href="https://compozeflow.org/docs" class="contribute-link" id="docs-link">Documentation</a>
+            <a href="https://compozeflow.org/community" class="contribute-link" id="community-link">Join Community</a>
+            <a href="https://compozeflow.org/issues" class="contribute-link" id="issues-link">Report Issues</a>
+          </div>
+        </div>
       </div>
     </div>
   </div>
