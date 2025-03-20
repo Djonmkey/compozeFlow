@@ -1,4 +1,4 @@
-from moviepy import VideoFileClip
+from moviepy import *
 from image_helper import append_image
 from video_utility import crop_video_to_aspect_ratio
 from text_helper import append_watermark
@@ -12,6 +12,12 @@ def load_video_clip(video_clip_meta, aspect_ratio, render_settings, video_clips_
 
     video_clip = VideoFileClip(video_path)
     video_clips_to_close.append(video_clip)
+
+    if "volume" in video_clip_meta:
+        volume = float(video_clip_meta.get("volume", 1.0))
+        boosted_clip = video_clip.with_volume_scaled(volume)
+        video_clips_to_close.append(boosted_clip)
+        video_clip = boosted_clip
 
     # Debug: Check FPS
     print(f"Video FPS: {video_clip.fps}")
