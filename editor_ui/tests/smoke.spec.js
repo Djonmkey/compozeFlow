@@ -16,32 +16,20 @@ const { renderBarTests } = require('./modules/render_bar');
  * Note: All tests are run in headed mode
  */
 
-test('Welcome screen loads and can create a new video assembly', async ({ page }) => {
-  console.log('Starting smoke test: Welcome screen and new video assembly');
+test('Welcome screen tests', async ({ page }) => {
+  console.log('Starting smoke test: Welcome screen tests');
   
   let electronApp;
   
   try {
-    // Launch Electron app
-    electronApp = await electron.launch({
-      args: [path.join(__dirname, '..')],
-      env: {
-        NODE_ENV: 'test'
-      }
-    });
-    
-    console.log('Electron app launched');
-    
-    // Test the welcome screen loads
-    await welcomeScreenTests.testWelcomeScreenLoads({ page, electronApp });
-    
-    // Test clicking the New Video Assembly button
-    await welcomeScreenTests.testClickNewVideoAssembly({ page, electronApp });
+    // Run all welcome screen tests
+    const result = await welcomeScreenTests.runAllTests({ page, electronApp });
+    electronApp = result.electronApp;
     
     // Test creating a new video assembly
     await createNewVideoAssemblyDialogTests.testCreateNewVideoAssembly({ page, electronApp });
     
-    console.log('Welcome screen and new video assembly tests completed successfully');
+    console.log('Welcome screen tests completed successfully');
   } finally {
     // Close the app
     if (electronApp) {

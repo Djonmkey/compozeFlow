@@ -32,21 +32,9 @@ test('Welcome screen and new video assembly dialog', async ({ page }) => {
   let electronApp;
   
   try {
-    // Launch Electron app
-    electronApp = await electron.launch({
-      args: [path.join(__dirname, '..')],
-      env: {
-        NODE_ENV: 'test'
-      }
-    });
-    
-    console.log('Electron app launched');
-    
-    // Test the welcome screen loads
-    await welcomeScreenTests.testWelcomeScreenLoads({ page, electronApp });
-    
-    // Test clicking the New Video Assembly button
-    await welcomeScreenTests.testClickNewVideoAssembly({ page, electronApp });
+    // Run all welcome screen tests
+    const result = await welcomeScreenTests.runAllTests({ page, electronApp });
+    electronApp = result.electronApp;
     
     // Test the dialog loads
     await createNewVideoAssemblyDialogTests.testDialogLoads({ page, electronApp });
