@@ -60,8 +60,9 @@ function createWindow() {
   // Load the main HTML file from the appropriate location
   mainWindow.loadFile(path.join(basePath, 'index.html'));
 
-  // Open DevTools automatically for debugging
-  mainWindow.webContents.openDevTools();
+  // DevTools are toggled off by default
+  // Uncomment the line below to open DevTools automatically for debugging
+  // mainWindow.webContents.openDevTools();
 
   mainWindow.on('closed', () => {
     mainWindow = null;
