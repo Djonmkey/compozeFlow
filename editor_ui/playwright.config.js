@@ -15,12 +15,21 @@ module.exports = defineConfig({
     actionTimeout: 0,
     trace: 'on-first-retry',
     video: 'on',
-    screenshot: 'on'
+    screenshot: 'on',
+    headless: false, // Always run in headed mode
   },
   projects: [
     {
+      name: 'smoke',
+      testMatch: /.*\.smoke\.spec\.js/,
+    },
+    {
+      name: 'regression',
+      testMatch: /.*\.regression\.spec\.js/,
+    },
+    {
       name: 'electron',
-      testMatch: /.*\.spec\.js/,
+      testMatch: /^(?!.*\.(smoke|regression)\.spec\.js$).*\.spec\.js$/,
     },
   ],
 });

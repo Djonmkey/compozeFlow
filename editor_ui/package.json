@@ -12,7 +12,9 @@
         "test": "playwright test",
         "test:ui": "playwright test --headed",
         "test:debug": "playwright test --debug",
-        "test:new-assembly": "playwright test tests/ui/new-video-assembly.spec.js --headed"
+        "test:new-assembly": "playwright test tests/ui/new-video-assembly.spec.js --headed",
+        "smoke": "playwright test --project=smoke",
+        "regression": "playwright test --project=regression"
     },
     "dependencies": {
         "electron": "^35.0.0",
