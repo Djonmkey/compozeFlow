@@ -77,17 +77,17 @@ let saveAsTemplateMenuItem;
 // Function to update menu items based on whether there's an active file
 function updateMenuItems() {
   const hasActiveFile = currentFilePath !== null;
-  
+
   // Update menu items
   if (saveMenuItem) saveMenuItem.enabled = hasActiveFile;
   if (saveAsMenuItem) saveAsMenuItem.enabled = hasActiveFile;
   if (saveAsTemplateMenuItem) saveAsTemplateMenuItem.enabled = hasActiveFile;
-  
+
   // Notify the renderer process about the file state change
   if (mainWindow && mainWindow.webContents) {
     mainWindow.webContents.send('file-state-changed', { hasActiveFile });
   }
-  
+
   console.log(`Menu items updated. Active file: ${hasActiveFile ? 'Yes' : 'No'}`);
 }
 
@@ -115,12 +115,31 @@ function createMenu() {
       label: 'File',
       submenu: [
         {
+          label: 'Return to Welcome',
+          click: () => {
+            // Clear the current file path to trigger showing the welcome screen
+            currentFilePath = null;
+
+            // Notify the renderer process about the file state change
+            if (mainWindow && mainWindow.webContents) {
+              // Send a message to clear the video assembly data
+              mainWindow.webContents.send('clear-video-assembly-data');
+
+              // Send a message to update the file state
+              mainWindow.webContents.send('file-state-changed', { hasActiveFile: false });
+            }
+
+            console.log('Returning to welcome screen');
+          }
+        },
+        { type: 'separator' },
+        {
           label: 'New Video Assembly',
           click: async () => {
             try {
               // Get list of available templates with metadata
               const templates = fileOps.listTemplatesWithMetadata();
-              
+
               if (templates.length === 0) {
                 dialog.showMessageBox(mainWindow, {
                   type: 'error',
@@ -129,7 +148,7 @@ function createMenu() {
                 });
                 return;
               }
-              
+
               // Create a new browser window for the template selector
               const templateSelectorWindow = new BrowserWindow({
                 parent: mainWindow,
@@ -144,36 +163,36 @@ function createMenu() {
                   contextIsolation: false
                 }
               });
-              
+
               // Load the template selector HTML file
               templateSelectorWindow.loadFile(path.join(__dirname, 'template_selector.html'));
-              
+
               // Hide the menu bar
               templateSelectorWindow.setMenuBarVisibility(false);
-              
+
               // Handle template data request
               ipcMain.once('get-templates', (event) => {
                 event.sender.send('templates-data', templates);
               });
-              
+
               // Handle cancel button
               ipcMain.once('template-dialog-canceled', () => {
                 templateSelectorWindow.close();
               });
-              
+
               // Handle save button
               ipcMain.once('template-dialog-save', async (event, data) => {
                 const selectedTemplate = templates[data.templateIndex];
                 console.log(`Selected template: ${selectedTemplate.name}`);
-                
+
                 // Close the window before async operations but after getting the data we need
                 templateSelectorWindow.close();
-                
+
                 try {
                   // Read the template file
                   const templateContent = fs.readFileSync(selectedTemplate.path, 'utf-8');
                   const template = JSON.parse(templateContent);
-                  
+
                   // Update the template with the provided metadata
                   if (template.cut) {
                     // Set title to user-defined value, but clear subtitle and description
@@ -189,19 +208,19 @@ function createMenu() {
                       segments: []
                     };
                   }
-                  
+
                   // Load the template as the active video assembly but with no file path
                   currentFilePath = null; // Clear the path to prevent editing the template
-                  
+
                   // Send the loaded content to the renderer process
                   mainWindow.webContents.send('video-assembly-opened', template);
                   // Also send the file path (null)
                   mainWindow.webContents.send('current-file-path', currentFilePath);
                   console.log("Template loaded as new video assembly");
-                  
+
                   // Update menu items after setting currentFilePath
                   updateMenuItems();
-                  
+
                   // Programmatically trigger "Save Video Assembly As" from the file menu
                   setTimeout(() => {
                     const fileMenu = Menu.getApplicationMenu().items.find(item => item.label === 'File');
@@ -212,7 +231,7 @@ function createMenu() {
                       }
                     }
                   }, 500); // Small delay to ensure UI is updated
-                  
+
                 } catch (error) {
                   console.error("Error creating video assembly from template:", error);
                   dialog.showErrorBox(
@@ -221,7 +240,7 @@ function createMenu() {
                   );
                 }
               });
-              
+
             } catch (error) {
               console.error('Error creating new video assembly:', error);
               dialog.showErrorBox(
@@ -255,7 +274,7 @@ function createMenu() {
               // Check if we have a current file path
               if (!currentFilePath) {
                 console.log("No file path, redirecting to Save As...");
-                
+
                 // Programmatically trigger "Save Video Assembly As" from the file menu
                 const fileMenu = Menu.getApplicationMenu().items.find(item => item.label === 'File');
                 if (fileMenu && fileMenu.submenu) {
@@ -265,7 +284,7 @@ function createMenu() {
                     return;
                   }
                 }
-                
+
                 // Fallback if menu item not found
                 dialog.showMessageBox(mainWindow, {
                   type: 'info',
@@ -274,10 +293,10 @@ function createMenu() {
                 });
                 return;
               }
-              
+
               // Get the current content from the renderer
               mainWindow.webContents.send('request-current-content');
-              
+
               // Set up a one-time listener for the response
               ipcMain.once('current-content-response', async (event, content) => {
                 try {
@@ -309,7 +328,7 @@ function createMenu() {
             try {
               // Get the current content from the renderer
               mainWindow.webContents.send('request-current-content');
-              
+
               // Set up a one-time listener for the response
               ipcMain.once('current-content-response', async (event, content) => {
                 try {
@@ -321,16 +340,16 @@ function createMenu() {
                     });
                     return;
                   }
-                  
+
                   // Save with a new name/location
                   const filePath = await fileOps.saveVideoAssembly(mainWindow, content);
                   if (filePath) {
                     currentFilePath = filePath;
                     console.log("Video assembly saved to:", filePath);
-                    
+
                     // Send the current file path to the renderer process
                     mainWindow.webContents.send('current-file-path', currentFilePath);
-                    
+
                     updateMenuItems(); // Update menu items after setting currentFilePath
                   }
                 } catch (error) {
@@ -357,7 +376,7 @@ function createMenu() {
             try {
               // Get the current content from the renderer
               mainWindow.webContents.send('request-current-content');
-              
+
               // Set up a one-time listener for the response
               ipcMain.once('current-content-response', async (event, content) => {
                 try {
@@ -369,7 +388,7 @@ function createMenu() {
                     });
                     return;
                   }
-                  
+
                   // Save as template
                   const filePath = await fileOps.saveVideoAssemblyAsTemplate(mainWindow, content);
                   if (filePath) {
@@ -453,14 +472,14 @@ function createMenu() {
 
   const menu = Menu.buildFromTemplate(template);
   Menu.setApplicationMenu(menu);
-  
+
   // Store references to menu items that need to be updated
   const fileMenu = menu.items.find(item => item.label === 'File');
   if (fileMenu && fileMenu.submenu) {
     saveMenuItem = fileMenu.submenu.items.find(item => item.label === 'Save Video Assembly');
     saveAsMenuItem = fileMenu.submenu.items.find(item => item.label === 'Save Video Assembly As');
     saveAsTemplateMenuItem = fileMenu.submenu.items.find(item => item.label === 'Save Video Assembly As Template');
-    
+
     // Initialize menu items based on current state
     updateMenuItems();
   }
@@ -498,12 +517,12 @@ ipcMain.handle('show-open-folder-dialog', async (event) => {
       title: 'Add Content Source',
       properties: ['openDirectory']
     });
-    
+
     if (canceled || filePaths.length === 0) {
       console.log('Folder selection was canceled');
       return { canceled: true };
     }
-    
+
     return { canceled: false, folderPath: filePaths[0] };
   } catch (error) {
     console.error('Error showing open folder dialog:', error);
@@ -519,12 +538,12 @@ ipcMain.handle('show-output-path-dialog', async (event, title = 'Select Output P
       title: title,
       properties: ['openDirectory', 'createDirectory']
     });
-    
+
     if (canceled || filePaths.length === 0) {
       console.log('Output path selection was canceled');
       return { canceled: true };
     }
-    
+
     console.log('Selected output path:', filePaths[0]);
     return { canceled: false, folderPath: filePaths[0] };
   } catch (error) {
@@ -537,7 +556,7 @@ ipcMain.handle('show-output-path-dialog', async (event, title = 'Select Output P
 ipcMain.handle('show-open-file-dialog', async (event, filters = []) => {
   try {
     console.log('Showing open file dialog for clip selection');
-    
+
     // If no filters provided, use default ones
     if (!filters || filters.length === 0) {
       filters = [
@@ -545,18 +564,18 @@ ipcMain.handle('show-open-file-dialog', async (event, filters = []) => {
         { name: 'All Files', extensions: ['*'] }
       ];
     }
-    
+
     const { canceled, filePaths } = await dialog.showOpenDialog(mainWindow, {
       title: 'Select Media File',
       filters: filters,
       properties: ['openFile']
     });
-    
+
     if (canceled || filePaths.length === 0) {
       console.log('File selection was canceled');
       return { canceled: true };
     }
-    
+
     console.log('Selected file path:', filePaths[0]);
     return { canceled: false, filePath: filePaths[0] };
   } catch (error) {
@@ -574,13 +593,13 @@ ipcMain.handle('save-video-assembly-data', async (event, videoAssemblyData) => {
       if (filePath) {
         currentFilePath = filePath;
         console.log("Video assembly saved to:", currentFilePath);
-        
+
         // Send the current file path to the renderer process
         mainWindow.webContents.send('current-file-path', currentFilePath);
-        
+
         // Update menu items after setting currentFilePath
         updateMenuItems();
-        
+
         return { success: true, filePath: currentFilePath };
       } else {
         console.log("Save was canceled");

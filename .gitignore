@@ -176,3 +176,11 @@ compozeflow/temp_video_pipeline_clip_*
 editor_ui/node_modules/*
 editor_ui/video_assemblies/*
 render_engine/.vscode/launch.json
+editor_ui/playwright-report/index.html
+editor_ui/playwright-report/data/*.webm
+editor_ui/playwright-report/data/*.png
+editor_ui/test-results/.last-run.json
+editor_ui/test-results/*.png
+editor_ui/test-results/*.webm
+editor_ui/tests/*.png
+

@@ -61,6 +61,12 @@ if (electronSetup.isElectron && electronSetup.ipcRenderer) {
     }
   });
   
+  // Listen for clear video assembly data request from the main process
+  electronSetup.ipcRenderer.on('clear-video-assembly-data', (event) => {
+    console.log('Clearing video assembly data');
+    videoAssemblyManager.clearVideoAssemblyData();
+  });
+  
   // Listen for requests to get the current content
   electronSetup.ipcRenderer.on('request-current-content', (event) => {
     console.log('Main process requested current content');
