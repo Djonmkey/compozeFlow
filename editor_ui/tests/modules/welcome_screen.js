@@ -119,14 +119,23 @@ exports.welcomeScreenTests = {
     // Wait for the dialog to appear - increase timeout to ensure dialog is fully loaded
     await window.waitForTimeout(3000);
     
-    // Take a screenshot to verify the dialog appeared
-    await window.screenshot({ path: path.join(__dirname, '../../tests/new-video-assembly-dialog.png') });
+    // Get all BrowserWindow instances
+    const allWindows = await electronApp.windows();
+    console.log(`Found ${allWindows.length} windows`);
     
-    // Verify the dialog elements are present
-    const createButton = await window.$$('button:has-text("Create & Save As"), button:has-text("Save")');
+    // The template selector should be the most recently created window
+    // It should be the second window (index 1) if there are multiple windows
+    const dialogWindow = allWindows.length > 1 ? allWindows[1] : allWindows[0];
+    
+    // Take a screenshot of the dialog window
+    await dialogWindow.screenshot({ path: path.join(__dirname, '../../tests/new-video-assembly-dialog.png') });
+    
+    // Verify the dialog elements are present in the dialog window
+    const createButton = await dialogWindow.$$('button#save-btn, button#cancel-btn');
+    console.log(`Found ${createButton.length} buttons in the dialog`);
     expect(createButton.length).toBeGreaterThan(0);
     
-    return { window, electronApp };
+    return { window, electronApp, dialogWindow };
   },
   
   /**

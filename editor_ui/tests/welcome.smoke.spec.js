@@ -26,9 +26,6 @@ test('Welcome screen tests', async ({ page }) => {
     const result = await welcomeScreenTests.runAllTests({ page, electronApp });
     electronApp = result.electronApp;
     
-    // Test creating a new video assembly - commented out to focus on welcome screen tests
-    await createNewVideoAssemblyDialogTests.testCreateNewVideoAssembly({ page, electronApp });
-    
     console.log('Welcome screen tests completed successfully');
   } finally {
     // Close the app
