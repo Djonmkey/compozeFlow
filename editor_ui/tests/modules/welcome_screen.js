@@ -155,8 +155,8 @@ exports.welcomeScreenTests = {
       }
     });
     
-    // Wait for the dialog to appear
-    await window.waitForTimeout(1000);
+    // Wait for the dialog to appear - increase timeout to ensure dialog is fully loaded
+    await window.waitForTimeout(3000);
     
     // Take a screenshot to verify the dialog appeared
     await window.screenshot({ path: path.join(__dirname, '../../tests/open-video-assembly-dialog.png') });
@@ -190,14 +190,16 @@ exports.welcomeScreenTests = {
       // Test the app loads
       await exports.welcomeScreenTests.testWelcomeScreenLoads({ page, electronApp });
       console.log('App load test completed successfully');
-      
+
+      // Test the Open Video Assembly functionality - commented out to focus on basic welcome screen tests
+      await exports.welcomeScreenTests.testClickOpenVideoAssembly({ page, electronApp });
+      console.log('Open Video Assembly test completed successfully');
+        
       // Test the New Video Assembly functionality - commented out to focus on basic welcome screen tests
       await exports.welcomeScreenTests.testClickNewVideoAssembly({ page, electronApp });
       console.log('New Video Assembly test completed successfully');
       
-      // Test the Open Video Assembly functionality - commented out to focus on basic welcome screen tests
-      await exports.welcomeScreenTests.testClickOpenVideoAssembly({ page, electronApp });
-      console.log('Open Video Assembly test completed successfully');
+
       
       console.log('All welcome screen tests completed successfully');
     } catch (error) {
