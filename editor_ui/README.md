@@ -14,7 +14,7 @@ npm run prod
 To run the smoke tests:
 
 ```bash
-npx playwright smoke --headed
+npm run smoke
 ```
 
 This will run a subset of tests that verify core functionality.
