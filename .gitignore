@@ -181,6 +181,10 @@ editor_ui/playwright-report/
 editor_ui/test-results/.last-run.json
 editor_ui/test-results/*.png
 editor_ui/test-results/*.webm
+# Also ignore when working from within editor_ui directory
+test-results/.last-run.json
+test-results/*.png
+test-results/*.webm
 # Ignore all PNG files in test directories
 editor_ui/tests/*.png
 editor_ui/editor_ui/tests/*.png
