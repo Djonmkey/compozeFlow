@@ -1,0 +1,2 @@
+# Ignore webm files in test-results directory and its subdirectories
+test-results/**/*.webm

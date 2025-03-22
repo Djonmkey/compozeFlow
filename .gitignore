@@ -183,6 +183,7 @@ editor_ui/test-results/*.png
 test-results/**/*.png
 editor_ui/test-results/**/*.png
 editor_ui/test-results/*.webm
+test-results/**/*.webm
 # Also ignore when working from within editor_ui directory
 test-results/.last-run.json
 test-results/*.png
