@@ -180,6 +180,8 @@ render_engine/.vscode/launch.json
 editor_ui/playwright-report/
 editor_ui/test-results/.last-run.json
 editor_ui/test-results/*.png
+test-results/**/*.png
+editor_ui/test-results/**/*.png
 editor_ui/test-results/*.webm
 # Also ignore when working from within editor_ui directory
 test-results/.last-run.json
