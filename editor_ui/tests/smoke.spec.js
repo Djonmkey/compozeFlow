@@ -48,7 +48,7 @@ test('Left icon bar and file menu are functional', async ({ page }) => {
     electronApp = await electron.launch({
       args: [path.join(__dirname, '..')],
       env: {
-        NODE_ENV: 'test'
+        NODE_ENV: 'development'
       }
     });
     
@@ -79,7 +79,7 @@ test('Timeline tab and render bar are functional', async ({ page }) => {
     electronApp = await electron.launch({
       args: [path.join(__dirname, '..')],
       env: {
-        NODE_ENV: 'test'
+        NODE_ENV: 'development'
       }
     });
     

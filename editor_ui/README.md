@@ -1,10 +1,13 @@
 # compozeFlow Video Assembly Editor
 
-## Development
+## Start Development
+npm start
+
+## Build and run Development
 npm run dev
 
-## App
-npm start
+## Build and run Production
+npm run prod
 
 ### Running Smoke Tests
 

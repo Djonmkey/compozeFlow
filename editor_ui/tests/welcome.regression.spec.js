@@ -61,7 +61,7 @@ test('Left icon bar and explorer bar', async ({ page }) => {
     electronApp = await electron.launch({
       args: [path.join(__dirname, '..')],
       env: {
-        NODE_ENV: 'test'
+        NODE_ENV: 'development'
       }
     });
     
@@ -104,7 +104,7 @@ test('File menu and render bar', async ({ page }) => {
     electronApp = await electron.launch({
       args: [path.join(__dirname, '..')],
       env: {
-        NODE_ENV: 'test'
+        NODE_ENV: 'development'
       }
     });
     
@@ -141,7 +141,7 @@ test('Timeline and file tabs', async ({ page }) => {
     electronApp = await electron.launch({
       args: [path.join(__dirname, '..')],
       env: {
-        NODE_ENV: 'test'
+        NODE_ENV: 'development'
       }
     });
     
@@ -178,7 +178,7 @@ test('Render and overlay images tabs', async ({ page }) => {
     electronApp = await electron.launch({
       args: [path.join(__dirname, '..')],
       env: {
-        NODE_ENV: 'test'
+        NODE_ENV: 'development'
       }
     });
     
@@ -215,7 +215,7 @@ test('Mixed audio and output tabs', async ({ page }) => {
     electronApp = await electron.launch({
       args: [path.join(__dirname, '..')],
       env: {
-        NODE_ENV: 'test'
+        NODE_ENV: 'development'
       }
     });
     
@@ -252,7 +252,7 @@ test('General and raw tabs', async ({ page }) => {
     electronApp = await electron.launch({
       args: [path.join(__dirname, '..')],
       env: {
-        NODE_ENV: 'test'
+        NODE_ENV: 'development'
       }
     });
     
@@ -289,7 +289,7 @@ test('Integration with render engine', async ({ page }) => {
     electronApp = await electron.launch({
       args: [path.join(__dirname, '..')],
       env: {
-        NODE_ENV: 'test'
+        NODE_ENV: 'development'
       }
     });
     

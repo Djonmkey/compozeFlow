@@ -12,7 +12,7 @@ test('should launch Electron app', async () => {
     const electronApp = await electron.launch({
       args: [path.join(__dirname, '..')],
       env: {
-        NODE_ENV: 'test'
+        NODE_ENV: 'development'
       }
     });
     

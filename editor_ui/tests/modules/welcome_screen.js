@@ -17,7 +17,7 @@ exports.welcomeScreenTests = {
       electronApp = await electron.launch({
         args: [path.join(__dirname, '../..')],
         env: {
-          NODE_ENV: 'test'
+          NODE_ENV: 'development'
         }
       });
     }
@@ -171,7 +171,7 @@ exports.welcomeScreenTests = {
       electronApp = await electron.launch({
         args: [path.join(__dirname, '../..')],
         env: {
-          NODE_ENV: 'test'
+          NODE_ENV: 'development'
         }
       });
       console.log('Electron app launched');

@@ -15,7 +15,7 @@ test('should click New Video Assembly from welcome screen', async () => {
     const electronApp = await electron.launch({
       args: [path.join(__dirname, '../..')],
       env: {
-        NODE_ENV: 'test'
+        NODE_ENV: 'development'
       }
     });
     
@@ -163,7 +163,7 @@ test('should click Open Video Assembly from welcome screen', async () => {
     const electronApp = await electron.launch({
       args: [path.join(__dirname, '../..')],
       env: {
-        NODE_ENV: 'test'
+        NODE_ENV: 'development'
       }
     });
     
