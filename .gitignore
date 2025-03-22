@@ -182,4 +182,7 @@ editor_ui/playwright-report/data/*.png
 editor_ui/test-results/.last-run.json
 editor_ui/test-results/*.png
 editor_ui/test-results/*.webm
+# Ignore all PNG files in test directories
 editor_ui/tests/*.png
+editor_ui/editor_ui/tests/*.png
+tests/*.png
