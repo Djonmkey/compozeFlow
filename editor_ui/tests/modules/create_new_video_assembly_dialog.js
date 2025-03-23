@@ -247,7 +247,7 @@ exports.createNewVideoAssemblyDialogTests = {
     await titleInput[0].fill(testVideoTitle);
     
     // Wait a moment for the click to take effect
-    await dialogWindow.waitForTimeout(5000);
+    await dialogWindow.waitForTimeout(1000);
 
     // Take a screenshot before clicking Create & Save As
     await dialogWindow.screenshot({ path: path.join(__dirname, '../../tests/before-create-new-assembly.png') });
@@ -295,7 +295,7 @@ exports.createNewVideoAssemblyDialogTests = {
     const mainAppWindow = allAppWindows[0];
     
     // Wait for the app to be fully loaded
-    await mainAppWindow.waitForTimeout(5000);
+    await mainAppWindow.waitForTimeout(1000);
     
     // Handle the system file save dialog by clicking the Save button
     console.log('Clicking Save button on system file save dialog');
@@ -327,7 +327,7 @@ exports.createNewVideoAssemblyDialogTests = {
     const mainWindow = allWindows[0];
     
     // Wait for the app to be fully loaded
-    await mainWindow.waitForTimeout(5000);
+    await mainWindow.waitForTimeout(1000);
     
     // Take a screenshot after creation
     await mainWindow.screenshot({ path: path.join(__dirname, '../../tests/after-create-new-assembly.png') });
@@ -338,7 +338,7 @@ exports.createNewVideoAssemblyDialogTests = {
     expect(windowTitle).toContain(testVideoTitle);
     
     // Allow the user to witness the check
-    await mainWindow.waitForTimeout(5000);
+    await mainWindow.waitForTimeout(10000);
 
     return { window: mainWindow, electronApp: electronApp };
   },
