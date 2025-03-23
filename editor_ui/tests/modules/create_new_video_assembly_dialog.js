@@ -286,14 +286,46 @@ exports.createNewVideoAssemblyDialogTests = {
       }
     }
     
-    // Wait for the dialog to close and the editor to load
-    console.log('Waiting for dialog to close and editor to load');
+    // Wait for the dialog to close and the system file save dialog to appear
+    console.log('Waiting for system file save dialog to appear');
+
+    // Wait for the app to be fully loaded
+    const allAppWindows = await electronApp.windows();
+    const mainAppWindow = allAppWindows[0];
+    
+    // Wait for the app to be fully loaded
+    await mainAppWindow.waitForTimeout(5000);
+    
+    // Handle the system file save dialog by clicking the Save button
+    console.log('Clicking Save button on system file save dialog');
+    try {
+      // Different approaches for different operating systems
+      if (process.platform === 'darwin') {
+        // macOS - use keyboard shortcut Command+S to save
+        await dialogWindow.keyboard.press('Meta+S');
+      } else if (process.platform === 'win32') {
+        // Windows - use keyboard shortcut Alt+S which typically activates the Save button
+        await dialogWindow.keyboard.press('Alt+S');
+        // If that doesn't work, try Enter which often confirms the default action
+        await dialogWindow.waitForTimeout(500);
+        await dialogWindow.keyboard.press('Enter');
+      } else {
+        // Linux or other platforms - try Enter which often confirms the default action
+        await dialogWindow.keyboard.press('Enter');
+      }
+    } catch (error) {
+      console.log(`Error handling system file save dialog: ${error.message}`);
+      // Continue anyway as the dialog might have been handled already
+    }
+    
+    // Wait for the system dialog to close and the editor to load
+    console.log('Waiting for system dialog to close and editor to load');
     
     // Get the main window again (should be the only window after dialog closes)
     const allWindows = await electronApp.windows();
     const mainWindow = allWindows[0];
     
-    // Wait for 2 seconds to ensure the app is fully loaded
+    // Wait for the app to be fully loaded
     await mainWindow.waitForTimeout(5000);
     
     // Take a screenshot after creation
