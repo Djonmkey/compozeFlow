@@ -17,7 +17,8 @@ exports.welcomeScreenTests = {
       electronApp = await electron.launch({
         args: [path.join(__dirname, '../..')],
         env: {
-          NODE_ENV: 'development'
+          NODE_ENV: 'development',
+          PLAYWRIGHT_TEST: 'true' // Set this flag to enable test-friendly behavior
         }
       });
     }
@@ -65,15 +66,30 @@ exports.welcomeScreenTests = {
         await window.evaluate(() => {
           // Clear the current file path to trigger showing the welcome screen
           if (window.electronSetup && window.electronSetup.ipcRenderer) {
-            // First clear the video assembly data
-            window.videoAssemblyManager.clearVideoAssemblyData();
-            
-            // Then set the current video assembly path to null
-            window.videoAssemblyManager.setCurrentVideoAssemblyPath(null);
+            // First clear the video assembly data if videoAssemblyManager exists
+            if (window.videoAssemblyManager) {
+              window.videoAssemblyManager.clearVideoAssemblyData();
+              
+              // Then set the current video assembly path to null
+              window.videoAssemblyManager.setCurrentVideoAssemblyPath(null);
+            } else {
+              console.log('videoAssemblyManager is undefined, cannot clear data');
+            }
             
             // Finally, update the getting started UI visibility
             if (typeof window.updateGettingStartedVisibility === 'function') {
               window.updateGettingStartedVisibility();
+            } else {
+              console.log('updateGettingStartedVisibility function not found');
+              
+              // Alternative approach: try to show the welcome screen directly
+              const gettingStartedContainer = document.getElementById('getting-started-container');
+              if (gettingStartedContainer) {
+                gettingStartedContainer.style.display = 'block';
+                console.log('Directly set getting-started-container to display:block');
+              } else {
+                console.log('getting-started-container element not found');
+              }
             }
             
             console.log('Manually triggered welcome screen display');
@@ -265,7 +281,8 @@ exports.welcomeScreenTests = {
       electronApp = await electron.launch({
         args: [path.join(__dirname, '../..')],
         env: {
-          NODE_ENV: 'development'
+          NODE_ENV: 'development',
+          PLAYWRIGHT_TEST: 'true' // Set this flag to enable test-friendly behavior
         }
       });
       console.log('Electron app launched');

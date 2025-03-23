@@ -16,27 +16,15 @@ exports.explorerBarContentSourcesTests = {
     // First get to the editor with the left icon bar
     const { window } = await leftIconBarTests.testLeftIconBarPresent({ page, electronApp });
     
-    // Look for the content sources button in the left icon bar
-    const contentSourcesButton = await window.$$('button:has-text("Content"), button:has-text("Sources"), button[title*="Content"], button[title*="Sources"]');
+    // Look for the "Add Content Source" button without clicking anything
+    const addContentSourceButton = await window.$$('button:has-text("Add Content Source"), button[title*="Add Content Source"]');
     
-    if (contentSourcesButton.length > 0) {
-      // Click the content sources button
-      await contentSourcesButton[0].click();
-      
-      // Wait for the panel to appear
-      await window.waitForTimeout(500);
-      
-      // Take a screenshot of the content sources panel
-      await window.screenshot({ path: path.join(__dirname, '../../tests/content-sources-panel.png') });
-      
-      // Verify the content sources panel is present
-      const contentSourcesPanel = await window.$$('.content-sources, .explorer-panel, .file-explorer');
-      expect(contentSourcesPanel.length).toBeGreaterThan(0);
-    } else {
-      // If we can't find a specific content sources button, look for any panel that might contain content sources
-      const panels = await window.$$('.panel, .sidebar-panel, .explorer');
-      expect(panels.length).toBeGreaterThan(0);
-    }
+    // Take a screenshot of the current state
+    await window.screenshot({ path: path.join(__dirname, '../../tests/content-sources-panel.png') });
+    
+    // Verify the "Add Content Source" button is present
+    console.log(`Found ${addContentSourceButton.length} "Add Content Source" buttons`);
+    expect(addContentSourceButton.length).toBeGreaterThan(0);
     
     return { window, electronApp };
   },

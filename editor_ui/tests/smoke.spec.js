@@ -10,6 +10,12 @@ const { leftIconBarTests } = require('./modules/left_icon_bar');
 const { fileMenuTests } = require('./modules/file_menu');
 const { tabTimelineTests } = require('./modules/tab_timeline');
 const { renderBarTests } = require('./modules/render_bar');
+const { explorerBarContentSourcesTests } = require('./modules/explorer_bar_content_sources');
+const { tabOverlayImagesTests } = require('./modules/tab_overlay_images');
+const { tabMixedAudioTests } = require('./modules/tab_mixed_audio');
+const { tabOutputTests } = require('./modules/tab_output');
+const { tabRenderTests } = require('./modules/tab_render');
+const { tabRawTests } = require('./modules/tab_raw');
 
 /**
  * Smoke tests for the application
@@ -26,6 +32,33 @@ test('Welcome screen tests', async ({ page }) => {
     const createNewVideoAssemblyResult = await createNewVideoAssemblyDialogTests.testCreateNewVideoAssemblyFromWelcomeScreen({ page, electronApp });
     electronApp = createNewVideoAssemblyResult.electronApp;
     
+    // Ensure the Icon bar is displayed
+    const leftIconBarResult = await leftIconBarTests.testLeftIconBarPresent({ page, electronApp });
+    electronApp = leftIconBarResult.electronApp;
+
+    // Ensure the explorer is displayed
+    const explorerResult = await explorerBarContentSourcesTests.testContentSourcesPanelPresent({ page, electronApp });
+    electronApp = explorerResult.electronApp;
+
+    // Ensure the tabs are displayed
+    const timelineTabResult = await tabTimelineTests.testTimelineTabPresent({ page, electronApp });
+    electronApp = timelineTabResult.electronApp;
+    
+    const overlayImagesTabResult = await tabOverlayImagesTests.testOverlayImagesTabPresent({ page, electronApp });
+    electronApp = overlayImagesTabResult.electronApp;
+    
+    const mixedAudioTabResult = await tabMixedAudioTests.testMixedAudioTabPresent({ page, electronApp });
+    electronApp = mixedAudioTabResult.electronApp;
+    
+    const outputTabResult = await tabOutputTests.testOutputTabPresent({ page, electronApp });
+    electronApp = outputTabResult.electronApp;
+    
+    const renderTabResult = await tabRenderTests.testRenderTabPresent({ page, electronApp });
+    electronApp = renderTabResult.electronApp;
+    
+    const rawTabResult = await tabRawTests.testRawTabPresent({ page, electronApp });
+    electronApp = rawTabResult.electronApp;
+
     console.log('Welcome screen tests completed successfully');
   } finally {
     // Close the app

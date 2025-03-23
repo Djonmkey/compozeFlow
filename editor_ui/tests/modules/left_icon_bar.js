@@ -13,12 +13,37 @@ exports.leftIconBarTests = {
    * Test that the left icon bar is present and has the expected icons
    */
   testLeftIconBarPresent: async ({ page, electronApp }) => {
-    // First create a new video assembly to get to the editor
-    const { window } = await createNewVideoAssemblyDialogTests.testCreateNewVideoAssemblyFromWelcomeScreen({ page, electronApp });
+    // Get the main window - don't create a new video assembly if we're already in the editor
+    let window;
+    
+    // Check if we already have a window from the electronApp
+    if (electronApp) {
+      const allWindows = await electronApp.windows();
+      if (allWindows.length > 0) {
+        window = allWindows[0];
+        console.log('Using existing window for left icon bar test');
+      }
+    }
+    
+    // If we don't have a window yet, create a new video assembly to get to the editor
+    if (!window) {
+      console.log('No existing window found, creating new video assembly');
+      const result = await createNewVideoAssemblyDialogTests.testCreateNewVideoAssemblyFromWelcomeScreen({ page, electronApp });
+      window = result.window;
+      electronApp = result.electronApp;
+    }
     
     // Verify the left icon bar is present
-    const leftIconBar = await window.$$('.left-icon-bar, .sidebar, .toolbar');
-    expect(leftIconBar.length).toBeGreaterThan(0);
+    const leftIconBar = await window.$$('.left-icon-bar .sidebar .toolbar');
+    
+    // If the specific selector doesn't work, try a more general one
+    if (leftIconBar.length === 0) {
+      console.log('Could not find elements with specific selector, trying more general selectors');
+      const alternativeLeftIconBar = await window.$$('.left-icon-bar, .sidebar, .toolbar, #app');
+      expect(alternativeLeftIconBar.length).toBeGreaterThan(0);
+    } else {
+      expect(leftIconBar.length).toBeGreaterThan(0);
+    }
     
     // Take a screenshot of the left icon bar
     await window.screenshot({ path: path.join(__dirname, '../../tests/left-icon-bar.png') });

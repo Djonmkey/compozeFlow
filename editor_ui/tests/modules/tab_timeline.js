@@ -13,8 +13,25 @@ exports.tabTimelineTests = {
    * Test that the timeline tab is present and can be selected
    */
   testTimelineTabPresent: async ({ page, electronApp }) => {
-    // First create a new video assembly to get to the editor
-    const { window } = await createNewVideoAssemblyDialogTests.testCreateNewVideoAssemblyFromWelcomeScreen({ page, electronApp });
+    // Get the main window - don't create a new video assembly if we're already in the editor
+    let window;
+    
+    // Check if we already have a window from the electronApp
+    if (electronApp) {
+      const allWindows = await electronApp.windows();
+      if (allWindows.length > 0) {
+        window = allWindows[0];
+        console.log('Using existing window for timeline tab test');
+      }
+    }
+    
+    // If we don't have a window yet, create a new video assembly to get to the editor
+    if (!window) {
+      console.log('No existing window found, creating new video assembly');
+      const result = await createNewVideoAssemblyDialogTests.testCreateNewVideoAssemblyFromWelcomeScreen({ page, electronApp });
+      window = result.window;
+      electronApp = result.electronApp;
+    }
     
     // Look for the timeline tab
     const timelineTab = await window.$$('button:has-text("Timeline"), .tab:has-text("Timeline"), [role="tab"]:has-text("Timeline")');

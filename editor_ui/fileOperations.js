@@ -83,7 +83,7 @@ async function saveJsonFileWithDialog(window, content, options = {}) {
 
     let finalFilePath = filePath;
 
-    // If no file path is provided (Save As), show a save dialog
+    // If no file path is provided (Save As), check if we're in Playwright test mode
     if (!finalFilePath) {
       // Create the directory if it doesn't exist
       if (!fs.existsSync(defaultDir)) {
@@ -96,22 +96,32 @@ async function saveJsonFileWithDialog(window, content, options = {}) {
         filename = `${content.cut.title}.json`;
       }
       
-      const { canceled, filePath: selectedPath } = await dialog.showSaveDialog(window, {
-        title: dialogTitle,
-        defaultPath: path.join(defaultDir, filename),
-        filters: [
-          { name: 'Video Assembly Files', extensions: ['json'] },
-          { name: 'All Files', extensions: ['*'] }
-        ],
-        properties: ['createDirectory', 'showOverwriteConfirmation']
-      });
+      // Check if we're in Playwright test mode
+      const isPlaywrightTest = process.env.PLAYWRIGHT_TEST === 'true';
+      
+      if (isPlaywrightTest) {
+        // In Playwright test mode, save directly without showing dialog
+        console.log("Playwright test detected in fileOperations - saving directly without dialog");
+        finalFilePath = path.join(defaultDir, filename);
+      } else {
+        // In normal mode, show the Save As dialog
+        const { canceled, filePath: selectedPath } = await dialog.showSaveDialog(window, {
+          title: dialogTitle,
+          defaultPath: path.join(defaultDir, filename),
+          filters: [
+            { name: 'Video Assembly Files', extensions: ['json'] },
+            { name: 'All Files', extensions: ['*'] }
+          ],
+          properties: ['createDirectory', 'showOverwriteConfirmation']
+        });
 
-      if (canceled || !selectedPath) {
-        console.log('Save was canceled');
-        return null;
+        if (canceled || !selectedPath) {
+          console.log('Save was canceled');
+          return null;
+        }
+
+        finalFilePath = selectedPath;
       }
-
-      finalFilePath = selectedPath;
     }
 
     // Ensure the file has a .json extension
@@ -160,11 +170,42 @@ async function saveVideoAssembly(window, content, filePath = null) {
  * @returns {Promise<string|null>} The file path where the template was saved, or null if canceled
  */
 async function saveVideoAssemblyAsTemplate(window, content) {
-  return saveJsonFileWithDialog(window, content, {
-    defaultDir: path.join(__dirname, 'templates'),
-    defaultFilename: 'template.json',
-    dialogTitle: 'Save Video Assembly As Template'
-  });
+  // Check if we're in Playwright test mode
+  const isPlaywrightTest = process.env.PLAYWRIGHT_TEST === 'true';
+  
+  if (isPlaywrightTest) {
+    // In Playwright test mode, save directly without showing dialog
+    console.log("Playwright test detected in saveVideoAssemblyAsTemplate - saving directly without dialog");
+    
+    // Create the directory if it doesn't exist
+    const defaultDir = path.join(__dirname, 'templates');
+    if (!fs.existsSync(defaultDir)) {
+      fs.mkdirSync(defaultDir, { recursive: true });
+    }
+    
+    // Create a filename based on the title or use default
+    let filename = 'template.json';
+    if (content.cut && content.cut.title) {
+      filename = `${content.cut.title}_template.json`;
+    }
+    
+    const filePath = path.join(defaultDir, filename);
+    
+    // Save the file
+    const jsonContent = JSON.stringify(content, null, 2);
+    fs.writeFileSync(filePath, jsonContent, 'utf-8');
+    
+    console.log("Template saved to:", filePath);
+    
+    return filePath;
+  } else {
+    // In normal mode, use the dialog
+    return saveJsonFileWithDialog(window, content, {
+      defaultDir: path.join(__dirname, 'templates'),
+      defaultFilename: 'template.json',
+      dialogTitle: 'Save Video Assembly As Template'
+    });
+  }
 }
 
 /**
@@ -256,12 +297,39 @@ async function createVideoAssemblyFromTemplate(window, templatePath, metadata) {
       };
     }
     
-    // Save the file using our generic function
-    const filePath = await saveJsonFileWithDialog(window, template, {
-      defaultDir: path.join(__dirname, 'video_assemblies'),
-      defaultFilename: `${metadata.title || 'new_video_assembly'}.json`,
-      dialogTitle: 'Save New Video Assembly'
-    });
+    // Check if we're in Playwright test mode
+    const isPlaywrightTest = process.env.PLAYWRIGHT_TEST === 'true';
+    
+    let filePath;
+    
+    if (isPlaywrightTest) {
+      // In Playwright test mode, save directly without showing dialog
+      console.log("Playwright test detected in createVideoAssemblyFromTemplate - saving directly without dialog");
+      
+      // Create the directory if it doesn't exist
+      const defaultDir = path.join(__dirname, 'video_assemblies');
+      if (!fs.existsSync(defaultDir)) {
+        fs.mkdirSync(defaultDir, { recursive: true });
+      }
+      
+      // Create a filename based on the title
+      const filename = `${metadata.title || 'new_video_assembly'}.json`;
+      filePath = path.join(defaultDir, filename);
+      
+      // Save the file
+      const jsonContent = JSON.stringify(template, null, 2);
+      fs.writeFileSync(filePath, jsonContent, 'utf-8');
+      
+      console.log("Video assembly saved to:", filePath);
+    } else {
+      // In normal mode, use the dialog
+      // Save the file using our generic function
+      filePath = await saveJsonFileWithDialog(window, template, {
+        defaultDir: path.join(__dirname, 'video_assemblies'),
+        defaultFilename: `${metadata.title || 'new_video_assembly'}.json`,
+        dialogTitle: 'Save New Video Assembly'
+      });
+    }
     
     if (!filePath) {
       return null;
