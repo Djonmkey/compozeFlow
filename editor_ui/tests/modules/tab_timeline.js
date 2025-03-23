@@ -14,7 +14,7 @@ exports.tabTimelineTests = {
    */
   testTimelineTabPresent: async ({ page, electronApp }) => {
     // First create a new video assembly to get to the editor
-    const { window } = await createNewVideoAssemblyDialogTests.testCreateNewVideoAssembly({ page, electronApp });
+    const { window } = await createNewVideoAssemblyDialogTests.testCreateNewVideoAssemblyFromWelcomeScreen({ page, electronApp });
     
     // Look for the timeline tab
     const timelineTab = await window.$$('button:has-text("Timeline"), .tab:has-text("Timeline"), [role="tab"]:has-text("Timeline")');

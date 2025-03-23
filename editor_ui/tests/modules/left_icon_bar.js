@@ -14,7 +14,7 @@ exports.leftIconBarTests = {
    */
   testLeftIconBarPresent: async ({ page, electronApp }) => {
     // First create a new video assembly to get to the editor
-    const { window } = await createNewVideoAssemblyDialogTests.testCreateNewVideoAssembly({ page, electronApp });
+    const { window } = await createNewVideoAssemblyDialogTests.testCreateNewVideoAssemblyFromWelcomeScreen({ page, electronApp });
     
     // Verify the left icon bar is present
     const leftIconBar = await window.$$('.left-icon-bar, .sidebar, .toolbar');

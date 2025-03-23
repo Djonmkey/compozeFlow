@@ -14,7 +14,7 @@ exports.tabMixedAudioTests = {
    */
   testMixedAudioTabPresent: async ({ page, electronApp }) => {
     // First create a new video assembly to get to the editor
-    const { window } = await createNewVideoAssemblyDialogTests.testCreateNewVideoAssembly({ page, electronApp });
+    const { window } = await createNewVideoAssemblyDialogTests.testCreateNewVideoAssemblyFromWelcomeScreen({ page, electronApp });
     
     // Look for the mixed audio tab
     const audioTab = await window.$$('button:has-text("Audio"), button:has-text("Mixed"), .tab:has-text("Audio"), .tab:has-text("Mixed"), [role="tab"]:has-text("Audio"), [role="tab"]:has-text("Mixed")');

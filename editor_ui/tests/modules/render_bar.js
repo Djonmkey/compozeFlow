@@ -14,7 +14,7 @@ exports.renderBarTests = {
    */
   testRenderBarPresent: async ({ page, electronApp }) => {
     // First create a new video assembly to get to the editor
-    const { window } = await createNewVideoAssemblyDialogTests.testCreateNewVideoAssembly({ page, electronApp });
+    const { window } = await createNewVideoAssemblyDialogTests.testCreateNewVideoAssemblyFromWelcomeScreen({ page, electronApp });
     
     // Look for the render bar
     const renderBar = await window.$$('.render-bar, .render-controls, .playback-controls, .timeline-controls');

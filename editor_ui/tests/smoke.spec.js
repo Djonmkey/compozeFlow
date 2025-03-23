@@ -22,9 +22,9 @@ test('Welcome screen tests', async ({ page }) => {
   let electronApp;
   
   try {
-    // Run all welcome screen tests
-    const result = await welcomeScreenTests.runAllTests({ page, electronApp });
-    electronApp = result.electronApp;
+    // Run create new video assembly test
+    const createNewVideoAssemblyResult = await createNewVideoAssemblyDialogTests.testCreateNewVideoAssemblyFromWelcomeScreen({ page, electronApp });
+    electronApp = createNewVideoAssemblyResult.electronApp;
     
     console.log('Welcome screen tests completed successfully');
   } finally {

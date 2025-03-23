@@ -36,11 +36,17 @@ test('Welcome screen and new video assembly dialog', async ({ page }) => {
     const result = await welcomeScreenTests.runAllTests({ page, electronApp });
     electronApp = result.electronApp;
     
-    // Test the dialog loads
-    await createNewVideoAssemblyDialogTests.testDialogLoads({ page, electronApp });
+    // Test the dialog loads from welcome screen
+    await createNewVideoAssemblyDialogTests.testDialogLoadsFromWelcomeScreen({ page, electronApp });
     
-    // Test creating a new video assembly
-    await createNewVideoAssemblyDialogTests.testCreateNewVideoAssembly({ page, electronApp });
+    // Test creating a new video assembly from welcome screen
+    await createNewVideoAssemblyDialogTests.testCreateNewVideoAssemblyFromWelcomeScreen({ page, electronApp });
+    
+    // Test the dialog loads from file menu
+    await createNewVideoAssemblyDialogTests.testDialogLoadsFromFileMenu({ page, electronApp });
+    
+    // Test creating a new video assembly from file menu
+    await createNewVideoAssemblyDialogTests.testCreateNewVideoAssemblyFromFileMenu({ page, electronApp });
     
     console.log('Welcome screen and new video assembly dialog tests completed successfully');
   } finally {

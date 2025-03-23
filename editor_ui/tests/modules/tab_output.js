@@ -14,7 +14,7 @@ exports.tabOutputTests = {
    */
   testOutputTabPresent: async ({ page, electronApp }) => {
     // First create a new video assembly to get to the editor
-    const { window } = await createNewVideoAssemblyDialogTests.testCreateNewVideoAssembly({ page, electronApp });
+    const { window } = await createNewVideoAssemblyDialogTests.testCreateNewVideoAssemblyFromWelcomeScreen({ page, electronApp });
     
     // Look for the output tab
     const outputTab = await window.$$('button:has-text("Output"), .tab:has-text("Output"), [role="tab"]:has-text("Output")');

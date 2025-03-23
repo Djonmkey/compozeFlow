@@ -14,7 +14,7 @@ exports.fileMenuTests = {
    */
   testFileMenuPresent: async ({ page, electronApp }) => {
     // First create a new video assembly to get to the editor
-    const { window } = await createNewVideoAssemblyDialogTests.testCreateNewVideoAssembly({ page, electronApp });
+    const { window } = await createNewVideoAssemblyDialogTests.testCreateNewVideoAssemblyFromWelcomeScreen({ page, electronApp });
     
     // Look for the file menu button
     const fileMenuButton = await window.$$('button:has-text("File"), .menu-bar button:first-child, .top-menu button:first-child');

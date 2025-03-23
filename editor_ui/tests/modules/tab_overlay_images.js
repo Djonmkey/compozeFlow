@@ -14,7 +14,7 @@ exports.tabOverlayImagesTests = {
    */
   testOverlayImagesTabPresent: async ({ page, electronApp }) => {
     // First create a new video assembly to get to the editor
-    const { window } = await createNewVideoAssemblyDialogTests.testCreateNewVideoAssembly({ page, electronApp });
+    const { window } = await createNewVideoAssemblyDialogTests.testCreateNewVideoAssemblyFromWelcomeScreen({ page, electronApp });
     
     // Look for the overlay images tab
     const overlayTab = await window.$$('button:has-text("Overlay"), button:has-text("Images"), .tab:has-text("Overlay"), .tab:has-text("Images"), [role="tab"]:has-text("Overlay"), [role="tab"]:has-text("Images")');

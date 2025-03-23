@@ -14,7 +14,7 @@ exports.tabFileTests = {
    */
   testFileTabPresent: async ({ page, electronApp }) => {
     // First create a new video assembly to get to the editor
-    const { window } = await createNewVideoAssemblyDialogTests.testCreateNewVideoAssembly({ page, electronApp });
+    const { window } = await createNewVideoAssemblyDialogTests.testCreateNewVideoAssemblyFromWelcomeScreen({ page, electronApp });
     
     // Look for the file tab
     const fileTab = await window.$$('button:has-text("File"), .tab:has-text("File"), [role="tab"]:has-text("File")');

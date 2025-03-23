@@ -14,7 +14,7 @@ exports.tabGeneralTests = {
    */
   testGeneralTabPresent: async ({ page, electronApp }) => {
     // First create a new video assembly to get to the editor
-    const { window } = await createNewVideoAssemblyDialogTests.testCreateNewVideoAssembly({ page, electronApp });
+    const { window } = await createNewVideoAssemblyDialogTests.testCreateNewVideoAssemblyFromWelcomeScreen({ page, electronApp });
     
     // Look for the general tab
     const generalTab = await window.$$('button:has-text("General"), .tab:has-text("General"), [role="tab"]:has-text("General")');

@@ -14,7 +14,7 @@ exports.tabRawTests = {
    */
   testRawTabPresent: async ({ page, electronApp }) => {
     // First create a new video assembly to get to the editor
-    const { window } = await createNewVideoAssemblyDialogTests.testCreateNewVideoAssembly({ page, electronApp });
+    const { window } = await createNewVideoAssemblyDialogTests.testCreateNewVideoAssemblyFromWelcomeScreen({ page, electronApp });
     
     // Look for the raw tab
     const rawTab = await window.$$('button:has-text("Raw"), .tab:has-text("Raw"), [role="tab"]:has-text("Raw")');
