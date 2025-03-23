@@ -24,6 +24,10 @@ try {
 // Determine if we're in development or production mode
 const isDev = process.env.NODE_ENV === 'development' || !fs.existsSync(path.join(__dirname, 'dist'));
 
+// Determine if we're running in a Playwright test environment
+const isPlaywrightTest = process.env.PLAYWRIGHT_TEST === 'true';
+console.log(`Running in Playwright test environment: ${isPlaywrightTest ? 'Yes' : 'No'}`);
+
 // Set the base path for loading files
 const basePath = isDev ? __dirname : path.join(__dirname, 'dist');
 
@@ -221,16 +225,48 @@ function createMenu() {
                   // Update menu items after setting currentFilePath
                   updateMenuItems();
 
-                  // Programmatically trigger "Save Video Assembly As" from the file menu
-                  setTimeout(() => {
-                    const fileMenu = Menu.getApplicationMenu().items.find(item => item.label === 'File');
-                    if (fileMenu && fileMenu.submenu) {
-                      const saveAsMenuItem = fileMenu.submenu.items.find(item => item.label === 'Save Video Assembly As');
-                      if (saveAsMenuItem && saveAsMenuItem.click) {
-                        saveAsMenuItem.click();
-                      }
+                  // In Playwright test mode, save directly to video_assemblies folder
+                  if (isPlaywrightTest) {
+                    console.log("Playwright test detected - saving directly without dialog");
+                    
+                    // Create a filename based on the title
+                    const filename = `${data.title}.json`;
+                    const videoAssembliesDir = path.join(__dirname, 'video_assemblies');
+                    
+                    // Ensure the directory exists
+                    if (!fs.existsSync(videoAssembliesDir)) {
+                      fs.mkdirSync(videoAssembliesDir, { recursive: true });
                     }
-                  }, 500); // Small delay to ensure UI is updated
+                    
+                    // Create the full file path
+                    const filePath = path.join(videoAssembliesDir, filename);
+                    
+                    // Save the file
+                    const jsonContent = JSON.stringify(template, null, 2);
+                    fs.writeFileSync(filePath, jsonContent, 'utf-8');
+                    
+                    // Update the current file path
+                    currentFilePath = filePath;
+                    console.log("Video assembly saved to:", currentFilePath);
+                    
+                    // Send the current file path to the renderer process
+                    mainWindow.webContents.send('current-file-path', currentFilePath);
+                    
+                    // Update menu items after setting currentFilePath
+                    updateMenuItems();
+                  } else {
+                    // In normal mode, show the Save As dialog
+                    // Programmatically trigger "Save Video Assembly As" from the file menu
+                    setTimeout(() => {
+                      const fileMenu = Menu.getApplicationMenu().items.find(item => item.label === 'File');
+                      if (fileMenu && fileMenu.submenu) {
+                        const saveAsMenuItem = fileMenu.submenu.items.find(item => item.label === 'Save Video Assembly As');
+                        if (saveAsMenuItem && saveAsMenuItem.click) {
+                          saveAsMenuItem.click();
+                        }
+                      }
+                    }, 500); // Small delay to ensure UI is updated
+                  }
 
                 } catch (error) {
                   console.error("Error creating video assembly from template:", error);

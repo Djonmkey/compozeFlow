@@ -18,6 +18,8 @@ test.describe('New Video Assembly', () => {
       fs.mkdirSync(videoAssembliesDir, { recursive: true });
     }
     
+    // With our test-friendly approach, the file will be saved with the title as the filename
+    // So we'll use the UUID as the title and check for that file
     filePath = path.join(videoAssembliesDir, `${uuid}.json`);
     console.log(`Test will create file: ${filePath}`);
   });
@@ -118,20 +120,16 @@ test.describe('New Video Assembly', () => {
         console.log('Found button, clicking it');
         await newAssemblyButton[0].click();
       } else {
-        console.log('New Video Assembly button not found');
-        throw new Error('Could not find any way to create a new video assembly');
-      }
-    } else {
-      console.log('File menu not found, looking for New Video Assembly button');
-      
-      // Try to find a New Video Assembly button
-      const newAssemblyButton = await window.$$('button:has-text("New Video Assembly")');
-      if (newAssemblyButton.length > 0) {
-        console.log('Found New Video Assembly button, clicking it');
-        await newAssemblyButton[0].click();
-      } else {
-        console.log('New Video Assembly button not found');
-        throw new Error('Neither File menu nor New Video Assembly button found');
+        // Try to find a New Video Assembly button with different text
+        console.log('Looking for New Video Assembly button with different text');
+        const altNewAssemblyButton = await window.$$('button:has-text("New Video Assembly")');
+        if (altNewAssemblyButton.length > 0) {
+          console.log('Found New Video Assembly button, clicking it');
+          await altNewAssemblyButton[0].click();
+        } else {
+          console.log('New Video Assembly button not found');
+          throw new Error('Could not find any way to create a new video assembly');
+        }
       }
     }
     
@@ -157,26 +155,24 @@ test.describe('New Video Assembly', () => {
     
     // Enter the UUID as the title
     console.log(`Entering UUID as title: ${uuid}`);
-    await window.fill('input[name="title"]', uuid);
+    await window.fill('input#title-input', uuid);
     
     // Take a screenshot before clicking Save
     await window.screenshot({ path: path.join(__dirname, '../../tests/before-save.png') });
     console.log('Before save screenshot taken');
     
-    // Click Save button
-    console.log('Clicking Save button');
-    await window.click('button:has-text("Save")');
+    // Click the "Create & Save As" button
+    console.log('Clicking Create & Save As button');
+    await window.click('button#save-btn');
     
-    // Wait for the save dialog and file selection
-    console.log('Waiting for save dialog');
+    // With our test-friendly approach, the file will be saved automatically
+    // without showing the native file dialog, so we just need to wait a moment
+    console.log('Waiting for file to be saved');
+    await window.waitForTimeout(2000);
     
-    // We need to handle the native file dialog, but Playwright can't interact with it directly
-    // Instead, we'll wait for a reasonable amount of time and then check if the file was created
-    await window.waitForTimeout(5000);
-    
-    // Take a screenshot after save dialog
-    await window.screenshot({ path: path.join(__dirname, '../../tests/after-save-dialog.png') });
-    console.log('After save dialog screenshot taken');
+    // Take a screenshot after saving
+    await window.screenshot({ path: path.join(__dirname, '../../tests/after-save.png') });
+    console.log('After save screenshot taken');
     
     // Verify the file was created
     const fileCreated = fs.existsSync(filePath);

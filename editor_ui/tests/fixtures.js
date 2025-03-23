@@ -8,7 +8,8 @@ exports.test = base.extend({
     const app = await electron.launch({
       args: [path.join(__dirname, '../')],
       env: {
-        NODE_ENV: 'development'
+        NODE_ENV: 'development',
+        PLAYWRIGHT_TEST: 'true' // Set this flag to enable test-friendly behavior
       }
     });
     

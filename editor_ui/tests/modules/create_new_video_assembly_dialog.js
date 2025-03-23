@@ -64,7 +64,8 @@ exports.createNewVideoAssemblyDialogTests = {
       electronApp = await electron.launch({
         args: [path.join(__dirname, '../..')],
         env: {
-          NODE_ENV: 'development'
+          NODE_ENV: 'development',
+          PLAYWRIGHT_TEST: 'true' // Set this flag to enable test-friendly behavior
         }
       });
     }
@@ -287,91 +288,20 @@ exports.createNewVideoAssemblyDialogTests = {
       }
     }
     
-    // Wait for the dialog to close and the system file save dialog to appear
-    console.log('Waiting for system file save dialog to appear');
-
+    // With our test-friendly approach, the file will be saved automatically
+    // without showing the native file dialog, so we just need to wait a moment
+    console.log('Waiting for file to be saved automatically (test-friendly mode)');
+    
     // Wait for the app to be fully loaded
     const allAppWindows = await electronApp.windows();
     const mainAppWindow = allAppWindows[0];
     
-    // Wait for the app to be fully loaded
-    await mainAppWindow.waitForTimeout(3000);
-    
-    // Handle the system file save dialog by clicking the Save button
-    console.log('Clicking Save button on system file save dialog');
-    
-    // Try multiple approaches to interact with the native file dialog
-    try {
-      // 1. Try OS-specific keyboard shortcuts first
-      console.log('Trying OS-specific keyboard shortcuts');
-      if (process.platform === 'darwin') {
-        // macOS - use keyboard shortcut Command+S to save
-        await dialogWindow.keyboard.press('Meta+S');
-      } else if (process.platform === 'win32') {
-        // Windows - use keyboard shortcut Alt+S which typically activates the Save button
-        await dialogWindow.keyboard.press('Alt+S');
-      } else {
-        // Linux or other platforms - try Enter which often confirms the default action
-        await dialogWindow.keyboard.press('Enter');
-      }
-      await dialogWindow.waitForTimeout(1000);
-      
-      // 2. Try Enter key which often confirms the default action in dialogs
-      console.log('Trying Enter key to confirm dialog');
-      await dialogWindow.keyboard.press('Enter');
-      await dialogWindow.waitForTimeout(1000);
-      
-      // 3. Try Tab + Enter to navigate to and activate the Save button
-      console.log('Trying Tab + Enter to navigate to Save button');
-      // Tab a few times to try to reach the Save button
-      for (let i = 0; i < 3; i++) {
-        await dialogWindow.keyboard.press('Tab');
-        await dialogWindow.waitForTimeout(200);
-      }
-      await dialogWindow.keyboard.press('Enter');
-      await dialogWindow.waitForTimeout(1000);
-      
-      // 4. Try to interact with the dialog via IPC if possible
-      console.log('Attempting to interact with the file dialog via IPC');
-      try {
-        // Use @ts-ignore to suppress TypeScript errors for custom window properties
-        await mainAppWindow.evaluate(() => {
-          // @ts-ignore - electronSetup is added by the Electron app
-          if (window.electronSetup && window.electronSetup.ipcRenderer) {
-            // @ts-ignore - electronSetup is added by the Electron app
-            window.electronSetup.ipcRenderer.send('handle-save-dialog');
-            return true;
-          }
-          return false;
-        });
-      } catch (ipcError) {
-        console.log(`IPC interaction error: ${ipcError.message}`);
-      }
-      await dialogWindow.waitForTimeout(1000);
-      
-      // 5. Try clicking at common positions where the Save button might be
-      console.log('Trying mouse clicks at common Save button positions');
-      // Try bottom-right corner where Save buttons often are
-      await dialogWindow.mouse.click(dialogWindow.viewportSize().width - 100, dialogWindow.viewportSize().height - 50);
-      await dialogWindow.waitForTimeout(1000);
-      
-      // Try another common position
-      await dialogWindow.mouse.click(dialogWindow.viewportSize().width - 200, dialogWindow.viewportSize().height - 50);
-      await dialogWindow.waitForTimeout(1000);
-    } catch (error) {
-      console.log(`Error handling system file save dialog: ${error.message}`);
-      // Continue anyway as the dialog might have been handled already
-    }
-    
-    // Wait for the system dialog to close and the editor to load
-    console.log('Waiting for system dialog to close and editor to load');
+    // Wait for the app to be fully loaded and file to be saved
+    await mainAppWindow.waitForTimeout(2000);
     
     // Get the main window again (should be the only window after dialog closes)
     const allWindows = await electronApp.windows();
     const mainWindow = allWindows[0];
-    
-    // Wait for the app to be fully loaded
-    await mainWindow.waitForTimeout(1000);
     
     // Take a screenshot after creation
     await mainWindow.screenshot({ path: path.join(__dirname, '../../tests/after-create-new-assembly.png') });
@@ -381,10 +311,16 @@ exports.createNewVideoAssemblyDialogTests = {
     console.log(`Window title: ${windowTitle}`);
     expect(windowTitle).toContain(testVideoTitle);
     
+    // Check if the file was created in the video_assemblies directory
+    const videoAssembliesDir = path.join(__dirname, '../../video_assemblies');
+    const expectedFilePath = path.join(videoAssembliesDir, `${testVideoTitle}.json`);
+    const fileExists = fs.existsSync(expectedFilePath);
+    console.log(`Checking if file was created at ${expectedFilePath}: ${fileExists ? 'Yes' : 'No'}`);
+    
     // Allow the user to witness the check
-    await mainWindow.waitForTimeout(10000);
+    await mainWindow.waitForTimeout(2000);
 
-    return { window: mainWindow, electronApp: electronApp };
+    return { window: mainWindow, electronApp: electronApp, testVideoTitle };
   },
   
   /**
