@@ -12,9 +12,10 @@ exports.explorerBarContentSourcesTests = {
   /**
    * Test that the explorer bar content sources panel is present
    */
-  testContentSourcesPanelPresent: async ({ page, electronApp }) => {
+  testContentSourcesPanelPresent: async ({ page, electronApp, window }) => {
     // First get to the editor with the left icon bar
-    const { window } = await leftIconBarTests.testLeftIconBarPresent({ page, electronApp });
+    const result = await leftIconBarTests.testLeftIconBarPresent({ page, electronApp, window });
+    window = result.window;
     
     // Look for the "Add Content Source" button without clicking anything
     const addContentSourceButton = await window.$$('button:has-text("Add Content Source"), button[title*="Add Content Source"]');
@@ -32,9 +33,10 @@ exports.explorerBarContentSourcesTests = {
   /**
    * Test navigating through content sources
    */
-  testNavigateContentSources: async ({ page, electronApp }) => {
+  testNavigateContentSources: async ({ page, electronApp, window }) => {
     // First get to the content sources panel
-    const { window } = await exports.explorerBarContentSourcesTests.testContentSourcesPanelPresent({ page, electronApp });
+    const result = await exports.explorerBarContentSourcesTests.testContentSourcesPanelPresent({ page, electronApp, window });
+    window = result.window;
     
     // Look for folders or items in the content sources panel
     const items = await window.$$('.content-sources .item, .explorer-panel .item, .file-explorer .item, .tree-item');

@@ -33,30 +33,62 @@ test('Welcome screen tests', async ({ page }) => {
     electronApp = createNewVideoAssemblyResult.electronApp;
     
     // Ensure the Icon bar is displayed
-    const leftIconBarResult = await leftIconBarTests.testLeftIconBarPresent({ page, electronApp });
+    const leftIconBarResult = await leftIconBarTests.testLeftIconBarPresent({ 
+      page, 
+      electronApp,
+      window: createNewVideoAssemblyResult.window // Pass the window reference
+    });
     electronApp = leftIconBarResult.electronApp;
 
     // Ensure the explorer is displayed
-    const explorerResult = await explorerBarContentSourcesTests.testContentSourcesPanelPresent({ page, electronApp });
+    const explorerResult = await explorerBarContentSourcesTests.testContentSourcesPanelPresent({ 
+      page, 
+      electronApp,
+      window: leftIconBarResult.window // Pass the window reference
+    });
     electronApp = explorerResult.electronApp;
 
     // Ensure the tabs are displayed
-    const timelineTabResult = await tabTimelineTests.testTimelineTabPresent({ page, electronApp });
+    const timelineTabResult = await tabTimelineTests.testTimelineTabPresent({ 
+      page, 
+      electronApp,
+      window: explorerResult.window // Pass the window reference
+    });
     electronApp = timelineTabResult.electronApp;
     
-    const overlayImagesTabResult = await tabOverlayImagesTests.testOverlayImagesTabPresent({ page, electronApp });
+    const overlayImagesTabResult = await tabOverlayImagesTests.testOverlayImagesTabPresent({ 
+      page, 
+      electronApp,
+      window: timelineTabResult.window // Pass the window reference
+    });
     electronApp = overlayImagesTabResult.electronApp;
     
-    const mixedAudioTabResult = await tabMixedAudioTests.testMixedAudioTabPresent({ page, electronApp });
+    const mixedAudioTabResult = await tabMixedAudioTests.testMixedAudioTabPresent({ 
+      page, 
+      electronApp,
+      window: overlayImagesTabResult.window // Pass the window reference
+    });
     electronApp = mixedAudioTabResult.electronApp;
     
-    const outputTabResult = await tabOutputTests.testOutputTabPresent({ page, electronApp });
+    const outputTabResult = await tabOutputTests.testOutputTabPresent({ 
+      page, 
+      electronApp,
+      window: mixedAudioTabResult.window // Pass the window reference
+    });
     electronApp = outputTabResult.electronApp;
     
-    const renderTabResult = await tabRenderTests.testRenderTabPresent({ page, electronApp });
+    const renderTabResult = await tabRenderTests.testRenderTabPresent({ 
+      page, 
+      electronApp,
+      window: outputTabResult.window // Pass the window reference
+    });
     electronApp = renderTabResult.electronApp;
     
-    const rawTabResult = await tabRawTests.testRawTabPresent({ page, electronApp });
+    const rawTabResult = await tabRawTests.testRawTabPresent({ 
+      page, 
+      electronApp,
+      window: renderTabResult.window // Pass the window reference
+    });
     electronApp = rawTabResult.electronApp;
 
     console.log('Welcome screen tests completed successfully');

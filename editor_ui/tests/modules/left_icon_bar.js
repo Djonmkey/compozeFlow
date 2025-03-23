@@ -12,25 +12,27 @@ exports.leftIconBarTests = {
   /**
    * Test that the left icon bar is present and has the expected icons
    */
-  testLeftIconBarPresent: async ({ page, electronApp }) => {
+  testLeftIconBarPresent: async ({ page, electronApp, window }) => {
     // Get the main window - don't create a new video assembly if we're already in the editor
-    let window;
-    
-    // Check if we already have a window from the electronApp
-    if (electronApp) {
-      const allWindows = await electronApp.windows();
-      if (allWindows.length > 0) {
-        window = allWindows[0];
-        console.log('Using existing window for left icon bar test');
-      }
-    }
-    
-    // If we don't have a window yet, create a new video assembly to get to the editor
     if (!window) {
-      console.log('No existing window found, creating new video assembly');
-      const result = await createNewVideoAssemblyDialogTests.testCreateNewVideoAssemblyFromWelcomeScreen({ page, electronApp });
-      window = result.window;
-      electronApp = result.electronApp;
+      // Check if we already have a window from the electronApp
+      if (electronApp) {
+        const allWindows = await electronApp.windows();
+        if (allWindows.length > 0) {
+          window = allWindows[0];
+          console.log('Using existing window for left icon bar test');
+        }
+      }
+      
+      // If we don't have a window yet, create a new video assembly to get to the editor
+      if (!window) {
+        console.log('No existing window found, creating new video assembly');
+        const result = await createNewVideoAssemblyDialogTests.testCreateNewVideoAssemblyFromWelcomeScreen({ page, electronApp });
+        window = result.window;
+        electronApp = result.electronApp;
+      }
+    } else {
+      console.log('Using provided window for left icon bar test');
     }
     
     // Verify the left icon bar is present
@@ -54,9 +56,10 @@ exports.leftIconBarTests = {
   /**
    * Test clicking icons in the left icon bar
    */
-  testClickLeftIconBarIcons: async ({ page, electronApp }) => {
+  testClickLeftIconBarIcons: async ({ page, electronApp, window }) => {
     // First verify the left icon bar is present
-    const { window } = await exports.leftIconBarTests.testLeftIconBarPresent({ page, electronApp });
+    const result = await exports.leftIconBarTests.testLeftIconBarPresent({ page, electronApp, window });
+    window = result.window;
     
     // Find all icons in the left icon bar
     const icons = await window.$$('.left-icon-bar button, .sidebar button, .toolbar button');
