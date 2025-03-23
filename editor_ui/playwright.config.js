@@ -21,11 +21,11 @@ module.exports = defineConfig({
   projects: [
     {
       name: 'smoke',
-      testMatch: /.*\.smoke\.spec\.js/,
+      testMatch: /smoke.spec\.js/,
     },
     {
       name: 'regression',
-      testMatch: /.*\.regression\.spec\.js/,
+      testMatch: /regression.spec\.js/,
     },
     {
       name: 'electron',
