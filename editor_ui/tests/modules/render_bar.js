@@ -12,9 +12,16 @@ exports.renderBarTests = {
   /**
    * Test that the render bar is present
    */
-  testRenderBarPresent: async ({ page, electronApp }) => {
-    // First create a new video assembly to get to the editor
-    const { window } = await createNewVideoAssemblyDialogTests.testCreateNewVideoAssemblyFromWelcomeScreen({ page, electronApp });
+  testRenderBarPresent: async ({ page, electronApp, window }) => {
+    // Get the main window - don't create a new video assembly if we're already in the editor
+    if (!window) {
+      // Create a new video assembly to get to the editor
+      const result = await createNewVideoAssemblyDialogTests.testCreateNewVideoAssemblyFromWelcomeScreen({ page, electronApp });
+      window = result.window;
+      electronApp = result.electronApp;
+    } else {
+      console.log('Using provided window for render bar test');
+    }
     
     // Look for the render bar
     const renderBar = await window.$$('.render-bar, .render-controls, .playback-controls, .timeline-controls');
@@ -38,9 +45,10 @@ exports.renderBarTests = {
   /**
    * Test clicking buttons in the render bar
    */
-  testRenderBarButtons: async ({ page, electronApp }) => {
+  testRenderBarButtons: async ({ page, electronApp, window }) => {
     // First verify the render bar is present
-    const { window } = await exports.renderBarTests.testRenderBarPresent({ page, electronApp });
+    const result = await exports.renderBarTests.testRenderBarPresent({ page, electronApp, window });
+    window = result.window;
     
     // Look for play/pause button
     const playButton = await window.$$('button:has-text("Play"), button[title*="Play"], button.play-button, button.play-pause-button');
