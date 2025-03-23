@@ -77,17 +77,20 @@ test('Welcome screen tests', async ({ page }) => {
     });
     electronApp = outputTabResult.electronApp;
     
+    // THE RENDER TAB SHOULD NOT BE PRESENT AT THIS POINT
+    /*
     const renderTabResult = await tabRenderTests.testRenderTabPresent({ 
       page, 
       electronApp,
       window: outputTabResult.window // Pass the window reference
     });
     electronApp = renderTabResult.electronApp;
-    
+    */
+
     const rawTabResult = await tabRawTests.testRawTabPresent({ 
       page, 
       electronApp,
-      window: renderTabResult.window // Pass the window reference
+      window: outputTabResult.window // Pass the window reference
     });
     electronApp = rawTabResult.electronApp;
 
