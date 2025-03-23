@@ -242,8 +242,9 @@ exports.createNewVideoAssemblyDialogTests = {
     
     // Enter a title
     const titleInput = await dialogWindow.$$('input#title-input');
-    console.log(`Entering title: Test Video ${uuid}`);
-    await titleInput[0].fill(`Test Video ${uuid}`);
+    const testVideoTitle = `Test Video Title ${uuid}`;
+    console.log(`Entering title: ${testVideoTitle}`);
+    await titleInput[0].fill(testVideoTitle);
     
     // Wait a moment for the click to take effect
     await dialogWindow.waitForTimeout(5000);
@@ -331,11 +332,14 @@ exports.createNewVideoAssemblyDialogTests = {
     // Take a screenshot after creation
     await mainWindow.screenshot({ path: path.join(__dirname, '../../tests/after-create-new-assembly.png') });
     
-    // Verify the editor loaded
-    const timelineElement = await mainWindow.$$('.timeline-container, .editor-container');
-    console.log(`Found ${timelineElement.length} timeline elements`);
-    expect(timelineElement.length).toBeGreaterThan(0);
+    // Verify the window title matches the entered title
+    const windowTitle = await mainWindow.title();
+    console.log(`Window title: ${windowTitle}`);
+    expect(windowTitle).toContain(testVideoTitle);
     
+    // Allow the user to witness the check
+    await mainWindow.waitForTimeout(5000);
+
     return { window: mainWindow, electronApp: electronApp };
   },
   
