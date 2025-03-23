@@ -295,25 +295,69 @@ exports.createNewVideoAssemblyDialogTests = {
     const mainAppWindow = allAppWindows[0];
     
     // Wait for the app to be fully loaded
-    await mainAppWindow.waitForTimeout(1000);
+    await mainAppWindow.waitForTimeout(3000);
     
     // Handle the system file save dialog by clicking the Save button
     console.log('Clicking Save button on system file save dialog');
+    
+    // Try multiple approaches to interact with the native file dialog
     try {
-      // Different approaches for different operating systems
+      // 1. Try OS-specific keyboard shortcuts first
+      console.log('Trying OS-specific keyboard shortcuts');
       if (process.platform === 'darwin') {
         // macOS - use keyboard shortcut Command+S to save
         await dialogWindow.keyboard.press('Meta+S');
       } else if (process.platform === 'win32') {
         // Windows - use keyboard shortcut Alt+S which typically activates the Save button
         await dialogWindow.keyboard.press('Alt+S');
-        // If that doesn't work, try Enter which often confirms the default action
-        await dialogWindow.waitForTimeout(500);
-        await dialogWindow.keyboard.press('Enter');
       } else {
         // Linux or other platforms - try Enter which often confirms the default action
         await dialogWindow.keyboard.press('Enter');
       }
+      await dialogWindow.waitForTimeout(1000);
+      
+      // 2. Try Enter key which often confirms the default action in dialogs
+      console.log('Trying Enter key to confirm dialog');
+      await dialogWindow.keyboard.press('Enter');
+      await dialogWindow.waitForTimeout(1000);
+      
+      // 3. Try Tab + Enter to navigate to and activate the Save button
+      console.log('Trying Tab + Enter to navigate to Save button');
+      // Tab a few times to try to reach the Save button
+      for (let i = 0; i < 3; i++) {
+        await dialogWindow.keyboard.press('Tab');
+        await dialogWindow.waitForTimeout(200);
+      }
+      await dialogWindow.keyboard.press('Enter');
+      await dialogWindow.waitForTimeout(1000);
+      
+      // 4. Try to interact with the dialog via IPC if possible
+      console.log('Attempting to interact with the file dialog via IPC');
+      try {
+        // Use @ts-ignore to suppress TypeScript errors for custom window properties
+        await mainAppWindow.evaluate(() => {
+          // @ts-ignore - electronSetup is added by the Electron app
+          if (window.electronSetup && window.electronSetup.ipcRenderer) {
+            // @ts-ignore - electronSetup is added by the Electron app
+            window.electronSetup.ipcRenderer.send('handle-save-dialog');
+            return true;
+          }
+          return false;
+        });
+      } catch (ipcError) {
+        console.log(`IPC interaction error: ${ipcError.message}`);
+      }
+      await dialogWindow.waitForTimeout(1000);
+      
+      // 5. Try clicking at common positions where the Save button might be
+      console.log('Trying mouse clicks at common Save button positions');
+      // Try bottom-right corner where Save buttons often are
+      await dialogWindow.mouse.click(dialogWindow.viewportSize().width - 100, dialogWindow.viewportSize().height - 50);
+      await dialogWindow.waitForTimeout(1000);
+      
+      // Try another common position
+      await dialogWindow.mouse.click(dialogWindow.viewportSize().width - 200, dialogWindow.viewportSize().height - 50);
+      await dialogWindow.waitForTimeout(1000);
     } catch (error) {
       console.log(`Error handling system file save dialog: ${error.message}`);
       // Continue anyway as the dialog might have been handled already
