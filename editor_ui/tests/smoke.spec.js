@@ -22,8 +22,8 @@ const { tabRawTests } = require('./modules/tab_raw');
  * Note: All tests are run in headed mode
  */
 
-test('Welcome screen tests', async ({ page }) => {
-  console.log('Starting smoke test: Welcome screen tests');
+test('Smoke tests', async ({ page }) => {
+  console.log('Starting smoke test');
   
   let electronApp;
   
@@ -78,14 +78,12 @@ test('Welcome screen tests', async ({ page }) => {
     electronApp = outputTabResult.electronApp;
     
     // THE RENDER TAB SHOULD NOT BE PRESENT AT THIS POINT
-    /*
-    const renderTabResult = await tabRenderTests.testRenderTabPresent({ 
+    const renderTabNotPresentResult = await tabRenderTests.testRenderTabNotPresent({ 
       page, 
       electronApp,
       window: outputTabResult.window // Pass the window reference
     });
-    electronApp = renderTabResult.electronApp;
-    */
+    electronApp = renderTabNotPresentResult.electronApp;
 
     const rawTabResult = await tabRawTests.testRawTabPresent({ 
       page, 
@@ -94,7 +92,7 @@ test('Welcome screen tests', async ({ page }) => {
     });
     electronApp = rawTabResult.electronApp;
 
-    console.log('Welcome screen tests completed successfully');
+    console.log('Smoke tests completed successfully');
   } finally {
     // Close the app
     if (electronApp) {

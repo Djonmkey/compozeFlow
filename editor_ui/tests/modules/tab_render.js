@@ -10,6 +10,31 @@ const { createNewVideoAssemblyDialogTests } = require('./create_new_video_assemb
  */
 exports.tabRenderTests = {
   /**
+   * Test that the render tab is not present
+   */
+  testRenderTabNotPresent: async ({ page, electronApp, window }) => {
+    // Get the main window - don't create a new video assembly if we're already in the editor
+    if (!window) {
+      // Create a new video assembly to get to the editor
+      const result = await createNewVideoAssemblyDialogTests.testCreateNewVideoAssemblyFromWelcomeScreen({ page, electronApp });
+      window = result.window;
+      electronApp = result.electronApp;
+    } else {
+      console.log('Using provided window for render tab test');
+    }
+    
+    // Look for the render tab
+    const renderTab = await window.$$('button:has-text("Render"), .tab:has-text("Render"), [role="tab"]:has-text("Render")');
+    
+    // Take a screenshot after creating a new assembly
+    await window.screenshot({ path: path.join(__dirname, '../../tests/after-create-new-assembly.png') });
+    
+    // Verify the render tab is not present
+    expect(renderTab.length).toBe(0);
+    
+    return { window, electronApp };
+  },
+  /**
    * Test that the render tab is present and can be selected
    */
   testRenderTabPresent: async ({ page, electronApp, window }) => {
