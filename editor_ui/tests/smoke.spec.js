@@ -16,6 +16,7 @@ const { tabMixedAudioTests } = require('./modules/tab_mixed_audio');
 const { tabOutputTests } = require('./modules/tab_output');
 const { tabRenderTests } = require('./modules/tab_render');
 const { tabRawTests } = require('./modules/tab_raw');
+const { tabGeneralTests } = require('./modules/tab_general');
 
 /**
  * Smoke tests for the application
@@ -81,7 +82,13 @@ test('Smoke tests', async ({ page }) => {
     });
     electronApp = outputTabResult.electronApp;
     
-    // TODO: testGeneralTabPresent
+    // General tab
+    const generalTabResult = await tabGeneralTests.testGeneralTabPresent({ 
+      page, 
+      electronApp,
+      window: outputTabResult.window // Pass the window reference
+    });
+    electronApp = generalTabResult.electronApp;
 
     // Render tab (currently this test times out)
     /*
@@ -97,7 +104,7 @@ test('Smoke tests', async ({ page }) => {
     const rawTabResult = await tabRawTests.testRawTabPresent({ 
       page, 
       electronApp,
-      window: outputTabResult.window // Pass the window reference
+      window: generalTabResult.window // Pass the window reference
     });
     electronApp = rawTabResult.electronApp;
 
