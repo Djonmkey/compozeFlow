@@ -56,10 +56,22 @@ exports.tabRenderTests = {
   testRenderTabPresent: async ({ page, electronApp, window }) => {
     // Get the main window - don't create a new video assembly if we're already in the editor
     if (!window) {
-      // Create a new video assembly to get to the editor
-      const result = await createNewVideoAssemblyDialogTests.testCreateNewVideoAssemblyFromWelcomeScreen({ page, electronApp });
-      window = result.window;
-      electronApp = result.electronApp;
+      // Check if we already have a window from the electronApp
+      if (electronApp) {
+        const allWindows = await electronApp.windows();
+        if (allWindows.length > 0) {
+          window = allWindows[0];
+          console.log('Using existing window for render tab test');
+        }
+      }
+      
+      // If we don't have a window yet, create a new video assembly to get to the editor
+      if (!window) {
+        console.log('No existing window found, creating new video assembly');
+        const result = await createNewVideoAssemblyDialogTests.testCreateNewVideoAssemblyFromWelcomeScreen({ page, electronApp });
+        window = result.window;
+        electronApp = result.electronApp;
+      }
     } else {
       console.log('Using provided window for render tab test');
     }

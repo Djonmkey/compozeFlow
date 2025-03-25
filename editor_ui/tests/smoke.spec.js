@@ -90,14 +90,14 @@ test('Smoke tests', async ({ page }) => {
     });
     electronApp = generalTabResult.electronApp;
 
-    // Render tab (currently this test times out)
+    // Render tab
     /*
-    const renderTabNotPresentResult = await tabRenderTests.testRenderTabPresent({ 
+    const renderTabPresentResult = await tabRenderTests.testRenderTabPresent({ 
       page, 
       electronApp,
-      window: outputTabResult.window // Pass the window reference
+      window: generalTabResult.window // Pass the window reference
     });
-    electronApp = renderTabNotPresentResult.electronApp;
+    electronApp = renderTabPresentResult.electronApp;
     */
 
     // Raw tab
@@ -107,18 +107,16 @@ test('Smoke tests', async ({ page }) => {
       window: generalTabResult.window // Pass the window reference
     });
     electronApp = rawTabResult.electronApp;
+    // End: Ensure the tabs are displayed
 
-    
-    
     // Check that the render bar is not present
     const renderBarNotPresentResult = await renderBarTests.testRenderBarNotPresent({ 
       page, 
       electronApp,
       window: rawTabResult.window // Pass the window reference
     });
-    electronApp = renderBarNotPresentResult.electronApp;
+    electronApp = renderBarNotPresentResult.electronApp
 
-    
 
     console.log('Smoke tests completed successfully');
   } finally {
