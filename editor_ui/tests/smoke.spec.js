@@ -48,7 +48,8 @@ test('Smoke tests', async ({ page }) => {
     });
     electronApp = explorerResult.electronApp;
 
-    // Ensure the tabs are displayed
+    // Begin: Ensure the tabs are displayed
+    // Timeline tab
     const timelineTabResult = await tabTimelineTests.testTimelineTabPresent({ 
       page, 
       electronApp,
@@ -56,6 +57,7 @@ test('Smoke tests', async ({ page }) => {
     });
     electronApp = timelineTabResult.electronApp;
     
+    // Overlay Images tab
     const overlayImagesTabResult = await tabOverlayImagesTests.testOverlayImagesTabPresent({ 
       page, 
       electronApp,
@@ -63,6 +65,7 @@ test('Smoke tests', async ({ page }) => {
     });
     electronApp = overlayImagesTabResult.electronApp;
     
+    // Mixed Audio tab
     const mixedAudioTabResult = await tabMixedAudioTests.testMixedAudioTabPresent({ 
       page, 
       electronApp,
@@ -70,6 +73,7 @@ test('Smoke tests', async ({ page }) => {
     });
     electronApp = mixedAudioTabResult.electronApp;
     
+    // Output tab
     const outputTabResult = await tabOutputTests.testOutputTabPresent({ 
       page, 
       electronApp,
@@ -77,14 +81,9 @@ test('Smoke tests', async ({ page }) => {
     });
     electronApp = outputTabResult.electronApp;
     
-    const rawTabResult = await tabRawTests.testRawTabPresent({ 
-      page, 
-      electronApp,
-      window: outputTabResult.window // Pass the window reference
-    });
-    electronApp = rawTabResult.electronApp;
+    // TODO: testGeneralTabPresent
 
-    // THE RENDER TAB SHOULD BE PRESENT AT THIS POINT
+    // Render tab (currently this test times out)
     /*
     const renderTabNotPresentResult = await tabRenderTests.testRenderTabPresent({ 
       page, 
@@ -93,6 +92,16 @@ test('Smoke tests', async ({ page }) => {
     });
     electronApp = renderTabNotPresentResult.electronApp;
     */
+
+    // Raw tab
+    const rawTabResult = await tabRawTests.testRawTabPresent({ 
+      page, 
+      electronApp,
+      window: outputTabResult.window // Pass the window reference
+    });
+    electronApp = rawTabResult.electronApp;
+
+    
     
     // Check that the render bar is not present
     const renderBarNotPresentResult = await renderBarTests.testRenderBarNotPresent({ 
