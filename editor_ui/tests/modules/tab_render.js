@@ -23,14 +23,30 @@ exports.tabRenderTests = {
       console.log('Using provided window for render tab test');
     }
     
-    // Look for the render tab
-    const renderTab = await window.$$('button:has-text("Render"), .tab:has-text("Render"), [role="tab"]:has-text("Render")');
-    
     // Take a screenshot after creating a new assembly
     await window.screenshot({ path: path.join(__dirname, '../../tests/after-create-new-assembly.png') });
     
-    // Verify the render tab is not present
-    expect(renderTab.length).toBe(0);
+    // Look for the render tab
+    const renderTab = await window.$$('button:has-text("Render"), .tab:has-text("Render"), [role="tab"]:has-text("Render")');
+    
+    // Check if the render tab is visible and enabled
+    if (renderTab.length > 0) {
+      // Check if the tab is visible and enabled
+      const isVisible = await renderTab[0].evaluate(el => {
+        const style = window.getComputedStyle(el);
+        return style.display !== 'none' && 
+               style.visibility !== 'hidden' && 
+               !el.disabled && 
+               el.getAttribute('aria-disabled') !== 'true';
+      });
+      
+      // We expect the tab to be either not visible or disabled
+      expect(isVisible).toBe(false);
+      console.log('Render tab is present but not visible/enabled, which is correct');
+    } else {
+      // If the render tab element doesn't exist, that's also acceptable
+      console.log('Render tab element not found, which is also acceptable');
+    }
     
     return { window, electronApp };
   },

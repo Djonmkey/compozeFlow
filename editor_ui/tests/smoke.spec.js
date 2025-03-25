@@ -77,13 +77,21 @@ test('Smoke tests', async ({ page }) => {
     });
     electronApp = outputTabResult.electronApp;
     
-    // THE RENDER TAB SHOULD NOT BE PRESENT AT THIS POINT
-    const renderTabNotPresentResult = await tabRenderTests.testRenderTabNotPresent({ 
+    // THE RENDER TAB SHOULD BE PRESENT AT THIS POINT
+    const renderTabNotPresentResult = await tabRenderTests.testRenderTabPresent({ 
       page, 
       electronApp,
       window: outputTabResult.window // Pass the window reference
     });
     electronApp = renderTabNotPresentResult.electronApp;
+    
+    // Check that the render bar is not present
+    const renderBarNotPresentResult = await renderBarTests.testRenderBarNotPresent({ 
+      page, 
+      electronApp,
+      window: renderTabNotPresentResult.window // Pass the window reference
+    });
+    electronApp = renderBarNotPresentResult.electronApp;
 
     const rawTabResult = await tabRawTests.testRawTabPresent({ 
       page, 

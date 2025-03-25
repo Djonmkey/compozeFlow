@@ -10,6 +10,44 @@ const { createNewVideoAssemblyDialogTests } = require('./create_new_video_assemb
  */
 exports.renderBarTests = {
   /**
+   * Test that the render bar is not present or not visible
+   */
+  testRenderBarNotPresent: async ({ page, electronApp, window }) => {
+    // Get the main window - don't create a new video assembly if we're already in the editor
+    if (!window) {
+      // Create a new video assembly to get to the editor
+      const result = await createNewVideoAssemblyDialogTests.testCreateNewVideoAssemblyFromWelcomeScreen({ page, electronApp });
+      window = result.window;
+      electronApp = result.electronApp;
+    } else {
+      console.log('Using provided window for render bar test');
+    }
+    
+    // Take a screenshot after creating a new assembly
+    await window.screenshot({ path: path.join(__dirname, '../../tests/render-bar-not-present.png') });
+    
+    // Look for the render options container
+    const renderOptionsContainer = await window.$$('#render-options-container');
+    
+    // Check if the render options container is visible
+    if (renderOptionsContainer.length > 0) {
+      const isVisible = await renderOptionsContainer[0].evaluate(el => {
+        // Check the computed style to determine if it's visible
+        const style = window.getComputedStyle(el);
+        return style.display !== 'none' && style.visibility !== 'hidden';
+      });
+      
+      // Verify the render options container is not visible
+      expect(isVisible).toBe(false);
+      console.log('Render options container is present but not visible, which is correct');
+    } else {
+      // If the render options container element doesn't exist, that's also acceptable
+      console.log('Render options container element not found, which is also acceptable');
+    }
+    
+    return { window, electronApp };
+  },
+  /**
    * Test that the render bar is present
    */
   testRenderBarPresent: async ({ page, electronApp, window }) => {
