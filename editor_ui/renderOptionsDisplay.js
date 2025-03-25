@@ -274,6 +274,30 @@ function ensureSettingsExist() {
 }
 
 /**
+ * Check if the video assembly has any timeline clips
+ * @param {Object} videoAssemblyData - The video assembly data
+ * @returns {boolean} - Whether the video assembly has any timeline clips
+ */
+function checkForTimelineClips(videoAssemblyData) {
+  if (!videoAssemblyData || !videoAssemblyData.cut || !videoAssemblyData.cut.segments) {
+    return false;
+  }
+  
+  // Check each segment and scene for timeline clips
+  for (const segment of videoAssemblyData.cut.segments) {
+    if (!segment.scenes) continue;
+    
+    for (const scene of segment.scenes) {
+      if (scene.timeline_clips && scene.timeline_clips.length > 0) {
+        return true;
+      }
+    }
+  }
+  
+  return false;
+}
+
+/**
  * Updates the render options UI based on the current video assembly data
  * @param {Object} videoAssemblyData - The video assembly data
  * @param {string} filePath - The path to the video assembly file
@@ -283,9 +307,15 @@ function updateRenderOptions(videoAssemblyData, filePath) {
   currentVideoAssemblyData = videoAssemblyData;
   currentVideoAssemblyPath = filePath;
   
-  // Show the render options
+  // Check if there are any timeline clips in the video assembly
+  const hasTimelineClips = checkForTimelineClips(videoAssemblyData);
+  
+  // Show the render options only if there are timeline clips
   const renderOptionsContainer = document.getElementById('render-options-container');
-  renderOptionsContainer.style.display = 'block';
+  renderOptionsContainer.style.display = hasTimelineClips ? 'block' : 'none';
+  
+  // Log the decision for debugging
+  console.log(`Render options display: ${hasTimelineClips ? 'shown' : 'hidden'} (timeline clips: ${hasTimelineClips})`);
   
   // Get the settings from the video assembly data
   const settings = videoAssemblyData['composeflow.org'] && 
