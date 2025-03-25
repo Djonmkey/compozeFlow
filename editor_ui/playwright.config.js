@@ -27,9 +27,5 @@ module.exports = defineConfig({
       name: 'regression',
       testMatch: /regression.spec\.js/,
     },
-    {
-      name: 'electron',
-      testMatch: /^(?!.*\.(smoke|regression)\.spec\.js$).*\.spec\.js$/,
-    },
   ],
 });
