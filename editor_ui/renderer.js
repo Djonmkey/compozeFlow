@@ -34,156 +34,311 @@ const tab1 = document.querySelector('.tab:nth-child(1)');
 if (electronSetup.isElectron && electronSetup.ipcRenderer) {
   // Listen for the 'video-assembly-opened' event from the main process
   electronSetup.ipcRenderer.on('video-assembly-opened', (event, data) => {
-    videoAssemblyManager.handleVideoAssemblyData(data);
-    
-    // Fire a resize event after a short delay to ensure UI is fully updated
-    setTimeout(() => {
-      window.dispatchEvent(new Event('resize'));
-      console.log('Resize event fired after file load');
-    }, 100);
-  });
-  
-  // Listen for the current file path from the main process
-  electronSetup.ipcRenderer.on('current-file-path', (event, filePath) => {
-    videoAssemblyManager.setCurrentVideoAssemblyPath(filePath);
-  });
-  
-  // Listen for file state changes from the main process
-  electronSetup.ipcRenderer.on('file-state-changed', (event, data) => {
-    if (typeof updateGettingStartedVisibility === 'function') {
-      updateGettingStartedVisibility();
+    try {
+      videoAssemblyManager.handleVideoAssemblyData(data);
       
       // Fire a resize event after a short delay to ensure UI is fully updated
       setTimeout(() => {
         window.dispatchEvent(new Event('resize'));
-        console.log('Resize event fired after file state change');
+        console.log('Resize event fired after file load');
       }, 100);
+    } catch (error) {
+      console.error('Error handling video assembly data:', error);
+      const terminal = document.getElementById('terminal');
+      if (terminal) {
+        terminal.innerHTML += `<p class="error">Error handling video assembly data: ${error.message}</p>`;
+      }
+    }
+  });
+  
+  // Listen for the current file path from the main process
+  electronSetup.ipcRenderer.on('current-file-path', (event, filePath) => {
+    try {
+      videoAssemblyManager.setCurrentVideoAssemblyPath(filePath);
+    } catch (error) {
+      console.error('Error setting current video assembly path:', error);
+      const terminal = document.getElementById('terminal');
+      if (terminal) {
+        terminal.innerHTML += `<p class="error">Error setting current video assembly path: ${error.message}</p>`;
+      }
+    }
+  });
+  
+  // Listen for file state changes from the main process
+  electronSetup.ipcRenderer.on('file-state-changed', (event, data) => {
+    try {
+      if (typeof updateGettingStartedVisibility === 'function') {
+        updateGettingStartedVisibility();
+        
+        // Fire a resize event after a short delay to ensure UI is fully updated
+        setTimeout(() => {
+          window.dispatchEvent(new Event('resize'));
+          console.log('Resize event fired after file state change');
+        }, 100);
+      }
+    } catch (error) {
+      console.error('Error handling file state change:', error);
+      const terminal = document.getElementById('terminal');
+      if (terminal) {
+        terminal.innerHTML += `<p class="error">Error handling file state change: ${error.message}</p>`;
+      }
     }
   });
   
   // Listen for clear video assembly data request from the main process
   electronSetup.ipcRenderer.on('clear-video-assembly-data', (event) => {
-    console.log('Clearing video assembly data');
-    videoAssemblyManager.clearVideoAssemblyData();
+    try {
+      console.log('Clearing video assembly data');
+      videoAssemblyManager.clearVideoAssemblyData();
+    } catch (error) {
+      console.error('Error clearing video assembly data:', error);
+      const terminal = document.getElementById('terminal');
+      if (terminal) {
+        terminal.innerHTML += `<p class="error">Error clearing video assembly data: ${error.message}</p>`;
+      }
+    }
   });
   
   // Listen for requests to get the current content
   electronSetup.ipcRenderer.on('request-current-content', (event) => {
-    console.log('Main process requested current content');
-    const currentContent = videoAssemblyManager.getCurrentVideoAssemblyData();
-    electronSetup.ipcRenderer.send('current-content-response', currentContent);
+    try {
+      console.log('Main process requested current content');
+      const currentContent = videoAssemblyManager.getCurrentVideoAssemblyData();
+      electronSetup.ipcRenderer.send('current-content-response', currentContent);
+    } catch (error) {
+      console.error('Error handling current content request:', error);
+      const terminal = document.getElementById('terminal');
+      if (terminal) {
+        terminal.innerHTML += `<p class="error">Error handling current content request: ${error.message}</p>`;
+      }
+      // Send an error response to the main process
+      electronSetup.ipcRenderer.send('current-content-response', { error: error.message });
+    }
   });
 }
 
 // Listen for messages from the iframe
 window.addEventListener('message', (event) => {
+  try {
   // Check if the message is a title update
   if (event.data && event.data.type === 'title-updated') {
-    videoAssemblyManager.handleTitleUpdate(event.data.newTitle);
+    try {
+      videoAssemblyManager.handleTitleUpdate(event.data.newTitle);
+    } catch (error) {
+      console.error('Error handling title update:', error);
+      const terminal = document.getElementById('terminal');
+      if (terminal) {
+        terminal.innerHTML += `<p class="error">Error handling title update: ${error.message}</p>`;
+      }
+    }
   }
   // Check if the message is a subtitle update
   else if (event.data && event.data.type === 'subtitle-updated') {
-    videoAssemblyManager.handleSubtitleUpdate(event.data.newSubtitle);
+    try {
+      videoAssemblyManager.handleSubtitleUpdate(event.data.newSubtitle);
+    } catch (error) {
+      console.error('Error handling subtitle update:', error);
+      const terminal = document.getElementById('terminal');
+      if (terminal) {
+        terminal.innerHTML += `<p class="error">Error handling subtitle update: ${error.message}</p>`;
+      }
+    }
   }
   // Check if the message is a render segment request
   else if (event.data && event.data.type === 'render-segment') {
-    // Switch to the Render tab before handling the render request
-    if (window.uiManager) {
-      window.uiManager.setActiveTab('Render');
+    try {
+      // Switch to the Render tab before handling the render request
+      if (window.uiManager) {
+        window.uiManager.setActiveTab('Render');
+      }
+      videoAssemblyManager.handleRenderSegmentRequest(event.data.segmentSequence);
+    } catch (error) {
+      console.error('Error handling render segment request:', error);
+      const terminal = document.getElementById('terminal');
+      if (terminal) {
+        terminal.innerHTML += `<p class="error">Error handling render segment request: ${error.message}</p>`;
+      }
     }
-    videoAssemblyManager.handleRenderSegmentRequest(event.data.segmentSequence);
   }
   // Check if the message is a render scene request
   else if (event.data && event.data.type === 'render-scene') {
-    // Switch to the Render tab before handling the render request
-    if (window.uiManager) {
-      window.uiManager.setActiveTab('Render');
+    try {
+      // Switch to the Render tab before handling the render request
+      if (window.uiManager) {
+        window.uiManager.setActiveTab('Render');
+      }
+      videoAssemblyManager.handleRenderSceneRequest(event.data.segmentSequence, event.data.sceneSequence);
+    } catch (error) {
+      console.error('Error handling render scene request:', error);
+      const terminal = document.getElementById('terminal');
+      if (terminal) {
+        terminal.innerHTML += `<p class="error">Error handling render scene request: ${error.message}</p>`;
+      }
     }
-    videoAssemblyManager.handleRenderSceneRequest(event.data.segmentSequence, event.data.sceneSequence);
   }
   // Check if the message is to save output paths
   else if (event.data && event.data.type === 'save-output-paths') {
-    videoAssemblyManager.handleSaveOutputPaths(event.data.data);
+    try {
+      videoAssemblyManager.handleSaveOutputPaths(event.data.data);
+    } catch (error) {
+      console.error('Error handling save output paths:', error);
+      const terminal = document.getElementById('terminal');
+      if (terminal) {
+        terminal.innerHTML += `<p class="error">Error handling save output paths: ${error.message}</p>`;
+      }
+    }
   }
   // Check if the message is to save high quality render settings
   else if (event.data && event.data.type === 'save-high-quality-settings') {
-    videoAssemblyManager.handleSaveHighQualitySettings(event.data.data);
+    try {
+      videoAssemblyManager.handleSaveHighQualitySettings(event.data.data);
+    } catch (error) {
+      console.error('Error handling save high quality settings:', error);
+      const terminal = document.getElementById('terminal');
+      if (terminal) {
+        terminal.innerHTML += `<p class="error">Error handling save high quality settings: ${error.message}</p>`;
+      }
+    }
   }
   // Check if the message is to save quick render settings
   else if (event.data && event.data.type === 'save-quick-render-settings') {
-    videoAssemblyManager.handleSaveQuickRenderSettings(event.data.data);
+    try {
+      videoAssemblyManager.handleSaveQuickRenderSettings(event.data.data);
+    } catch (error) {
+      console.error('Error handling save quick render settings:', error);
+      const terminal = document.getElementById('terminal');
+      if (terminal) {
+        terminal.innerHTML += `<p class="error">Error handling save quick render settings: ${error.message}</p>`;
+      }
+    }
   }
   // Check if the message is to get clip data for editing
   else if (event.data && event.data.type === 'get-clip-data') {
-    const clipData = videoAssemblyManager.handleGetClipData(event.data);
-    if (clipData) {
-      // Send the clip data back to the iframe for editing
-      const iframe = document.getElementById('video-assembly-frame');
-      if (iframe && iframe.contentWindow) {
-        iframe.contentWindow.postMessage({
-          type: 'clip-data-for-edit',
-          clipData: clipData
-        }, '*');
+    try {
+      const clipData = videoAssemblyManager.handleGetClipData(event.data);
+      if (clipData) {
+        // Send the clip data back to the iframe for editing
+        const iframe = document.getElementById('video-assembly-frame');
+        if (iframe && iframe.contentWindow) {
+          iframe.contentWindow.postMessage({
+            type: 'clip-data-for-edit',
+            clipData: clipData
+          }, '*');
+        }
+      }
+    } catch (error) {
+      console.error('Error handling get clip data:', error);
+      const terminal = document.getElementById('terminal');
+      if (terminal) {
+        terminal.innerHTML += `<p class="error">Error handling get clip data: ${error.message}</p>`;
       }
     }
   }
   // Check if the message is to update a clip
   else if (event.data && event.data.type === 'update-clip') {
-    videoAssemblyManager.handleUpdateClip(event.data.clipData);
+    try {
+      videoAssemblyManager.handleUpdateClip(event.data.clipData);
+    } catch (error) {
+      console.error('Error handling update clip:', error);
+      const terminal = document.getElementById('terminal');
+      if (terminal) {
+        terminal.innerHTML += `<p class="error">Error handling update clip: ${error.message}</p>`;
+      }
+    }
   }
   // Check if the message is to delete a clip
   else if (event.data && event.data.type === 'delete-clip') {
-    videoAssemblyManager.handleDeleteClip(event.data);
+    try {
+      videoAssemblyManager.handleDeleteClip(event.data);
+    } catch (error) {
+      console.error('Error handling delete clip:', error);
+      const terminal = document.getElementById('terminal');
+      if (terminal) {
+        terminal.innerHTML += `<p class="error">Error handling delete clip: ${error.message}</p>`;
+      }
+    }
   }
   // Check if the message is to open a file dialog for a clip
   else if (event.data && event.data.type === 'open-file-dialog') {
-    handleOpenFileDialogForClip(event.data);
+    try {
+      handleOpenFileDialogForClip(event.data);
+    } catch (error) {
+      console.error('Error handling open file dialog for clip:', error);
+      const terminal = document.getElementById('terminal');
+      if (terminal) {
+        terminal.innerHTML += `<p class="error">Error handling open file dialog for clip: ${error.message}</p>`;
+      }
+    }
   }
   // Check if the message is to add a file to the timeline from the File tab
   else if (event.data && event.data.type === 'add-to-timeline-from-file-tab') {
-    const { currentFile, formData } = event.data;
-    const timeline = require('./timeline');
-    const success = timeline.addClipToTimeline(currentFile, formData, videoAssemblyManager.getCurrentVideoAssemblyData());
-    
-    if (success) {
-      timeline.switchToTimelineTab();
+    try {
+      const { currentFile, formData } = event.data;
+      const timeline = require('./timeline');
+      const success = timeline.addClipToTimeline(currentFile, formData, videoAssemblyManager.getCurrentVideoAssemblyData());
+      
+      if (success) {
+        timeline.switchToTimelineTab();
+      }
+    } catch (error) {
+      console.error('Error handling add to timeline from file tab:', error);
+      const terminal = document.getElementById('terminal');
+      if (terminal) {
+        terminal.innerHTML += `<p class="error">Error handling add to timeline from file tab: ${error.message}</p>`;
+      }
     }
   }
   // Check if the message is to move a clip up or down in sequence
   else if (event.data && event.data.type === 'move-clip') {
-    const { segmentSequence, sceneSequence, clipSequence, clipType, direction } = event.data;
-    const timeline = require('./timeline');
-    const success = timeline.moveClip(
-      segmentSequence,
-      sceneSequence,
-      clipSequence,
-      direction,
-      videoAssemblyManager.getCurrentVideoAssemblyData()
-    );
-    
-    if (success) {
-      // Get the iframe and save its scroll position before updating
-      const iframe = document.getElementById('video-assembly-frame');
-      let scrollPosition = 0;
+    try {
+      const { segmentSequence, sceneSequence, clipSequence, clipType, direction } = event.data;
+      const timeline = require('./timeline');
+      const success = timeline.moveClip(
+        segmentSequence,
+        sceneSequence,
+        clipSequence,
+        direction,
+        videoAssemblyManager.getCurrentVideoAssemblyData()
+      );
       
-      if (iframe && iframe.contentWindow) {
-        scrollPosition = iframe.contentWindow.scrollY || 0;
-      }
-      
-      // Update the editor content to reflect the changes
-      uiManager.updateEditorContent(videoAssemblyManager.getCurrentVideoAssemblyData());
-      
-      // Restore the scroll position after the iframe content is loaded
-      setTimeout(() => {
-        const updatedIframe = document.getElementById('video-assembly-frame');
-        if (updatedIframe && updatedIframe.contentWindow) {
-          updatedIframe.contentWindow.scrollTo(0, scrollPosition);
-          
-          // Update the terminal with a message
-          const terminal = document.getElementById('terminal');
-          terminal.innerHTML += `<p>Restored scroll position to ${scrollPosition}px after moving clip</p>`;
+      if (success) {
+        // Get the iframe and save its scroll position before updating
+        const iframe = document.getElementById('video-assembly-frame');
+        let scrollPosition = 0;
+        
+        if (iframe && iframe.contentWindow) {
+          scrollPosition = iframe.contentWindow.scrollY || 0;
         }
-      }, 100); // Small delay to ensure the iframe content is fully loaded
+        
+        // Update the editor content to reflect the changes
+        uiManager.updateEditorContent(videoAssemblyManager.getCurrentVideoAssemblyData());
+        
+        // Restore the scroll position after the iframe content is loaded
+        setTimeout(() => {
+          const updatedIframe = document.getElementById('video-assembly-frame');
+          if (updatedIframe && updatedIframe.contentWindow) {
+            updatedIframe.contentWindow.scrollTo(0, scrollPosition);
+            
+            // Update the terminal with a message
+            const terminal = document.getElementById('terminal');
+            terminal.innerHTML += `<p>Restored scroll position to ${scrollPosition}px after moving clip</p>`;
+          }
+        }, 100); // Small delay to ensure the iframe content is fully loaded
+      }
+    } catch (error) {
+      console.error('Error handling move clip:', error);
+      const terminal = document.getElementById('terminal');
+      if (terminal) {
+        terminal.innerHTML += `<p class="error">Error handling move clip: ${error.message}</p>`;
+      }
+    }
+  }
+  
+  } catch (error) {
+    console.error('Error handling iframe message:', error);
+    const terminal = document.getElementById('terminal');
+    if (terminal) {
+      terminal.innerHTML += `<p class="error">Error handling iframe message: ${error.message}</p>`;
     }
   }
 });
@@ -209,55 +364,70 @@ window.updateGettingStartedVisibility = updateGettingStartedVisibility;
  * @param {Object} data - Data containing segment, scene, and clip sequence numbers
  */
 async function handleOpenFileDialogForClip(data) {
-  const { segmentSequence, sceneSequence, clipSequence, clipType } = data;
-  
-  if (electronSetup.isElectron && electronSetup.ipcRenderer) {
-    try {
-      // Determine file filters based on clip type
-      let filters = [];
-      if (clipType === 'video') {
-        filters = [
-          { name: 'Video Files', extensions: ['mp4', 'mov', 'avi', 'mkv', 'webm'] },
-          { name: 'All Files', extensions: ['*'] }
-        ];
-      } else if (clipType === 'image') {
-        filters = [
-          { name: 'Image Files', extensions: ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'] },
-          { name: 'All Files', extensions: ['*'] }
-        ];
-      }
-      
-      // Show the open file dialog
-      const result = await electronSetup.ipcRenderer.invoke('show-open-file-dialog', filters);
-      
-      if (!result.canceled && result.filePath) {
-        // Send the new path back to the iframe without updating the video assembly data
-        // The actual update will happen when the user clicks "Save Changes" in the dialog
-        const iframe = document.getElementById('video-assembly-frame');
-        if (iframe && iframe.contentWindow) {
-          iframe.contentWindow.postMessage({
-            type: 'new-clip-path',
-            newPath: result.filePath
-          }, '*');
+  try {
+    const { segmentSequence, sceneSequence, clipSequence, clipType } = data;
+    
+    if (electronSetup.isElectron && electronSetup.ipcRenderer) {
+      try {
+        // Determine file filters based on clip type
+        let filters = [];
+        if (clipType === 'video') {
+          filters = [
+            { name: 'Video Files', extensions: ['mp4', 'mov', 'avi', 'mkv', 'webm'] },
+            { name: 'All Files', extensions: ['*'] }
+          ];
+        } else if (clipType === 'image') {
+          filters = [
+            { name: 'Image Files', extensions: ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'] },
+            { name: 'All Files', extensions: ['*'] }
+          ];
         }
         
-        // Update the terminal with a message
+        // Show the open file dialog
+        const result = await electronSetup.ipcRenderer.invoke('show-open-file-dialog', filters);
+        
+        if (!result.canceled && result.filePath) {
+          // Send the new path back to the iframe without updating the video assembly data
+          // The actual update will happen when the user clicks "Save Changes" in the dialog
+          const iframe = document.getElementById('video-assembly-frame');
+          if (iframe && iframe.contentWindow) {
+            iframe.contentWindow.postMessage({
+              type: 'new-clip-path',
+              newPath: result.filePath
+            }, '*');
+          }
+          
+          // Update the terminal with a message
+          const terminal = document.getElementById('terminal');
+          if (terminal) {
+            terminal.innerHTML += `<p>Selected new clip path: ${result.filePath}</p>`;
+          }
+        }
+      } catch (error) {
+        console.error('Error opening file dialog:', error);
+        
+        // Update the terminal with an error message
         const terminal = document.getElementById('terminal');
-        terminal.innerHTML += `<p>Selected new clip path: ${result.filePath}</p>`;
+        if (terminal) {
+          terminal.innerHTML += `<p class="error">Error opening file dialog: ${error.message}</p>`;
+        }
+        throw error; // Re-throw for outer catch
       }
-    } catch (error) {
-      console.error('Error opening file dialog:', error);
+    } else {
+      console.error('Cannot open file dialog in browser mode');
       
       // Update the terminal with an error message
       const terminal = document.getElementById('terminal');
-      terminal.innerHTML += `<p>Error opening file dialog: ${error.message}</p>`;
+      if (terminal) {
+        terminal.innerHTML += `<p class="error">Cannot open file dialog in browser mode</p>`;
+      }
     }
-  } else {
-    console.error('Cannot open file dialog in browser mode');
-    
-    // Update the terminal with an error message
+  } catch (error) {
+    console.error('Error in handleOpenFileDialogForClip:', error);
     const terminal = document.getElementById('terminal');
-    terminal.innerHTML += `<p>Cannot open file dialog in browser mode</p>`;
+    if (terminal) {
+      terminal.innerHTML += `<p class="error">Error in handleOpenFileDialogForClip: ${error.message}</p>`;
+    }
   }
 }
 
@@ -267,77 +437,117 @@ const { getCurrentVideoAssemblyData } = require('./videoAssemblyManager');
  * Initialize the Getting Started UI
  */
 function initializeGettingStartedUI() {
-  // Get references to UI elements
-  gettingStartedContainer = document.getElementById('getting-started-container');
-  newAssemblyBtn = document.getElementById('new-assembly-btn');
-  openAssemblyBtn = document.getElementById('open-assembly-btn');
-  githubLink = document.getElementById('github-link');
-  docsLink = document.getElementById('docs-link');
-  communityLink = document.getElementById('community-link');
-  issuesLink = document.getElementById('issues-link');
-  
-  // Add event listeners for the action buttons
-  if (newAssemblyBtn) {
-    newAssemblyBtn.addEventListener('click', () => {
-      if (electronSetup.isElectron && electronSetup.ipcRenderer) {
-        // Trigger the New Video Assembly action in the main process
-        electronSetup.ipcRenderer.send('menu-action', 'new-video-assembly');
-      }
-    });
-  }
-  
-  if (openAssemblyBtn) {
-    openAssemblyBtn.addEventListener('click', () => {
-      if (electronSetup.isElectron && electronSetup.ipcRenderer) {
-        // Trigger the Open Video Assembly action in the main process
-        electronSetup.ipcRenderer.send('menu-action', 'open-video-assembly');
-      }
-    });
-  }
-  
-  // Add event listeners for the external links
-  const externalLinks = [githubLink, docsLink, communityLink, issuesLink];
-  externalLinks.forEach(link => {
-    if (link) {
-      link.addEventListener('click', (e) => {
-        e.preventDefault();
-        if (electronSetup.isElectron && electronSetup.ipcRenderer) {
-          // Open the link in the default browser
-          electronSetup.ipcRenderer.send('open-external-link', link.href);
-        } else {
-          // Fallback for non-Electron environment
-          window.open(link.href, '_blank');
+  try {
+    // Get references to UI elements
+    gettingStartedContainer = document.getElementById('getting-started-container');
+    newAssemblyBtn = document.getElementById('new-assembly-btn');
+    openAssemblyBtn = document.getElementById('open-assembly-btn');
+    githubLink = document.getElementById('github-link');
+    docsLink = document.getElementById('docs-link');
+    communityLink = document.getElementById('community-link');
+    issuesLink = document.getElementById('issues-link');
+    
+    // Add event listeners for the action buttons
+    if (newAssemblyBtn) {
+      newAssemblyBtn.addEventListener('click', () => {
+        try {
+          if (electronSetup.isElectron && electronSetup.ipcRenderer) {
+            // Trigger the New Video Assembly action in the main process
+            electronSetup.ipcRenderer.send('menu-action', 'new-video-assembly');
+          }
+        } catch (error) {
+          console.error('Error in new assembly button click:', error);
+          const terminal = document.getElementById('terminal');
+          if (terminal) {
+            terminal.innerHTML += `<p class="error">Error in new assembly button click: ${error.message}</p>`;
+          }
         }
       });
     }
-  });
-  
-  // Show or hide the getting started UI based on whether a file is active
-  updateGettingStartedVisibility();
+    
+    if (openAssemblyBtn) {
+      openAssemblyBtn.addEventListener('click', () => {
+        try {
+          if (electronSetup.isElectron && electronSetup.ipcRenderer) {
+            // Trigger the Open Video Assembly action in the main process
+            electronSetup.ipcRenderer.send('menu-action', 'open-video-assembly');
+          }
+        } catch (error) {
+          console.error('Error in open assembly button click:', error);
+          const terminal = document.getElementById('terminal');
+          if (terminal) {
+            terminal.innerHTML += `<p class="error">Error in open assembly button click: ${error.message}</p>`;
+          }
+        }
+      });
+    }
+    
+    // Add event listeners for the external links
+    const externalLinks = [githubLink, docsLink, communityLink, issuesLink];
+    externalLinks.forEach(link => {
+      if (link) {
+        link.addEventListener('click', (e) => {
+          try {
+            e.preventDefault();
+            if (electronSetup.isElectron && electronSetup.ipcRenderer) {
+              // Open the link in the default browser
+              electronSetup.ipcRenderer.send('open-external-link', link.href);
+            } else {
+              // Fallback for non-Electron environment
+              window.open(link.href, '_blank');
+            }
+          } catch (error) {
+            console.error('Error handling external link click:', error);
+            const terminal = document.getElementById('terminal');
+            if (terminal) {
+              terminal.innerHTML += `<p class="error">Error handling external link click: ${error.message}</p>`;
+            }
+          }
+        });
+      }
+    });
+    
+    // Show or hide the getting started UI based on whether a file is active
+    updateGettingStartedVisibility();
+  } catch (error) {
+    console.error('Error initializing Getting Started UI:', error);
+    const terminal = document.getElementById('terminal');
+    if (terminal) {
+      terminal.innerHTML += `<p class="error">Error initializing Getting Started UI: ${error.message}</p>`;
+    }
+  }
 }
 
 /**
  * Update the visibility of the Getting Started UI based on whether a file is active
  */
 function updateGettingStartedVisibility() {
-  const hasActiveFile = videoAssemblyManager.getCurrentVideoAssemblyPath() !== null;
-  
-  if (gettingStartedContainer) {
-    if (hasActiveFile) {
-      // Hide the getting started UI and show the regular UI
-      gettingStartedContainer.style.display = 'none';
-      showRegularUI();
-    } else {
-      // Show the getting started UI and hide the regular UI
-      gettingStartedContainer.style.display = 'block';
-      hideRegularUI();
-    }
+  try {
+    const hasActiveFile = videoAssemblyManager.getCurrentVideoAssemblyPath() !== null;
     
-    // Fire a resize event after a short delay to ensure UI is fully updated
-    setTimeout(() => {
-      window.dispatchEvent(new Event('resize'));
-      console.log('Resize event fired after UI visibility change');
-    }, 100);
+    if (gettingStartedContainer) {
+      if (hasActiveFile) {
+        // Hide the getting started UI and show the regular UI
+        gettingStartedContainer.style.display = 'none';
+        showRegularUI();
+      } else {
+        // Show the getting started UI and hide the regular UI
+        gettingStartedContainer.style.display = 'block';
+        hideRegularUI();
+      }
+      
+      // Fire a resize event after a short delay to ensure UI is fully updated
+      setTimeout(() => {
+        window.dispatchEvent(new Event('resize'));
+        console.log('Resize event fired after UI visibility change');
+      }, 100);
+    }
+  } catch (error) {
+    console.error('Error updating Getting Started visibility:', error);
+    const terminal = document.getElementById('terminal');
+    if (terminal) {
+      terminal.innerHTML += `<p class="error">Error updating Getting Started visibility: ${error.message}</p>`;
+    }
   }
 }
 
@@ -345,44 +555,69 @@ function updateGettingStartedVisibility() {
  * Show the regular UI components
  */
 function showRegularUI() {
-  const iconBar = document.getElementById('icon-bar');
-  const explorer = document.getElementById('explorer');
-  const resizeHandle = document.getElementById('resize-handle');
-  const mainSection = document.getElementById('main-section');
-  
-  if (iconBar) iconBar.style.display = 'flex';
-  if (explorer) explorer.style.display = 'block';
-  if (resizeHandle) resizeHandle.style.display = 'block';
-  if (mainSection) mainSection.style.display = 'flex';
-  
-  // Ensure resize handles are properly positioned by calling the initialize functions
-  setTimeout(() => {
-    if (typeof uiManager.initializeResizeHandle === 'function') {
-      uiManager.initializeResizeHandle();
+  try {
+    const iconBar = document.getElementById('icon-bar');
+    const explorer = document.getElementById('explorer');
+    const resizeHandle = document.getElementById('resize-handle');
+    const mainSection = document.getElementById('main-section');
+    
+    if (iconBar) iconBar.style.display = 'flex';
+    if (explorer) explorer.style.display = 'block';
+    if (resizeHandle) resizeHandle.style.display = 'block';
+    if (mainSection) mainSection.style.display = 'flex';
+    
+    // Ensure resize handles are properly positioned by calling the initialize functions
+    setTimeout(() => {
+      try {
+        if (typeof uiManager.initializeResizeHandle === 'function') {
+          uiManager.initializeResizeHandle();
+        }
+        if (typeof uiManager.initializeTerminalResizeHandle === 'function') {
+          uiManager.initializeTerminalResizeHandle();
+        }
+      } catch (error) {
+        console.error('Error initializing resize handles:', error);
+        const terminal = document.getElementById('terminal');
+        if (terminal) {
+          terminal.innerHTML += `<p class="error">Error initializing resize handles: ${error.message}</p>`;
+        }
+      }
+    }, 50);
+  } catch (error) {
+    console.error('Error showing regular UI:', error);
+    const terminal = document.getElementById('terminal');
+    if (terminal) {
+      terminal.innerHTML += `<p class="error">Error showing regular UI: ${error.message}</p>`;
     }
-    if (typeof uiManager.initializeTerminalResizeHandle === 'function') {
-      uiManager.initializeTerminalResizeHandle();
-    }
-  }, 50);
+  }
 }
 
 /**
  * Hide the regular UI components
  */
 function hideRegularUI() {
-  const iconBar = document.getElementById('icon-bar');
-  const explorer = document.getElementById('explorer');
-  const resizeHandle = document.getElementById('resize-handle');
-  const mainSection = document.getElementById('main-section');
-  
-  if (iconBar) iconBar.style.display = 'none';
-  if (explorer) explorer.style.display = 'none';
-  if (resizeHandle) resizeHandle.style.display = 'none';
-  if (mainSection) mainSection.style.display = 'none';
+  try {
+    const iconBar = document.getElementById('icon-bar');
+    const explorer = document.getElementById('explorer');
+    const resizeHandle = document.getElementById('resize-handle');
+    const mainSection = document.getElementById('main-section');
+    
+    if (iconBar) iconBar.style.display = 'none';
+    if (explorer) explorer.style.display = 'none';
+    if (resizeHandle) resizeHandle.style.display = 'none';
+    if (mainSection) mainSection.style.display = 'none';
+  } catch (error) {
+    console.error('Error hiding regular UI:', error);
+    const terminal = document.getElementById('terminal');
+    if (terminal) {
+      terminal.innerHTML += `<p class="error">Error hiding regular UI: ${error.message}</p>`;
+    }
+  }
 }
 
 // Initialize the UI
 document.addEventListener('DOMContentLoaded', () => {
+  try {
     console.log('Renderer process initialized');
     
     // Initialize tabs
@@ -390,15 +625,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Add event listener for Raw tab
     const rawTab = document.querySelector('.tab:nth-child(7)'); // Updated index due to added Render tab
-    rawTab.addEventListener('click', () => {
-        const data = getCurrentVideoAssemblyData();
-        if (data) {
+    if (rawTab) {
+      rawTab.addEventListener('click', () => {
+        try {
+          const data = getCurrentVideoAssemblyData();
+          if (data) {
             const prettyPrintedJson = JSON.stringify(data, null, 2);
             editorContent.innerText = prettyPrintedJson;
-        } else {
+          } else {
             editorContent.innerText = 'No video assembly data available.';
+          }
+        } catch (error) {
+          console.error('Error displaying raw video assembly data:', error);
+          const terminal = document.getElementById('terminal');
+          if (terminal) {
+            terminal.innerHTML += `<p class="error">Error displaying raw video assembly data: ${error.message}</p>`;
+          }
+          if (editorContent) {
+            editorContent.innerText = `Error loading data: ${error.message}`;
+          }
         }
-    });
+      });
+    }
     
     // Initialize the Getting Started UI
     initializeGettingStartedUI();
@@ -411,54 +659,85 @@ document.addEventListener('DOMContentLoaded', () => {
   
     // Load and display installed plugins if the feature is enabled
     if (FEATURE_FLAGS.ENABLE_PLUGINS) {
+      try {
         pluginManager.loadInstalledPlugins();
+      } catch (error) {
+        console.error('Error loading installed plugins:', error);
+        const terminal = document.getElementById('terminal');
+        if (terminal) {
+          terminal.innerHTML += `<p class="error">Error loading installed plugins: ${error.message}</p>`;
+        }
+      }
     } else {
-        console.log('Plugins feature is disabled by feature flag');
-        
-        // Hide the plugins icon and container when the feature is disabled
-        const pluginsIcon = document.getElementById('plugins-icon');
-        const installedPluginsContainer = document.getElementById('installed-plugins-icons');
-        
-        if (pluginsIcon) {
-            pluginsIcon.style.display = 'none';
-        }
-        
-        if (installedPluginsContainer) {
-            installedPluginsContainer.style.display = 'none';
-        }
+      console.log('Plugins feature is disabled by feature flag');
+      
+      // Hide the plugins icon and container when the feature is disabled
+      const pluginsIcon = document.getElementById('plugins-icon');
+      const installedPluginsContainer = document.getElementById('installed-plugins-icons');
+      
+      if (pluginsIcon) {
+        pluginsIcon.style.display = 'none';
+      }
+      
+      if (installedPluginsContainer) {
+        installedPluginsContainer.style.display = 'none';
+      }
     }
     
     // Check if account icon should be displayed
     if (!FEATURE_FLAGS.ENABLE_ACCOUNT_FEATURES) {
-        console.log('Account icon is disabled by feature flag');
-        
-        // Hide the account icon when the feature is disabled
-        const accountIcon = document.getElementById('account-icon');
-        
-        if (accountIcon) {
-            accountIcon.style.display = 'none';
-        }
+      console.log('Account icon is disabled by feature flag');
+      
+      // Hide the account icon when the feature is disabled
+      const accountIcon = document.getElementById('account-icon');
+      
+      if (accountIcon) {
+        accountIcon.style.display = 'none';
+      }
     }
     
     // Check if settings icon should be displayed
     if (!FEATURE_FLAGS.ENABLE_SETTINGS_FEATURE) {
-        console.log('Settings icon is disabled by feature flag');
-        
-        // Hide the settings icon when the feature is disabled
-        const settingsIcon = document.getElementById('settings-icon');
-        
-        if (settingsIcon) {
-            settingsIcon.style.display = 'none';
-        }
+      console.log('Settings icon is disabled by feature flag');
+      
+      // Hide the settings icon when the feature is disabled
+      const settingsIcon = document.getElementById('settings-icon');
+      
+      if (settingsIcon) {
+        settingsIcon.style.display = 'none';
+      }
     }
     
     // Initialize the resize handles
-    uiManager.initializeResizeHandle(); // For explorer
-    uiManager.initializeTerminalResizeHandle(); // For terminal
+    try {
+      uiManager.initializeResizeHandle(); // For explorer
+      uiManager.initializeTerminalResizeHandle(); // For terminal
+    } catch (error) {
+      console.error('Error initializing resize handles:', error);
+      const terminal = document.getElementById('terminal');
+      if (terminal) {
+        terminal.innerHTML += `<p class="error">Error initializing resize handles: ${error.message}</p>`;
+      }
+    }
     
     // Initialize render options
-    if (typeof electronSetup.renderOptionsDisplay !== 'undefined' && 
-        electronSetup.renderOptionsDisplay.initializeRenderOptions) {
+    try {
+      if (typeof electronSetup.renderOptionsDisplay !== 'undefined' && 
+          electronSetup.renderOptionsDisplay.initializeRenderOptions) {
         electronSetup.renderOptionsDisplay.initializeRenderOptions();
+      }
+    } catch (error) {
+      console.error('Error initializing render options:', error);
+      const terminal = document.getElementById('terminal');
+      if (terminal) {
+        terminal.innerHTML += `<p class="error">Error initializing render options: ${error.message}</p>`;
+      }
     }
+  } catch (error) {
+    console.error('Error in DOMContentLoaded event handler:', error);
+    const terminal = document.getElementById('terminal');
+    if (terminal) {
+      terminal.innerHTML += `<p class="error">Error in DOMContentLoaded event handler: ${error.message}</p>`;
+    }
+  }
 });
