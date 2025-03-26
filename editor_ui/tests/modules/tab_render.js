@@ -86,7 +86,34 @@ exports.tabRenderTests = {
       // Click the render tab
       try {
         console.log('Before: renderTab[0].click()');
-      await renderTab[0].click();
+        
+        // Add a custom click handler to step into the application code
+        await renderTab[0].evaluate(element => {
+          // This debugger will pause execution in the browser context
+          debugger;
+          
+          // Add a debugger to the element's onclick handler
+          const originalOnClick = element.onclick;
+          
+          element.onclick = function(event) {
+            debugger; // This will pause execution when the click event is handled
+            if (originalOnClick) return originalOnClick.call(this, event);
+          };
+          
+          // Add a listener for the click event
+          element.addEventListener('click', function(event) {
+            debugger; // This will pause execution when the click event is fired
+          }, true); // Use capture phase to ensure this runs first
+          
+          // Dispatch a click event instead of using element.click()
+          const clickEvent = new MouseEvent('click', {
+            bubbles: true,
+            cancelable: true,
+            view: window
+          });
+          element.dispatchEvent(clickEvent);
+        });
+        
       } catch (error) {
         console.error('Error clicking render tab:', error);
         // Continue with the test despite the error
