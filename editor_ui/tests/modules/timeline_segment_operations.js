@@ -99,16 +99,24 @@ exports.timelineSegmentOperationsTests = {
             console.log('Added segment with title: Test Segment');
             expect(segmentTitles.length).toBeGreaterThan(0);
           } else {
-            console.log('Save button for segment NOT found!');
+            console.log('Save button for segment not found - this is a critical error!');
+            // Fail the test with a descriptive message if the save button is not found
+            expect(saveButton.length, 'Save button must be present in segment dialog').toBeGreaterThan(0);
           }
         } else {
-          console.log('Segment title input in dialog NOT found!');
+          console.log('Segment title input in dialog not found - this is a critical error!');
+          // Fail the test with a descriptive message if the segment title input is not found
+          expect(segmentTitleInput.length, 'Segment title input must be present in dialog').toBeGreaterThan(0);
         }
       } else {
-        console.log('Add Segment button NOT found!');
+        console.log('Add Segment button not found - this is a critical error!');
+        // Fail the test with a descriptive message if the Add Segment button is not found
+        expect(addSegmentButton.length, 'Add Segment button must be present on Timeline tab').toBeGreaterThan(0);
       }
     } else {
-      console.log('Timeline Tab NOT found!');
+      console.log('Timeline Tab not found - this is a critical error!');
+      // Fail the test with a descriptive message if the Timeline tab is not found
+      expect(timelineTab.length, 'Timeline tab must be present').toBeGreaterThan(0);
     }
     
     return { window, electronApp };
@@ -191,13 +199,19 @@ exports.timelineSegmentOperationsTests = {
           console.log('Edited segment title to: Edited Test Segment');
           expect(updatedSegmentTitles.length).toBeGreaterThan(0);
         } else {
-          console.log('Save button for edit NOT found!');
+          console.log('Save button for edit not found - this is a critical error!');
+          // Fail the test with a descriptive message if the save button is not found
+          expect(saveButton.length, 'Save button must be present in edit dialog').toBeGreaterThan(0);
         }
       } else {
-        console.log('Segment title input in edit dialog NOT found!');
+        console.log('Segment title input in edit dialog not found - this is a critical error!');
+        // Fail the test with a descriptive message if the segment title input is not found
+        expect(segmentTitleInput.length, 'Segment title input must be present in edit dialog').toBeGreaterThan(0);
       }
     } else {
-      console.log('No segment found to edit!');
+      console.log('No segment found to edit - this is a critical error!');
+      // Fail the test with a descriptive message if no segment is found to edit
+      expect(testSegment.length, 'At least one segment must be present to edit').toBeGreaterThan(0);
     }
     
     return { window, electronApp };
@@ -275,7 +289,9 @@ exports.timelineSegmentOperationsTests = {
         expect(deletedSegments.length).toBe(0);
       }
     } else {
-      console.log('No segment found to delete!');
+      console.log('No segment found to delete - this is a critical error!');
+      // Fail the test with a descriptive message if no segment is found to delete
+      expect(testSegment.length, 'At least one segment must be present to delete').toBeGreaterThan(0);
     }
     
     return { window, electronApp };
