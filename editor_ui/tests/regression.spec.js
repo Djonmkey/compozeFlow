@@ -178,6 +178,7 @@ test('Render and overlay images tabs', async ({ page }) => {
   console.log('Starting regression test: Render and overlay images tabs');
   
   let electronApp;
+  let window;
   
   try {
     // Launch Electron app
@@ -190,17 +191,26 @@ test('Render and overlay images tabs', async ({ page }) => {
     
     console.log('Electron app launched');
     
-    // Test the render tab is present and can be selected
-    await tabRenderTests.testRenderTabPresent({ page, electronApp });
+    // Create a new video assembly to get to the editor and get the window reference
+    const result = await createNewVideoAssemblyDialogTests.testCreateNewVideoAssemblyFromWelcomeScreen({ page, electronApp });
+    window = result.window;
+    electronApp = result.electronApp;
     
-    // Test interacting with the render tab content
-    await tabRenderTests.testRenderTabInteraction({ page, electronApp });
+    // Test the render tab is present and can be selected
+    const renderTabResult = await tabRenderTests.testRenderTabPresent({ page, electronApp, window });
+    window = renderTabResult.window;
+    electronApp = renderTabResult.electronApp;
+    
+    // Render tab intentionally has no functionality to test
+    console.log('No interaction test for Render tab - tab has no functionality by design');
     
     // Test the overlay images tab is present and can be selected
-    await tabOverlayImagesTests.testOverlayImagesTabPresent({ page, electronApp });
+    const overlayImagesTabResult = await tabOverlayImagesTests.testOverlayImagesTabPresent({ page, electronApp, window });
+    window = overlayImagesTabResult.window;
+    electronApp = overlayImagesTabResult.electronApp;
     
     // Test interacting with the overlay images tab content
-    await tabOverlayImagesTests.testOverlayImagesTabInteraction({ page, electronApp });
+    await tabOverlayImagesTests.testOverlayImagesTabInteraction({ page, electronApp, window });
     
     console.log('Render and overlay images tabs tests completed successfully');
   } finally {
