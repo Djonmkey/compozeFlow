@@ -14,7 +14,6 @@ const { explorerBarContentSourcesTests } = require('./modules/explorer_bar_conte
 const { tabOverlayImagesTests } = require('./modules/tab_overlay_images');
 const { tabMixedAudioTests } = require('./modules/tab_mixed_audio');
 const { tabOutputTests } = require('./modules/tab_output');
-const { tabRenderTests } = require('./modules/tab_render');
 const { tabRawTests } = require('./modules/tab_raw');
 const { tabGeneralTests } = require('./modules/tab_general');
 

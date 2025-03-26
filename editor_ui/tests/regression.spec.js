@@ -13,7 +13,6 @@ const { fileMenuTests } = require('./modules/file_menu');
 const { renderBarTests } = require('./modules/render_bar');
 const { tabTimelineTests } = require('./modules/tab_timeline');
 const { tabFileTests } = require('./modules/tab_file');
-const { tabRenderTests } = require('./modules/tab_render');
 const { tabOverlayImagesTests } = require('./modules/tab_overlay_images');
 const { tabMixedAudioTests } = require('./modules/tab_mixed_audio');
 const { tabOutputTests } = require('./modules/tab_output');

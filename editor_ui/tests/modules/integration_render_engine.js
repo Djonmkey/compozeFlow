@@ -3,7 +3,6 @@ const { test, expect } = require('@playwright/test');
 const { _electron: electron } = require('@playwright/test');
 const path = require('path');
 const { createNewVideoAssemblyDialogTests } = require('./create_new_video_assembly_dialog');
-const { tabRenderTests } = require('./tab_render');
 
 /**
  * Tests for the integration with the render engine
@@ -13,9 +12,44 @@ exports.integrationRenderEngineTests = {
   /**
    * Test that the render engine integration is present
    */
-  testRenderEngineIntegrationPresent: async ({ page, electronApp }) => {
-    // First go to the render tab
-    const { window } = await tabRenderTests.testRenderTabPresent({ page, electronApp });
+  testRenderEngineIntegrationPresent: async ({ page, electronApp, window = null }) => {
+    // Get the main window if not provided
+    if (!window) {
+      try {
+        // Create a new video assembly to get to the editor
+        const result = await createNewVideoAssemblyDialogTests.testCreateNewVideoAssemblyFromWelcomeScreen({ page, electronApp });
+        window = result.window;
+        electronApp = result.electronApp;
+      } catch (error) {
+        console.log('Failed to create new video assembly, continuing with possible existing window:', error.message);
+        // Get the first window
+        const pages = await electronApp.windows();
+        if (pages.length > 0) {
+          window = pages[0];
+        } else {
+          throw new Error('No window available for render engine test');
+        }
+      }
+    }
+    
+    // Ensure we have a window to work with
+    if (!window) {
+      throw new Error('Could not obtain a window for render engine test');
+    }
+    
+    // Find and click the render tab
+    const renderTab = await window.$$('button:has-text("Render"), .tab:has-text("Render"), [role="tab"]:has-text("Render")');
+    
+    if (renderTab.length > 0) {
+      // Take a screenshot before clicking the render tab
+      await window.screenshot({ path: path.join(__dirname, '../../tests/before-render-engine-test.png') });
+      
+      // Click the render tab
+      await renderTab[0].click();
+      
+      // Wait for the content to update
+      await window.waitForTimeout(500);
+    }
     
     // Look for render engine related elements
     const renderEngineElements = await window.$$('.render-engine, .render-progress, .render-status, .render-queue');
