@@ -36,7 +36,7 @@ exports.tabExportTests = {
     }
     
     // Look for the export tab
-    const exportTab = await window.$$('button:has-text("Export"), .tab:has-text("Export"), [role="tab"]:has-text("Export")');
+    const exportTab = await window.$$('button:has-text("Render Export"), .tab:has-text("Render Export"), [role="tab"]:has-text("Render Export")');
     
     if (exportTab.length > 0) {
       // Take a screenshot before clicking the export tab

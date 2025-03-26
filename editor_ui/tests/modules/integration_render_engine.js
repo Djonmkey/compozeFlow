@@ -60,7 +60,7 @@ exports.integrationRenderEngineTests = {
     // We won't actually start a render, but we'll verify that render-related elements exist
     if (renderEngineElements.length === 0) {
       // If we can't find specific render engine elements, look for any render-related buttons
-      const renderButtons = await window.$$('button:has-text("Render"), button:has-text("Export"), button:has-text("Start Render")');
+      const renderButtons = await window.$$('button:has-text("Render"), button:has-text("Render Export"), button:has-text("Start Render")');
       expect(renderButtons.length).toBeGreaterThan(0);
     }
     
@@ -109,7 +109,7 @@ exports.integrationRenderEngineTests = {
     }
     
     // Look for the render button but don't click it
-    const renderButton = await window.$$('button:has-text("Render"), button:has-text("Export"), button:has-text("Start Render")');
+    const renderButton = await window.$$('button:has-text("Render"), button:has-text("Render Export"), button:has-text("Start Render")');
     
     if (renderButton.length > 0) {
       // Take a screenshot of the render button

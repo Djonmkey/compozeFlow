@@ -37,7 +37,7 @@ function updateEditorContent(currentVideoAssemblyData) {
     htmlContent = generateOutputHtml(currentVideoAssemblyData);
   } else if (activeTab === 'General') {
     htmlContent = generateGeneralHtml(currentVideoAssemblyData);
-  } else if (activeTab === 'Export') {
+  } else if (activeTab === 'Render Export') {
     htmlContent = generateExportHtml(currentVideoAssemblyData);
   } else if (activeTab === 'Raw') {
     htmlContent = generateRawHtml(currentVideoAssemblyData);
