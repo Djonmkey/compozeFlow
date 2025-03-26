@@ -161,12 +161,12 @@ function startRender(renderButton, terminal) {
       // If the Render tab is active, refresh its content
       if (window.uiManager && window.uiManager.getActiveTab() === 'Render') {
         // Get the render tab display module
-        const renderTabDisplay = require('./renderTabDisplay');
+        const renderDisplay = require('./renderDisplay');
         
         // Update the editor content with fresh render tab HTML
         const editorContent = document.getElementById('editor-content');
         if (editorContent) {
-          const htmlContent = renderTabDisplay.generateRenderTabHtml();
+          const htmlContent = renderDisplay.generateRenderHtml(window.currentVideoAssemblyData);
           editorContent.innerHTML = `
             <iframe
               id="video-assembly-frame"
