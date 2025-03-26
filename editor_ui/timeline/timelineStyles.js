@@ -11,6 +11,30 @@
 function getTimelineStyles() {
     return `
         body { font-family: Arial, sans-serif; line-height: 1.6; }
+        
+        /* Add Segment Button */
+        .add-segment-container {
+            margin: 20px 0;
+            text-align: right;
+        }
+        
+        .add-segment-button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        
+        .add-segment-button:hover {
+            background-color: #45a049;
+        }
         h1 { text-align: center; margin-bottom: 5px; }
         h2 { text-align: center; color: gray; margin-top: 5px; margin-bottom: 20px; }
         h3 { margin-top: 20px; display: inline-block; margin-right: 10px; }
@@ -21,7 +45,44 @@ function getTimelineStyles() {
         .clip-path { font-size: 8pt; color: gray; }
         .clip-name { font-weight: bold; }
         .title-container { text-align: center; margin-bottom: 10px; }
-        .segment-header { display: flex; align-items: center; margin-bottom: 10px; }
+        .segment-header { 
+            display: flex; 
+            align-items: center; 
+            margin-bottom: 10px;
+            justify-content: flex-start;
+        }
+        
+        .segment-actions {
+            margin-left: auto;
+            display: flex;
+            gap: 5px;
+        }
+        
+        .edit-segment-button, .delete-segment-button {
+            padding: 4px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            border: none;
+        }
+        
+        .edit-segment-button {
+            background-color: #2196F3;
+            color: white;
+        }
+        
+        .edit-segment-button:hover {
+            background-color: #0b7dda;
+        }
+        
+        .delete-segment-button {
+            background-color: #f44336;
+            color: white;
+        }
+        
+        .delete-segment-button:hover {
+            background-color: #d32f2f;
+        }
         
         /* Render button styles */
         .render-button-common {

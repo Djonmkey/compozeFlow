@@ -9,6 +9,7 @@ const generateHtmlFromVideoAssembly = require('./timelineHtmlGenerator');
 const getTimelineStyles = require('./timelineStyles');
 const getTimelineEventHandlers = require('./timelineEventHandlers');
 const clipOperations = require('./clipOperations');
+const segmentOperations = require('./segmentOperations');
 
 /**
  * Generates the complete HTML for the Timeline tab
@@ -37,5 +38,11 @@ module.exports = {
     deleteClipFromTimeline: clipOperations.deleteClipFromTimeline,
     getClipData: clipOperations.getClipData,
     switchToTimelineTab: clipOperations.switchToTimelineTab,
-    moveClip: clipOperations.moveClip
+    moveClip: clipOperations.moveClip,
+    
+    // Segment operations
+    addSegmentToTimeline: segmentOperations.addSegmentToTimeline,
+    updateSegmentInTimeline: segmentOperations.updateSegmentInTimeline,
+    deleteSegmentFromTimeline: segmentOperations.deleteSegmentFromTimeline,
+    getSegmentData: segmentOperations.getSegmentData
 };

@@ -324,6 +324,64 @@ window.addEventListener('message', (event) => {
       }
     }
   }
+  // Check if the message is to get segment data for editing
+  else if (event.data && event.data.type === 'get-segment-data') {
+    try {
+      const segmentData = videoAssemblyManager.handleGetSegmentData(event.data);
+      if (segmentData) {
+        // Send the segment data back to the iframe for editing
+        const iframe = document.getElementById('video-assembly-frame');
+        if (iframe && iframe.contentWindow) {
+          iframe.contentWindow.postMessage({
+            type: 'segment-data-for-edit',
+            segmentData: segmentData
+          }, '*');
+        }
+      }
+    } catch (error) {
+      console.error('Error handling get segment data:', error);
+      const terminal = document.getElementById('terminal');
+      if (terminal) {
+        terminal.innerHTML += `<p class="error">Error handling get segment data: ${error.message}</p>`;
+      }
+    }
+  }
+  // Check if the message is to add a new segment
+  else if (event.data && event.data.type === 'add-segment') {
+    try {
+      videoAssemblyManager.handleAddSegment(event.data.segmentData);
+    } catch (error) {
+      console.error('Error handling add segment:', error);
+      const terminal = document.getElementById('terminal');
+      if (terminal) {
+        terminal.innerHTML += `<p class="error">Error handling add segment: ${error.message}</p>`;
+      }
+    }
+  }
+  // Check if the message is to update a segment
+  else if (event.data && event.data.type === 'update-segment') {
+    try {
+      videoAssemblyManager.handleUpdateSegment(event.data.segmentData);
+    } catch (error) {
+      console.error('Error handling update segment:', error);
+      const terminal = document.getElementById('terminal');
+      if (terminal) {
+        terminal.innerHTML += `<p class="error">Error handling update segment: ${error.message}</p>`;
+      }
+    }
+  }
+  // Check if the message is to delete a segment
+  else if (event.data && event.data.type === 'delete-segment') {
+    try {
+      videoAssemblyManager.handleDeleteSegment(event.data);
+    } catch (error) {
+      console.error('Error handling delete segment:', error);
+      const terminal = document.getElementById('terminal');
+      if (terminal) {
+        terminal.innerHTML += `<p class="error">Error handling delete segment: ${error.message}</p>`;
+      }
+    }
+  }
   
   } catch (error) {
     console.error('Error handling iframe message:', error);

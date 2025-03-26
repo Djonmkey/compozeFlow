@@ -532,6 +532,123 @@ function handleUpdateClipPath(params) {
   }
 }
 
+/**
+ * Function to handle getting segment data for editing
+ * @param {Object} params - Parameters containing segment sequence number
+ * @returns {Object|null} - The segment data or null if not found
+ */
+function handleGetSegmentData(params) {
+  return timeline.getSegmentData(params, currentVideoAssemblyData);
+}
+
+/**
+ * Function to handle adding a new segment
+ * @param {Object} segmentData - The new segment data
+ * @returns {boolean} - Whether the add operation was successful
+ */
+function handleAddSegment(segmentData) {
+  const success = timeline.addSegmentToTimeline(segmentData, currentVideoAssemblyData);
+  
+  if (success) {
+    // Get the iframe and save its scroll position before updating
+    const iframe = document.getElementById('video-assembly-frame');
+    let scrollPosition = 0;
+    
+    if (iframe && iframe.contentWindow) {
+      scrollPosition = iframe.contentWindow.scrollY || 0;
+    }
+    
+    // Update the editor content to reflect the changes
+    uiManager.updateEditorContent(currentVideoAssemblyData);
+    
+    // Restore the scroll position after the iframe content is loaded
+    setTimeout(() => {
+      const updatedIframe = document.getElementById('video-assembly-frame');
+      if (updatedIframe && updatedIframe.contentWindow) {
+        updatedIframe.contentWindow.scrollTo(0, scrollPosition);
+        
+        // Update the terminal with a message
+        const terminal = document.getElementById('terminal');
+        terminal.innerHTML += `<p>Restored scroll position to ${scrollPosition}px</p>`;
+      }
+    }, 100); // Small delay to ensure the iframe content is fully loaded
+  }
+  
+  return success;
+}
+
+/**
+ * Function to handle updating a segment
+ * @param {Object} segmentData - The updated segment data
+ * @returns {boolean} - Whether the update was successful
+ */
+function handleUpdateSegment(segmentData) {
+  const success = timeline.updateSegmentInTimeline(segmentData, currentVideoAssemblyData);
+  
+  if (success) {
+    // Get the iframe and save its scroll position before updating
+    const iframe = document.getElementById('video-assembly-frame');
+    let scrollPosition = 0;
+    
+    if (iframe && iframe.contentWindow) {
+      scrollPosition = iframe.contentWindow.scrollY || 0;
+    }
+    
+    // Update the editor content to reflect the changes
+    uiManager.updateEditorContent(currentVideoAssemblyData);
+    
+    // Restore the scroll position after the iframe content is loaded
+    setTimeout(() => {
+      const updatedIframe = document.getElementById('video-assembly-frame');
+      if (updatedIframe && updatedIframe.contentWindow) {
+        updatedIframe.contentWindow.scrollTo(0, scrollPosition);
+        
+        // Update the terminal with a message
+        const terminal = document.getElementById('terminal');
+        terminal.innerHTML += `<p>Restored scroll position to ${scrollPosition}px</p>`;
+      }
+    }, 100); // Small delay to ensure the iframe content is fully loaded
+  }
+  
+  return success;
+}
+
+/**
+ * Function to handle deleting a segment
+ * @param {Object} params - Parameters containing segment sequence number
+ * @returns {boolean} - Whether the delete was successful
+ */
+function handleDeleteSegment(params) {
+  const success = timeline.deleteSegmentFromTimeline(params, currentVideoAssemblyData);
+  
+  if (success) {
+    // Get the iframe and save its scroll position before updating
+    const iframe = document.getElementById('video-assembly-frame');
+    let scrollPosition = 0;
+    
+    if (iframe && iframe.contentWindow) {
+      scrollPosition = iframe.contentWindow.scrollY || 0;
+    }
+    
+    // Update the editor content to reflect the changes
+    uiManager.updateEditorContent(currentVideoAssemblyData);
+    
+    // Restore the scroll position after the iframe content is loaded
+    setTimeout(() => {
+      const updatedIframe = document.getElementById('video-assembly-frame');
+      if (updatedIframe && updatedIframe.contentWindow) {
+        updatedIframe.contentWindow.scrollTo(0, scrollPosition);
+        
+        // Update the terminal with a message
+        const terminal = document.getElementById('terminal');
+        terminal.innerHTML += `<p>Restored scroll position to ${scrollPosition}px</p>`;
+      }
+    }, 100); // Small delay to ensure the iframe content is fully loaded
+  }
+  
+  return success;
+}
+
 // Export the functions and variables
 module.exports = {
   getCurrentVideoAssemblyData: () => currentVideoAssemblyData,
@@ -556,5 +673,10 @@ module.exports = {
   handleGetClipData,
   handleUpdateClip,
   handleDeleteClip,
-  handleUpdateClipPath
+  handleUpdateClipPath,
+  // New segment operation handlers
+  handleGetSegmentData,
+  handleAddSegment,
+  handleUpdateSegment,
+  handleDeleteSegment
 };

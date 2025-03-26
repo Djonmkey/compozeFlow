@@ -37,6 +37,12 @@ function generateHtmlFromVideoAssembly(data) {
     `;
 
     // Process segments
+    // Add a button to create a new segment
+    htmlContent += `
+    <div class="add-segment-container">
+        <button class="add-segment-button" onclick="openAddSegmentModal()" title="Add a new segment">+ Add Segment</button>
+    </div>\n`;
+
     const segments = cut.segments || [];
     segments.forEach(segment => {
         const segmentTitle = segment.title || "Unnamed Segment";
@@ -46,6 +52,10 @@ function generateHtmlFromVideoAssembly(data) {
         <div class="segment-header">
             <button class="segment-render-button render-button-common" onclick="renderSegment(${segmentSequence})" title="Export/Render this segment">${ICONS.RENDER} Render</button>
             <h3>${segmentTitle}</h3>
+            <div class="segment-actions">
+                <button class="edit-segment-button" onclick="editSegment(${segmentSequence})" title="Edit this segment">✏️ Edit</button>
+                <button class="delete-segment-button" onclick="deleteSegment(${segmentSequence})" title="Delete this segment">🗑️ Delete</button>
+            </div>
         </div>\n`;
 
         const scenes = segment.scenes || [];
@@ -330,6 +340,42 @@ function generateHtmlFromVideoAssembly(data) {
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
                     <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    `;
+
+    // Add the segment modal (for add and edit)
+    htmlContent += `
+    <div id="segment-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="segment-modal-title">Add Segment</h3>
+                <span class="close-modal" onclick="closeSegmentModal()">&times;</span>
+            </div>
+            <form id="segment-form" onsubmit="return submitSegmentForm(this)">
+                <!-- Hidden field for segment identification (when editing) -->
+                <input type="hidden" id="segment-sequence" name="segmentSequence" value="">
+                
+                <div class="form-group">
+                    <label for="segment-title">Title:</label>
+                    <input type="text" id="segment-title" name="title" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="min-length">Minimum Length (seconds):</label>
+                    <input type="number" id="min-length" name="minLength" min="0" step="0.1" value="0">
+                </div>
+                
+                <div class="form-group">
+                    <label for="max-length">Maximum Length (seconds):</label>
+                    <input type="number" id="max-length" name="maxLength" min="0" step="0.1" value="0">
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeSegmentModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
                 </div>
             </form>
         </div>

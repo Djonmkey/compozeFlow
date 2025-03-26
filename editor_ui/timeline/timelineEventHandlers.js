@@ -10,6 +10,77 @@
  */
 function getTimelineEventHandlers() {
     return `
+        // Segment operations
+        function openAddSegmentModal() {
+            // Reset the form
+            document.getElementById('segment-form').reset();
+            document.getElementById('segment-sequence').value = '';
+            document.getElementById('segment-modal-title').textContent = 'Add Segment';
+            
+            // Show the modal
+            document.getElementById('segment-modal').style.display = 'block';
+        }
+        
+        function editSegment(segmentSequence) {
+            // Get the segment data from the parent window
+            window.parent.postMessage({
+                type: 'get-segment-data',
+                segmentSequence: segmentSequence
+            }, '*');
+        }
+        
+        function deleteSegment(segmentSequence) {
+            if (confirm('Are you sure you want to delete this segment? This will delete all scenes and clips within the segment.')) {
+                // Send a message to the parent window to handle the delete
+                window.parent.postMessage({
+                    type: 'delete-segment',
+                    segmentSequence: segmentSequence
+                }, '*');
+            }
+        }
+        
+        function submitSegmentForm(form) {
+            const formData = new FormData(form);
+            const segmentData = {};
+            
+            // Convert form data to object
+            for (const [key, value] of formData.entries()) {
+                segmentData[key] = value;
+            }
+            
+            // Determine if this is an add or update operation
+            const isUpdate = segmentData.segmentSequence !== '';
+            
+            // Send the segment data to the parent window
+            window.parent.postMessage({
+                type: isUpdate ? 'update-segment' : 'add-segment',
+                segmentData: segmentData
+            }, '*');
+            
+            // Close the modal
+            document.getElementById('segment-modal').style.display = 'none';
+            
+            // Prevent form submission
+            return false;
+        }
+        
+        function closeSegmentModal() {
+            document.getElementById('segment-modal').style.display = 'none';
+        }
+        
+        function populateSegmentForm(segmentData) {
+            // Set the form title
+            document.getElementById('segment-modal-title').textContent = 'Edit Segment';
+            
+            // Set form fields
+            document.getElementById('segment-sequence').value = segmentData.segmentSequence;
+            document.getElementById('segment-title').value = segmentData.title || '';
+            document.getElementById('min-length').value = segmentData.minLength || 0;
+            document.getElementById('max-length').value = segmentData.maxLength || 0;
+            
+            // Show the modal
+            document.getElementById('segment-modal').style.display = 'block';
+        }
         function renderSegment(segmentSequence) {
             // Send a message to the parent window to handle the render
             window.parent.postMessage({
@@ -178,13 +249,23 @@ function getTimelineEventHandlers() {
                     document.getElementById('image-path').value = event.data.newPath;
                 }
             }
+            // Check if the message is segment data for editing
+            else if (event.data && event.data.type === 'segment-data-for-edit') {
+                populateSegmentForm(event.data.segmentData);
+            }
         });
         
-        // Close modal when clicking outside of it
+        // Close modals when clicking outside of them
         window.onclick = function(event) {
-            const modal = document.getElementById('edit-clip-modal');
-            if (event.target === modal) {
-                modal.style.display = 'none';
+            const clipModal = document.getElementById('edit-clip-modal');
+            const segmentModal = document.getElementById('segment-modal');
+            
+            if (event.target === clipModal) {
+                clipModal.style.display = 'none';
+            }
+            
+            if (event.target === segmentModal) {
+                segmentModal.style.display = 'none';
             }
         };
     `;
