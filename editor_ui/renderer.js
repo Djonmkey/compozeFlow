@@ -625,31 +625,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Initialize tabs
     uiManager.initializeTabs();
-
-    // Add event listener for Raw tab
-    const rawTab = document.querySelector('.tab:nth-child(6)'); // Updated index due to removed Render tab
-    if (rawTab) {
-      rawTab.addEventListener('click', () => {
-        try {
-          const data = getCurrentVideoAssemblyData();
-          if (data) {
-            const prettyPrintedJson = JSON.stringify(data, null, 2);
-            editorContent.innerText = prettyPrintedJson;
-          } else {
-            editorContent.innerText = 'No video assembly data available.';
-          }
-        } catch (error) {
-          console.error('Error displaying raw video assembly data:', error);
-          const terminal = document.getElementById('terminal');
-          if (terminal) {
-            terminal.innerHTML += `<p class="error">Error displaying raw video assembly data: ${error.message}</p>`;
-          }
-          if (editorContent) {
-            editorContent.innerText = `Error loading data: ${error.message}`;
-          }
-        }
-      });
-    }
     
     // Initialize the Getting Started UI
     initializeGettingStartedUI();
