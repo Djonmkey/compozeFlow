@@ -192,3 +192,4 @@ test-results/*.webm
 editor_ui/tests/*.png
 editor_ui/editor_ui/tests/*.png
 tests/*.png
+editor_ui/debug-missing-add-segment.png
