@@ -314,15 +314,57 @@ function setActiveTab(tabName) {
     tab.style.fontWeight = tab.textContent === tabName ? 'bold' : 'normal';
   });
   
+  // Store previous tab before changing activeTab
+  const previousTab = activeTab;
   activeTab = tabName;
+  
+  // Update the editor content with the new tab content
   updateEditorContent(window.currentVideoAssemblyData);
   
   // If we're switching to a tab other than File, update the File tab appearance
   if (tabName !== 'File') {
     // Check if the fileTabsManager module is available
-    const fileTabsModule = require('./fileTabs');
-    if (fileTabsModule && typeof fileTabsModule.setFileTabActive === 'function') {
-      fileTabsModule.setFileTabActive(false);
+    try {
+      const fileTabsModule = require('./fileTabs');
+      if (fileTabsModule && typeof fileTabsModule.setFileTabActive === 'function') {
+        fileTabsModule.setFileTabActive(false);
+      }
+    } catch (error) {
+      console.log('File tabs module not available:', error);
+    }
+  }
+  
+  // For Render tab specifically, make sure we don't auto-start rendering
+  if (tabName === 'Render') {
+    // Initialize render tab display if available, but don't start rendering
+    try {
+      const renderTabDisplay = require('./renderTabDisplay');
+      // Start the refresh interval for the render tab content if it's not already running
+      if (typeof renderTabDisplay.startRefreshInterval === 'function') {
+        renderTabDisplay.startRefreshInterval();
+      }
+    } catch (error) {
+      console.log('Error initializing render tab:', error);
+    }
+    
+    // Log to terminal that we're only viewing render status, not starting a render
+    try {
+      const terminal = document.getElementById('terminal');
+      if (terminal) {
+        terminal.innerHTML += `<p>Switched to Render tab - viewing render status only</p>`;
+      }
+    } catch (error) {
+      console.log('Error updating terminal:', error);
+    }
+  } else if (previousTab === 'Render') {
+    // Clean up when switching away from Render tab
+    try {
+      const renderTabDisplay = require('./renderTabDisplay');
+      if (typeof renderTabDisplay.stopRefreshInterval === 'function') {
+        renderTabDisplay.stopRefreshInterval();
+      }
+    } catch (error) {
+      console.log('Error stopping render tab refresh:', error);
     }
   }
 }

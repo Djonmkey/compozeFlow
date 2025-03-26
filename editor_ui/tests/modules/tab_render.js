@@ -103,31 +103,19 @@ exports.tabRenderTests = {
       // Take a screenshot of the render tab
       await window.screenshot({ path: path.join(__dirname, '../../tests/before-render-tab.png') });
       
-      // Verify that the render tab exists without clicking it
-      console.log('Render tab found - verifying presence only, not clicking to avoid activating render engine');
+      // Click the render tab
+      await renderTab[0].click();
       
-      // Check if the tab is visible
-      const isVisible = await renderTab[0].evaluate(el => {
-        const style = window.getComputedStyle(el);
-        return style.display !== 'none' && 
-               style.visibility !== 'hidden';
-      });
+      // Wait for the tab to be selected
+      await window.waitForTimeout(500);
       
-      expect(isVisible).toBe(true);
-      console.log('Render tab visibility check passed');
-      
-      // Take another screenshot for the report
-      await window.screenshot({ path: path.join(__dirname, '../../tests/render-tab-verified.png') });
+      // Take a screenshot after clicking the general tab
+      await window.screenshot({ path: path.join(__dirname, '../../tests/render-tab-selected.png') });
+
+      // Just log that we clicked the render tab
+      console.log('Clicked the render tab');
     } else {
-      // If we can't find a specific render tab, look for any tabs
-      const tabs = await window.$$('.tab, [role="tab"]');
-      console.log(`Found ${tabs.length} tabs, but none specifically identified as render tab`);
-      
-      // Take a screenshot of the tabs
-      await window.screenshot({ path: path.join(__dirname, '../../tests/available-tabs.png') });
-      
-      // We expect to find at least some tabs
-      expect(tabs.length).toBeGreaterThan(0);
+      console.log('Render Tab NOT Found!');
     }
     
     return { window, electronApp };

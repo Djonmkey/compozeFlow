@@ -24,10 +24,16 @@ function handleRenderButtonClick() {
     // Switch to the Render tab before starting the render
     if (window.uiManager) {
       window.uiManager.setActiveTab('Render');
+      
+      // Add a slight delay before starting render to ensure tab switching completes first
+      setTimeout(() => {
+        // Start rendering
+        startRender(renderButton, terminal);
+      }, 100);
+    } else {
+      // If uiManager isn't available, start render directly
+      startRender(renderButton, terminal);
     }
-    
-    // Start rendering
-    startRender(renderButton, terminal);
   } else {
     // Stop rendering
     stopRender(renderButton, terminal);

@@ -52,29 +52,10 @@ exports.tabGeneralTests = {
       // Take a screenshot after clicking the general tab
       await window.screenshot({ path: path.join(__dirname, '../../tests/general-tab-selected.png') });
       
-      // Verify the general content is visible - commented out for now as it might be causing issues
-      // const generalContent = await window.$$('.general-tab-content, .general-content, .general-settings');
-      // expect(generalContent.length).toBeGreaterThan(0);
-      
       // Just log that we clicked the general tab
       console.log('Clicked the general tab');
     } else {
-      // If we can't find a specific general tab, look for any tabs
-      const tabs = await window.$$('.tab, [role="tab"]');
-      
-      if (tabs.length > 0) {
-        // Find a tab that might be the general tab (try the seventh one if available)
-        const tabToClick = tabs.length > 6 ? tabs[6] : (tabs.length > 5 ? tabs[5] : (tabs.length > 4 ? tabs[4] : (tabs.length > 3 ? tabs[3] : (tabs.length > 2 ? tabs[2] : (tabs.length > 1 ? tabs[1] : tabs[0])))));
-        
-        // Click the tab
-        await tabToClick.click();
-        
-        // Wait for the tab to be selected
-        await window.waitForTimeout(500);
-        
-        // Take a screenshot after clicking the tab
-        await window.screenshot({ path: path.join(__dirname, '../../tests/tab-selected.png') });
-      }
+      console.log('General Tab NOT Found!');
     }
     
     return { window, electronApp };
