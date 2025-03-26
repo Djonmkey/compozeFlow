@@ -1,229 +1,71 @@
 /**
  * renderProcessManager.js
  *
- * Handles the render process control for video assembly rendering.
+ * This module has been modified to prevent interactions with the Render tab
+ * to avoid application crashes.
  */
 
-// Import required modules
+// Import required modules (keeping these for compatibility with other code)
 const electronSetup = require('./electronSetup');
 const videoAssemblyManager = require('./videoAssemblyManager');
 const { ICONS } = require('./uiConstants');
 
-// Variables for render process
-let renderProcess = null;
+// Variables for render process state tracking (but no actual process will be started)
 let isRendering = false;
 
 /**
  * Function to handle the render button click
+ * This function is now a no-op to prevent interactions with the Render tab
  */
 function handleRenderButtonClick() {
-  const renderButton = document.getElementById('render-button');
-  const terminal = document.getElementById('terminal');
+  // No functionality - prevent switching to Render tab
+  console.log('Render functionality has been disabled to prevent application crashes');
   
-  if (!isRendering) {
-    // Switch to the Render tab before starting the render
-    if (window.uiManager) {
-      window.uiManager.setActiveTab('Render');
-      
-      // Add a slight delay before starting render to ensure tab switching completes first
-      setTimeout(() => {
-        // Start rendering
-        startRender(renderButton, terminal);
-      }, 100);
+  // Toggle the isRendering state for compatibility with code that checks this
+  isRendering = !isRendering;
+  
+  // Update button if it exists, but don't switch tabs or start rendering
+  const renderButton = document.getElementById('render-button');
+  if (renderButton) {
+    if (isRendering) {
+      renderButton.innerHTML = '■ Stop';
+      renderButton.title = 'Stop Render';
     } else {
-      // If uiManager isn't available, start render directly
-      startRender(renderButton, terminal);
+      renderButton.innerHTML = `${ICONS.RENDER} Render`;
+      renderButton.title = 'Render Video';
     }
-  } else {
-    // Stop rendering
-    stopRender(renderButton, terminal);
   }
 }
 
 /**
- * Function to start the render process
+ * Function signature kept for compatibility, but functionality removed
  * @param {HTMLElement} renderButton - The render button element
  * @param {HTMLElement} terminal - The terminal element
  */
 function startRender(renderButton, terminal) {
-  if (isRendering) return;
-  
+  console.log('Render functionality has been disabled to prevent application crashes');
   isRendering = true;
   
-  // Update button text only, not appearance
-  renderButton.innerHTML = '■ Stop'; // Square for stop and text
-  renderButton.title = 'Stop Render';
-  
-  // Clear terminal
-  terminal.innerHTML = '<p>Starting render process...</p>';
-  
-  // Path to the Python script (using relative path since both are in the same base path)
-  const pythonScriptPath = '../render_engine/main.py';
-  
-  // Path to the Python virtual environment
-  const pythonVenvPath = process.platform === 'win32'
-    ? '../render_engine/venv/Scripts/python.exe'  // Windows path
-    : '../render_engine/venv/bin/python';         // macOS/Linux path
-  
-  try {
-    // Check if we have a current video assembly path
-    const currentVideoAssemblyPath = videoAssemblyManager.getCurrentVideoAssemblyPath();
-    if (!currentVideoAssemblyPath) {
-      terminal.innerHTML += `<p style="color: #ff6666;">Error: No video assembly file is currently loaded.</p>`;
-      isRendering = false;
-      renderButton.innerHTML = `${ICONS.RENDER} Render`;
-      renderButton.title = 'Render failed - no file loaded';
-      return;
-    }
-    
-    // Check if the virtual environment exists
-    const venvExists = electronSetup.fs.existsSync(electronSetup.path.resolve(__dirname, pythonVenvPath));
-    
-    // Use the virtual environment Python if it exists, otherwise fall back to system Python
-    const pythonExecutable = venvExists ? pythonVenvPath : 'python';
-    
-    // Display the command being executed
-    const command = `${pythonExecutable} ${pythonScriptPath} ${currentVideoAssemblyPath}`;
-    terminal.innerHTML += `<p style="color: #88ccff;">Executing: ${command}</p>`;
-    terminal.innerHTML += venvExists
-      ? `<p>Using Python from virtual environment: ${pythonVenvPath}</p>`
-      : `<p style="color: #ffcc66;">Warning: Virtual environment not found, falling back to system Python</p>`;
-    
-    // Spawn the Python process with the current video assembly file path as argument
-    // Use shell option to ensure proper path handling
-    renderProcess = electronSetup.child_process.spawn(pythonExecutable, [pythonScriptPath, currentVideoAssemblyPath], {
-      shell: process.platform === 'win32', // Use shell on Windows for better path handling
-      env: process.env, // Pass environment variables
-      cwd: electronSetup.path.resolve(__dirname) // Set current working directory to ensure relative paths work
-    });
-    
-    // Handle stdout data
-    renderProcess.stdout.on('data', (data) => {
-      // Process the output to handle line breaks properly
-      const output = data.toString().trim();
-      const lines = output.split('\n');
-      
-      // Add each line as a separate paragraph for better readability
-      lines.forEach(line => {
-        if (line.trim()) {
-          terminal.innerHTML += `<p>${line}</p>`;
-        }
-      });
-      
-      // Auto-scroll to bottom
-      terminal.scrollTop = terminal.scrollHeight;
-    });
-    
-    // Handle stderr data
-    renderProcess.stderr.on('data', (data) => {
-      // Process the output to handle line breaks properly
-      const output = data.toString().trim();
-      const lines = output.split('\n');
-      
-      // Add each line as a separate paragraph with error styling
-      lines.forEach(line => {
-        if (line.trim()) {
-          terminal.innerHTML += `<p style="color: #ff6666;">${line}</p>`;
-        }
-      });
-      
-      // Auto-scroll to bottom
-      terminal.scrollTop = terminal.scrollHeight;
-    });
-    
-    // Handle process completion
-    renderProcess.on('close', (code) => {
-      isRendering = false;
-      renderProcess = null;
-      
-      if (code === 0) {
-        // Success
-        terminal.innerHTML += '<p style="color: #88ff88;">Render completed successfully.</p>';
-        renderButton.innerHTML = `${ICONS.RENDER} Render`;
-        renderButton.title = 'Render Video';
-      } else if (code === -2) {
-        // Process was terminated by a signal (likely SIGINT)
-        terminal.innerHTML += `<p style="color: #ffcc66;">Render process was terminated (code ${code}). This typically happens when the process is interrupted.</p>`;
-        terminal.innerHTML += `<p>Check that Python is installed correctly and the script path is valid.</p>`;
-        renderButton.innerHTML = `${ICONS.RENDER} Render`;
-        renderButton.title = 'Last render was interrupted';
-      } else {
-        // Other failure
-        terminal.innerHTML += `<p style="color: #ff6666;">Render process exited with code ${code}</p>`;
-        terminal.innerHTML += `<p>This may indicate an error in the Python script or missing dependencies.</p>`;
-        renderButton.innerHTML = `${ICONS.RENDER} Render`;
-        renderButton.title = 'Last render failed';
-      }
-      
-      // Auto-scroll to bottom
-      terminal.scrollTop = terminal.scrollHeight;
-    });
-    
-    // Handle process error
-    renderProcess.on('error', (err) => {
-      isRendering = false;
-      renderProcess = null;
-      
-      // Display detailed error information
-      terminal.innerHTML += `<p style="color: #ff6666;">Error starting render process: ${err.message}</p>`;
-      
-      // Add more helpful information based on the error
-      if (err.code === 'ENOENT') {
-        terminal.innerHTML += `<p>Python executable not found. Please ensure Python is installed and in your PATH.</p>`;
-        terminal.innerHTML += `<p>Command attempted: python ${pythonScriptPath}</p>`;
-      } else if (err.code === 'EACCES') {
-        terminal.innerHTML += `<p>Permission denied. Check that you have execute permissions for the Python script.</p>`;
-      } else {
-        terminal.innerHTML += `<p>Error code: ${err.code || 'unknown'}</p>`;
-      }
-      
-      // Suggest checking the script path
-      terminal.innerHTML += `<p>Verify that the script exists at: ${pythonScriptPath}</p>`;
-      
-      renderButton.innerHTML = `${ICONS.RENDER} Render`;
-      renderButton.title = 'Last render failed';
-      
-      // Auto-scroll to bottom
-      terminal.scrollTop = terminal.scrollHeight;
-    });
-    
-  } catch (error) {
-    isRendering = false;
-    terminal.innerHTML += `<p style="color: #ff6666;">Error: ${error.message}</p>`;
-    renderButton.innerHTML = `${ICONS.RENDER} Render`;
-    renderButton.title = 'Last render failed';
+  // Update button if provided, but don't actually start a render process
+  if (renderButton) {
+    renderButton.innerHTML = '■ Stop';
+    renderButton.title = 'Stop Render';
   }
 }
 
 /**
- * Function to stop the render process
+ * Function signature kept for compatibility, but functionality removed
  * @param {HTMLElement} renderButton - The render button element
  * @param {HTMLElement} terminal - The terminal element
  */
 function stopRender(renderButton, terminal) {
-  if (!isRendering || !renderProcess) return;
+  console.log('Render functionality has been disabled to prevent application crashes');
+  isRendering = false;
   
-  try {
-    // Kill the process
-    if (process.platform === 'win32') {
-      // On Windows, we need to use taskkill to kill the process tree
-      electronSetup.child_process.exec(`taskkill /pid ${renderProcess.pid} /t /f`);
-    } else {
-      // On Unix-like systems, we can kill the process group
-      process.kill(-renderProcess.pid, 'SIGTERM');
-    }
-    
-    terminal.innerHTML += '<p>Render process stopped by user.</p>';
-    
-    // Update button state
+  // Update button if provided
+  if (renderButton) {
     renderButton.innerHTML = `${ICONS.RENDER} Render`;
     renderButton.title = 'Render Video';
-    
-    isRendering = false;
-    renderProcess = null;
-    
-  } catch (error) {
-    terminal.innerHTML += `<p style="color: #ff6666;">Error stopping render process: ${error.message}</p>`;
   }
 }
 
@@ -235,7 +77,7 @@ function isRenderingInProgress() {
   return isRendering;
 }
 
-// Export the functions
+// Export the functions (maintaining the same API)
 module.exports = {
   handleRenderButtonClick,
   startRender,
