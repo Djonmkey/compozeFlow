@@ -7,6 +7,8 @@
 // Import required modules
 const electronSetup = require('./electronSetup');
 const generateOutputHtml = require('./outputDisplay');
+const generateGeneralHtml = require('./generalDisplay');
+const generateRenderHtml = require('./renderDisplay');
 
 // Keep track of the currently active tab
 let activeTab = 'Timeline';
@@ -32,17 +34,9 @@ function updateEditorContent(currentVideoAssemblyData) {
   } else if (activeTab === 'Output') {
     htmlContent = generateOutputHtml(currentVideoAssemblyData);
   } else if (activeTab === 'General') {
-    // General tab logic disabled
-    htmlContent = `
-      <div style="padding: 20px; font-family: Arial, sans-serif;">
-        <h2>General Tab</h2>
-        <p>The functionality for the General tab has been disabled.</p>
-      </div>
-    `;
-    
-    // Update the terminal with a message about disabled functionality
-    const terminal = document.getElementById('terminal');
-    terminal.innerHTML += `<p>General tab functionality has been disabled</p>`;
+    htmlContent = generateGeneralHtml(currentVideoAssemblyData);
+  } else if (activeTab === 'Render') {
+    htmlContent = generateRenderHtml(currentVideoAssemblyData);
   } else {
     // For other tabs, show a placeholder
     htmlContent = `<h2>Content for ${activeTab} tab</h2><p>This tab is not yet implemented.</p>`;
