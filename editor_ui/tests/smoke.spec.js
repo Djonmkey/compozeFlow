@@ -16,6 +16,7 @@ const { tabMixedAudioTests } = require('./modules/tab_mixed_audio');
 const { tabOutputTests } = require('./modules/tab_output');
 const { tabRawTests } = require('./modules/tab_raw');
 const { tabGeneralTests } = require('./modules/tab_general');
+const { tabExportTests } = require('./modules/tab_export');
 
 /**
  * Smoke tests for the application
@@ -96,13 +97,21 @@ test('Smoke tests', async ({ page }) => {
       window: generalTabResult.window // Pass the window reference
     });
     electronApp = rawTabResult.electronApp;
+    
+    // Export tab
+    const exportTabResult = await tabExportTests.testExportTabPresent({ 
+      page, 
+      electronApp,
+      window: rawTabResult.window // Pass the window reference
+    });
+    electronApp = exportTabResult.electronApp;
     // End: Ensure the tabs are displayed
 
     // Check that the render bar is not present
     const renderBarNotPresentResult = await renderBarTests.testRenderBarNotPresent({ 
       page, 
       electronApp,
-      window: rawTabResult.window // Pass the window reference
+      window: exportTabResult.window // Pass the window reference
     });
     electronApp = renderBarNotPresentResult.electronApp
 
