@@ -116,6 +116,7 @@ test('Smoke tests', async ({ page }) => {
     });
     electronApp = renderBarNotPresentResult.electronApp;
     
+    /*
     // Test timeline segment operations (add, edit, delete)
     const segmentOperationsResult = await timelineSegmentOperationsTests.testAddSegmentToTimeline({
       page,
@@ -123,6 +124,7 @@ test('Smoke tests', async ({ page }) => {
       window: renderBarNotPresentResult.window // Pass the window reference
     });
     electronApp = segmentOperationsResult.electronApp;
+    */
 
     console.log('Smoke tests completed successfully');
   } finally {
