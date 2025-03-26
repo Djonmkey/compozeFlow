@@ -32,7 +32,17 @@ function updateEditorContent(currentVideoAssemblyData) {
   } else if (activeTab === 'Output') {
     htmlContent = generateOutputHtml(currentVideoAssemblyData);
   } else if (activeTab === 'General') {
-    htmlContent = electronSetup.generateGeneralHtml(currentVideoAssemblyData);
+    // General tab logic disabled
+    htmlContent = `
+      <div style="padding: 20px; font-family: Arial, sans-serif;">
+        <h2>General Tab</h2>
+        <p>The functionality for the General tab has been disabled.</p>
+      </div>
+    `;
+    
+    // Update the terminal with a message about disabled functionality
+    const terminal = document.getElementById('terminal');
+    terminal.innerHTML += `<p>General tab functionality has been disabled</p>`;
   } else if (activeTab === 'Render') {
     // Use the render tab display module
     const renderTabDisplay = require('./renderTabDisplay');
