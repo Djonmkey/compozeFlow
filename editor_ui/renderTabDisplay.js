@@ -3,6 +3,8 @@
  *
  * Handles the display and functionality of the Render tab,
  * showing output files from render paths and providing play functionality.
+ * 
+ * NOTICE: All code that executes when the Render tab is clicked has been disabled.
  */
 
 // Import required modules
@@ -255,8 +257,10 @@ function formatFileSize(bytes) {
 /**
  * Initialize the Render tab
  * Adds event listeners and sets up the refresh interval
+ * DISABLED: All execution code has been commented out
  */
 function initializeRenderTab() {
+    /* 
     try {
         // Add CSS styles for the Render tab with error handling
         try {
@@ -289,13 +293,17 @@ function initializeRenderTab() {
         logError(initError, 'initializeRenderTab');
         // If initialization fails, log but don't crash
     }
+    */
+    console.log('Render tab initialization disabled');
 }
 
 /**
  * Open a folder in the system's file explorer
  * @param {string} folderPath - Path to the folder
+ * DISABLED: All execution code has been commented out
  */
 function openFolder(folderPath) {
+    /*
     try {
         if (!folderPath) {
             logError(new Error('Empty folder path provided'), 'openFolder');
@@ -326,12 +334,16 @@ function openFolder(folderPath) {
     } catch (error) {
         logError(error, 'openFolder');
     }
+    */
+    console.log('Render tab open folder disabled');
 }
 
 /**
  * Add CSS styles for the Render tab
+ * DISABLED: All execution code has been commented out
  */
 function addRenderTabStyles() {
+    /*
     try {
         // Create a style element
         const style = document.createElement('style');
@@ -490,73 +502,56 @@ function addRenderTabStyles() {
     } catch (error) {
         logError(error, 'addRenderTabStyles');
     }
+    */
+    console.log('Render tab styles disabled');
 }
 
 /**
  * Start the refresh interval for the Render tab
  * Updates the content every 5 seconds
+ * DISABLED: All execution code has been commented out
  */
 function startRefreshInterval() {
+    /*
     try {
         // Clear any existing interval
         try {
             if (refreshIntervalId) {
                 clearInterval(refreshIntervalId);
+                refreshIntervalId = null;
             }
         } catch (clearError) {
             logError(clearError, 'startRefreshInterval (clearing interval)');
             // Continue with setting up a new interval
         }
         
-        // Set up a new interval
+        // Check if auto-refresh should be disabled (for tests)
+        const shouldDisableAutoRefresh = typeof window !== 'undefined' && window.DISABLE_RENDER_TAB_AUTO_REFRESH === true;
+        
+        // If auto-refresh is disabled, just do a one-time refresh and return
+        if (shouldDisableAutoRefresh) {
+            console.log('Auto-refresh disabled for Render tab (likely in testing mode)');
+            
+            // Do a one-time refresh instead of setting up an interval
+            try {
+                refreshRenderTabContent();
+            } catch (refreshError) {
+                logError(refreshError, 'startRefreshInterval (one-time refresh)');
+            }
+            
+            // Update the terminal with a message
+            const terminal = document.getElementById('terminal');
+            if (terminal) {
+                terminal.innerHTML += `<p>Render tab auto-refresh disabled (test/debug mode)</p>`;
+            }
+            
+            return;
+        }
+        
+        // Set up a new interval with a safety check
         refreshIntervalId = setInterval(() => {
             try {
-                // Check if Render tab is active
-                let isRenderTabActive = false;
-                try {
-                    isRenderTabActive = window.uiManager && window.uiManager.getActiveTab() === 'Render';
-                } catch (tabError) {
-                    logError(tabError, 'startRefreshInterval (checking active tab)');
-                    return; // Skip this refresh cycle
-                }
-                
-                // Only refresh if the Render tab is active
-                if (isRenderTabActive) {
-                    try {
-                        // Find editor content element
-                        const editorContent = document.getElementById('editor-content');
-                        if (editorContent) {
-                            // Generate HTML with error handling
-                            let htmlContent;
-                            try {
-                                htmlContent = generateRenderTabHtml();
-                            } catch (generateError) {
-                                logError(generateError, 'startRefreshInterval (generating HTML)');
-                                htmlContent = `
-                                    <div class="render-tab-container">
-                                        <h2>Render Output</h2>
-                                        <p class="error">Error refreshing render tab content. See terminal for details.</p>
-                                    </div>
-                                `;
-                            }
-                            
-                            // Update the editor content
-                            try {
-                                editorContent.innerHTML = `
-                                    <iframe
-                                        id="video-assembly-frame"
-                                        style="width: 100%; height: 100%; border: none;"
-                                        srcdoc="${htmlContent.replace(/"/g, '&quot;')}"
-                                    ></iframe>
-                                `;
-                            } catch (updateError) {
-                                logError(updateError, 'startRefreshInterval (updating DOM)');
-                            }
-                        }
-                    } catch (domError) {
-                        logError(domError, 'startRefreshInterval (DOM operations)');
-                    }
-                }
+                refreshRenderTabContent();
             } catch (intervalCallbackError) {
                 // Catch-all for any errors in the interval callback
                 logError(intervalCallbackError, 'startRefreshInterval (interval callback)');
@@ -565,12 +560,73 @@ function startRefreshInterval() {
     } catch (error) {
         logError(error, 'startRefreshInterval');
     }
+    */
+    console.log('Render tab refresh interval disabled');
+}
+
+/**
+ * Refresh the render tab content
+ * Extracted from startRefreshInterval to allow one-time refresh in test mode
+ * DISABLED: All execution code has been commented out
+ */
+function refreshRenderTabContent() {
+    /*
+    // Check if Render tab is active
+    let isRenderTabActive = false;
+    try {
+        isRenderTabActive = window.uiManager && window.uiManager.getActiveTab() === 'Render';
+    } catch (tabError) {
+        logError(tabError, 'refreshRenderTabContent (checking active tab)');
+        return; // Skip this refresh cycle
+    }
+    
+    // Only refresh if the Render tab is active
+    if (isRenderTabActive) {
+        try {
+            // Find editor content element
+            const editorContent = document.getElementById('editor-content');
+            if (editorContent) {
+                // Generate HTML with error handling
+                let htmlContent;
+                try {
+                    htmlContent = generateRenderTabHtml();
+                } catch (generateError) {
+                    logError(generateError, 'refreshRenderTabContent (generating HTML)');
+                    htmlContent = `
+                        <div class="render-tab-container">
+                            <h2>Render Output</h2>
+                            <p class="error">Error refreshing render tab content. See terminal for details.</p>
+                        </div>
+                    `;
+                }
+                
+                // Update the editor content
+                try {
+                    editorContent.innerHTML = `
+                        <iframe
+                            id="video-assembly-frame"
+                            style="width: 100%; height: 100%; border: none;"
+                            srcdoc="${htmlContent.replace(/"/g, '&quot;')}"
+                        ></iframe>
+                    `;
+                } catch (updateError) {
+                    logError(updateError, 'refreshRenderTabContent (updating DOM)');
+                }
+            }
+        } catch (domError) {
+            logError(domError, 'refreshRenderTabContent (DOM operations)');
+        }
+    }
+    */
+    console.log('Render tab content refresh disabled');
 }
 
 /**
  * Stop the refresh interval for the Render tab
+ * DISABLED: All execution code has been commented out
  */
 function stopRefreshInterval() {
+    /*
     try {
         if (refreshIntervalId) {
             clearInterval(refreshIntervalId);
@@ -581,13 +637,17 @@ function stopRefreshInterval() {
         // Even if there's an error, try to ensure the interval ID is nullified
         refreshIntervalId = null;
     }
+    */
+    console.log('Render tab stop refresh interval disabled');
 }
 
 /**
  * Play a video file using the system's default video player
  * @param {string} filePath - Path to the video file
+ * DISABLED: All execution code has been commented out
  */
 function playVideo(filePath) {
+    /*
     try {
         // Validate the file path
         if (!filePath) {
@@ -634,6 +694,8 @@ function playVideo(filePath) {
     } catch (error) {
         logError(error, 'playVideo');
     }
+    */
+    console.log('Render tab play video disabled');
 }
 
 // Export the functions
@@ -641,5 +703,6 @@ module.exports = {
     generateRenderTabHtml,
     initializeRenderTab,
     startRefreshInterval,
-    stopRefreshInterval
+    stopRefreshInterval,
+    refreshRenderTabContent  // Export the new function
 };

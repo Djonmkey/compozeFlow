@@ -83,6 +83,11 @@ exports.tabRenderTests = {
       // Take a screenshot of the render tab
       await window.screenshot({ path: path.join(__dirname, '../../tests/before-render-tab.png') });
       
+      // Disable auto-refresh during testing by setting a test flag
+      await window.evaluate(() => {
+        window.DISABLE_RENDER_TAB_AUTO_REFRESH = true;
+      });
+      
       // Click the render tab
       await renderTab[0].click();
       
