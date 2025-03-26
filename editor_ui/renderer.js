@@ -146,12 +146,6 @@ window.addEventListener('message', (event) => {
   // Check if the message is a render segment request
   else if (event.data && event.data.type === 'render-segment') {
     try {
-      // Switch to the Render tab before handling the render request
-      /*
-      if (window.uiManager) {
-        window.uiManager.setActiveTab('Render');
-      }
-      */  
       videoAssemblyManager.handleRenderSegmentRequest(event.data.segmentSequence);
     } catch (error) {
       console.error('Error handling render segment request:', error);
@@ -164,12 +158,6 @@ window.addEventListener('message', (event) => {
   // Check if the message is a render scene request
   else if (event.data && event.data.type === 'render-scene') {
     try {
-      // Switch to the Render tab before handling the render request
-      /*
-      if (window.uiManager) {
-        window.uiManager.setActiveTab('Render');
-      }
-      */
       videoAssemblyManager.handleRenderSceneRequest(event.data.segmentSequence, event.data.sceneSequence);
     } catch (error) {
       console.error('Error handling render scene request:', error);

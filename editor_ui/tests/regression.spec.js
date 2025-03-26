@@ -174,8 +174,8 @@ test('Timeline and file tabs', async ({ page }) => {
   }
 });
 
-test('Render and overlay images tabs', async ({ page }) => {
-  console.log('Starting regression test: Render and overlay images tabs');
+test('Overlay images tab', async ({ page }) => {
+  console.log('Starting regression test: Overlay images tab');
   
   let electronApp;
   let window;
@@ -196,14 +196,6 @@ test('Render and overlay images tabs', async ({ page }) => {
     window = result.window;
     electronApp = result.electronApp;
     
-    // Test the render tab is present and can be selected
-    const renderTabResult = await tabRenderTests.testRenderTabPresent({ page, electronApp, window });
-    window = renderTabResult.window;
-    electronApp = renderTabResult.electronApp;
-    
-    // Render tab intentionally has no functionality to test
-    console.log('No interaction test for Render tab - tab has no functionality by design');
-    
     // Test the overlay images tab is present and can be selected
     const overlayImagesTabResult = await tabOverlayImagesTests.testOverlayImagesTabPresent({ page, electronApp, window });
     window = overlayImagesTabResult.window;
@@ -212,7 +204,7 @@ test('Render and overlay images tabs', async ({ page }) => {
     // Test interacting with the overlay images tab content
     await tabOverlayImagesTests.testOverlayImagesTabInteraction({ page, electronApp, window });
     
-    console.log('Render and overlay images tabs tests completed successfully');
+    console.log('Overlay images tab tests completed successfully');
   } finally {
     // Close the app
     if (electronApp) {

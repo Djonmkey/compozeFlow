@@ -89,20 +89,12 @@ test('Smoke tests', async ({ page }) => {
       window: outputTabResult.window // Pass the window reference
     });
     electronApp = generalTabResult.electronApp;
-
-    // Render tab
-    const renderTabResult = await tabRenderTests.testRenderTabPresent({ 
-      page, 
-      electronApp,
-      window: generalTabResult.window // Pass the window reference
-    });
-    electronApp = renderTabResult.electronApp;
     
     // Raw tab
     const rawTabResult = await tabRawTests.testRawTabPresent({ 
       page, 
       electronApp,
-      window: renderTabResult.window // Pass the window reference
+      window: generalTabResult.window // Pass the window reference
     });
     electronApp = rawTabResult.electronApp;
     // End: Ensure the tabs are displayed
