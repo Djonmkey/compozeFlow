@@ -9,6 +9,7 @@ const electronSetup = require('./electronSetup');
 const generateOutputHtml = require('./outputDisplay');
 const generateGeneralHtml = require('./generalDisplay');
 const generateRenderHtml = require('./renderDisplay');
+const generateRawHtml = require('./rawDisplay');
 
 // Keep track of the currently active tab
 let activeTab = 'Timeline';
@@ -37,6 +38,8 @@ function updateEditorContent(currentVideoAssemblyData) {
     htmlContent = generateGeneralHtml(currentVideoAssemblyData);
   } else if (activeTab === 'Render') {
     htmlContent = generateRenderHtml(currentVideoAssemblyData);
+  } else if (activeTab === 'Raw') {
+    htmlContent = generateRawHtml(currentVideoAssemblyData);
   } else {
     // For other tabs, show a placeholder
     htmlContent = `<h2>Content for ${activeTab} tab</h2><p>This tab is not yet implemented.</p>`;
