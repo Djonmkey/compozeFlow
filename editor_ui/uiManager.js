@@ -43,10 +43,6 @@ function updateEditorContent(currentVideoAssemblyData) {
     // Update the terminal with a message about disabled functionality
     const terminal = document.getElementById('terminal');
     terminal.innerHTML += `<p>General tab functionality has been disabled</p>`;
-  } else if (activeTab === 'Render') {
-    // Use the render tab display module
-    const renderTabDisplay = require('./renderTabDisplay');
-    htmlContent = renderTabDisplay.generateRenderTabHtml();
   } else {
     // For other tabs, show a placeholder
     htmlContent = `<h2>Content for ${activeTab} tab</h2><p>This tab is not yet implemented.</p>`;
@@ -341,40 +337,6 @@ function setActiveTab(tabName) {
       }
     } catch (error) {
       console.log('File tabs module not available:', error);
-    }
-  }
-  
-  // For Render tab specifically, make sure we don't auto-start rendering
-  if (tabName === 'Render') {
-    // Initialize render tab display if available, but don't start rendering
-    try {
-      const renderTabDisplay = require('./renderTabDisplay');
-      // Start the refresh interval for the render tab content if it's not already running
-      if (typeof renderTabDisplay.startRefreshInterval === 'function') {
-        renderTabDisplay.startRefreshInterval();
-      }
-    } catch (error) {
-      console.log('Error initializing render tab:', error);
-    }
-    
-    // Log to terminal that we're only viewing render status, not starting a render
-    try {
-      const terminal = document.getElementById('terminal');
-      if (terminal) {
-        terminal.innerHTML += `<p>Switched to Render tab - viewing render status only</p>`;
-      }
-    } catch (error) {
-      console.log('Error updating terminal:', error);
-    }
-  } else if (previousTab === 'Render') {
-    // Clean up when switching away from Render tab
-    try {
-      const renderTabDisplay = require('./renderTabDisplay');
-      if (typeof renderTabDisplay.stopRefreshInterval === 'function') {
-        renderTabDisplay.stopRefreshInterval();
-      }
-    } catch (error) {
-      console.log('Error stopping render tab refresh:', error);
     }
   }
 }

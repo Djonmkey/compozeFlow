@@ -14,7 +14,6 @@ const { explorerBarContentSourcesTests } = require('./modules/explorer_bar_conte
 const { tabOverlayImagesTests } = require('./modules/tab_overlay_images');
 const { tabMixedAudioTests } = require('./modules/tab_mixed_audio');
 const { tabOutputTests } = require('./modules/tab_output');
-const { tabRenderTests } = require('./modules/tab_render');
 const { tabRawTests } = require('./modules/tab_raw');
 const { tabGeneralTests } = require('./modules/tab_general');
 
@@ -90,19 +89,11 @@ test('Smoke tests', async ({ page }) => {
     });
     electronApp = generalTabResult.electronApp;
 
-    // Render tab
-    const renderTabPresentResult = await tabRenderTests.testRenderTabPresent({ 
-      page, 
-      electronApp,
-      window: generalTabResult.window // Pass the window reference
-    });
-    electronApp = renderTabPresentResult.electronApp;
-
     // Raw tab
     const rawTabResult = await tabRawTests.testRawTabPresent({ 
       page, 
       electronApp,
-      window: renderTabPresentResult.window // Pass the window reference
+      window: generalTabResult.window // Pass the window reference
     });
     electronApp = rawTabResult.electronApp;
     // End: Ensure the tabs are displayed

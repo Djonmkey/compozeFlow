@@ -12,7 +12,6 @@ const electronSetup = require('./electronSetup');
 const uiManager = require('./uiManager');
 const videoAssemblyManager = require('./videoAssemblyManager');
 const renderProcessManager = require('./renderProcessManager');
-const renderTabDisplay = require('./renderTabDisplay');
 const pluginManager = require('./pluginManager');
 const { FEATURE_FLAGS } = require('./featureFlags');
 
@@ -148,9 +147,11 @@ window.addEventListener('message', (event) => {
   else if (event.data && event.data.type === 'render-segment') {
     try {
       // Switch to the Render tab before handling the render request
+      /*
       if (window.uiManager) {
         window.uiManager.setActiveTab('Render');
       }
+      */  
       videoAssemblyManager.handleRenderSegmentRequest(event.data.segmentSequence);
     } catch (error) {
       console.error('Error handling render segment request:', error);
@@ -164,9 +165,11 @@ window.addEventListener('message', (event) => {
   else if (event.data && event.data.type === 'render-scene') {
     try {
       // Switch to the Render tab before handling the render request
+      /*
       if (window.uiManager) {
         window.uiManager.setActiveTab('Render');
       }
+      */
       videoAssemblyManager.handleRenderSceneRequest(event.data.segmentSequence, event.data.sceneSequence);
     } catch (error) {
       console.error('Error handling render scene request:', error);
@@ -624,7 +627,7 @@ document.addEventListener('DOMContentLoaded', () => {
     uiManager.initializeTabs();
 
     // Add event listener for Raw tab
-    const rawTab = document.querySelector('.tab:nth-child(7)'); // Updated index due to added Render tab
+    const rawTab = document.querySelector('.tab:nth-child(6)'); // Updated index due to removed Render tab
     if (rawTab) {
       rawTab.addEventListener('click', () => {
         try {
@@ -650,12 +653,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Initialize the Getting Started UI
     initializeGettingStartedUI();
-    
-    // Initialize the Render tab
-    renderTabDisplay.initializeRenderTab();
-    
-    // Start the refresh interval for the Render tab
-    renderTabDisplay.startRefreshInterval();
   
     // Load and display installed plugins if the feature is enabled
     if (FEATURE_FLAGS.ENABLE_PLUGINS) {
