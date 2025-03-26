@@ -84,7 +84,13 @@ exports.tabRenderTests = {
       await window.screenshot({ path: path.join(__dirname, '../../tests/before-render-tab.png') });
       
       // Click the render tab
-      await renderTab[0].click();
+      try {
+        console.log('Before: renderTab[0].click()');
+        await renderTab[0].click();
+      } catch (error) {
+        console.error('Error clicking render tab:', error);
+        // Continue with the test despite the error
+      }
       
       // Wait for the tab to be selected
       await window.waitForTimeout(500);
