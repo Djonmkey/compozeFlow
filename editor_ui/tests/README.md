@@ -75,3 +75,6 @@ Each test module exports a set of test functions that can be used by the smoke a
 3. **Flexibility**: Smoke tests can use a subset of the test functions, while regression tests can use all of them.
 
 All tests include screenshots at key points to help with debugging and verification.
+
+### Test Debugging
+npm run smoke -- --debug

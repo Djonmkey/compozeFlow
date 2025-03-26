@@ -35,6 +35,26 @@ exports.tabGeneralTests = {
       console.log('Using provided window for general tab test');
     }
     
+    // Resize the terminal to 75% of the application's horizontal size
+    const windowSize = await window.evaluate(() => {
+      return {
+        width: window.innerWidth,
+        height: window.innerHeight
+      };
+    });
+    const terminalWidth = Math.floor(windowSize.width * 0.75);
+    await window.evaluate((width) => {
+      // Find terminal element and resize it
+      const terminal = document.querySelector('.terminal-container') || 
+                        document.querySelector('.terminal') || 
+                        document.querySelector('.terminal-wrapper');
+      if (terminal) {
+        // Use type assertion to fix TypeScript error
+        const terminalElement = /** @type {HTMLElement} */ (terminal);
+        terminalElement.style.width = `${width}px`;
+      }
+    }, terminalWidth);
+
     // Look for the general tab
     const generalTab = await window.$$('button:has-text("General"), .tab:has-text("General"), [role="tab"]:has-text("General")');
     

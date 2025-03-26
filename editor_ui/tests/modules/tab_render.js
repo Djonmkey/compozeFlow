@@ -26,6 +26,26 @@ exports.tabRenderTests = {
     // Take a screenshot after creating a new assembly
     await window.screenshot({ path: path.join(__dirname, '../../tests/after-create-new-assembly.png') });
     
+    // Resize the terminal to 75% of the application's horizontal size
+    const windowSize = await window.evaluate(() => {
+      return {
+        width: window.innerWidth,
+        height: window.innerHeight
+      };
+    });
+    const terminalWidth = Math.floor(windowSize.width * 0.75);
+    await window.evaluate((width) => {
+      // Find terminal element and resize it
+      const terminal = document.querySelector('.terminal-container') || 
+                       document.querySelector('.terminal') || 
+                       document.querySelector('.terminal-wrapper');
+      if (terminal) {
+        // Use type assertion to fix TypeScript error
+        const terminalElement = /** @type {HTMLElement} */ (terminal);
+        terminalElement.style.width = `${width}px`;
+      }
+    }, terminalWidth);
+    
     // Look for the render tab
     const renderTab = await window.$$('button:has-text("Render"), .tab:has-text("Render"), [role="tab"]:has-text("Render")');
     
