@@ -266,10 +266,6 @@ exports.createNewVideoAssemblyDialogTests = {
         }
         return false;
       });
-      
-      // Wait a moment for the click to take effect
-      await dialogWindow.waitForTimeout(1000);
-      
     } catch (error) {
       console.log(`Error clicking save button via JavaScript: ${error.message}`);
       

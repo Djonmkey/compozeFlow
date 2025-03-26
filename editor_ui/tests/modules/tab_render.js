@@ -86,7 +86,7 @@ exports.tabRenderTests = {
       // Click the render tab
       try {
         console.log('Before: renderTab[0].click()');
-        await renderTab[0].click();
+      await renderTab[0].click();
       } catch (error) {
         console.error('Error clicking render tab:', error);
         // Continue with the test despite the error

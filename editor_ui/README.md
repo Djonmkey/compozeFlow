@@ -26,3 +26,6 @@ To run the full regression test suite:
 ```bash
 npx playwright regression --headed
 ```
+
+### Interactive Debug
+npx playwright test tests/smoke.spec.js --debug
