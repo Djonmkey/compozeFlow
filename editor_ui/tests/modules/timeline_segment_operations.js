@@ -49,7 +49,7 @@ exports.timelineSegmentOperationsTests = {
       await window.screenshot({ path: path.join(__dirname, '../../tests/before-add-segment.png') });
       
       // Look for the "Add Segment" button
-      const addSegmentButton = await window.$$('button:has-text("Add Segment"), button.add-segment, [data-action="add-segment"]');
+      const addSegmentButton = await window.$$('button:has-text("+ Add Segment"), button.add-segment-button, [title="Add a new segment"]');
       
       if (addSegmentButton.length > 0) {
         // Click the Add Segment button
@@ -141,7 +141,7 @@ exports.timelineSegmentOperationsTests = {
       await window.screenshot({ path: path.join(__dirname, '../../tests/before-edit-segment.png') });
       
       // Look for an edit button/icon on the segment
-      const editButtons = await testSegment[0].$$('button.edit-segment, [data-action="edit-segment"], .edit-icon, button:has-text("Edit")');
+      const editButtons = await testSegment[0].$$('button.edit-segment-button, button:has-text("✏️ Edit"), button:has-text("Edit")');
       
       if (editButtons.length > 0) {
         // Click the edit button
@@ -245,7 +245,7 @@ exports.timelineSegmentOperationsTests = {
       await window.screenshot({ path: path.join(__dirname, '../../tests/before-delete-segment.png') });
       
       // Look for a delete button/icon on the segment
-      const deleteButtons = await testSegment[0].$$('button.delete-segment, [data-action="delete-segment"], .delete-icon, button:has-text("Delete"), button:has-text("Remove")');
+      const deleteButtons = await testSegment[0].$$('button.delete-segment-button, button:has-text("🗑️ Delete"), button:has-text("Delete"), button:has-text("Remove")');
       
       if (deleteButtons.length > 0) {
         // Click the delete button
