@@ -9,6 +9,7 @@ const electronSetup = require('./electronSetup');
 const generateOutputHtml = require('./outputDisplay');
 const generateGeneralHtml = require('./generalDisplay');
 const generateRenderHtml = require('./renderDisplay');
+const generateExportHtml = require('./exportDisplay');
 const generateRawHtml = require('./rawDisplay');
 
 // Keep track of the currently active tab
@@ -36,6 +37,8 @@ function updateEditorContent(currentVideoAssemblyData) {
     htmlContent = generateOutputHtml(currentVideoAssemblyData);
   } else if (activeTab === 'General') {
     htmlContent = generateGeneralHtml(currentVideoAssemblyData);
+  } else if (activeTab === 'Export') {
+    htmlContent = generateExportHtml(currentVideoAssemblyData);
   } else if (activeTab === 'Raw') {
     htmlContent = generateRawHtml(currentVideoAssemblyData);
   } else {

@@ -17,6 +17,7 @@ const { tabOverlayImagesTests } = require('./modules/tab_overlay_images');
 const { tabMixedAudioTests } = require('./modules/tab_mixed_audio');
 const { tabOutputTests } = require('./modules/tab_output');
 const { tabGeneralTests } = require('./modules/tab_general');
+const { tabExportTests } = require('./modules/tab_export');
 const { tabRawTests } = require('./modules/tab_raw');
 const { integrationRenderEngineTests } = require('./modules/integration_render_engine');
 
@@ -270,6 +271,9 @@ test('General and raw tabs', async ({ page }) => {
     
     // Test interacting with the general tab content
     await tabGeneralTests.testGeneralTabInteraction({ page, electronApp });
+    
+    // Test the export tab is present and can be selected
+    await tabExportTests.testExportTabPresent({ page, electronApp });
     
     // Test the raw tab is present and can be selected
     await tabRawTests.testRawTabPresent({ page, electronApp });
