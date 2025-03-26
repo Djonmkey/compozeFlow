@@ -26,26 +26,6 @@ exports.tabRenderTests = {
     // Take a screenshot after creating a new assembly
     await window.screenshot({ path: path.join(__dirname, '../../tests/after-create-new-assembly.png') });
     
-    // Resize the terminal to 75% of the application's horizontal size
-    const windowSize = await window.evaluate(() => {
-      return {
-        width: window.innerWidth,
-        height: window.innerHeight
-      };
-    });
-    const terminalWidth = Math.floor(windowSize.width * 0.75);
-    await window.evaluate((width) => {
-      // Find terminal element and resize it
-      const terminal = document.querySelector('.terminal-container') || 
-                       document.querySelector('.terminal') || 
-                       document.querySelector('.terminal-wrapper');
-      if (terminal) {
-        // Use type assertion to fix TypeScript error
-        const terminalElement = /** @type {HTMLElement} */ (terminal);
-        terminalElement.style.width = `${width}px`;
-      }
-    }, terminalWidth);
-    
     // Look for the render tab
     const renderTab = await window.$$('button:has-text("Render"), .tab:has-text("Render"), [role="tab"]:has-text("Render")');
     
@@ -109,45 +89,14 @@ exports.tabRenderTests = {
       // Wait for the tab to be selected
       await window.waitForTimeout(500);
       
-      // Take a screenshot after clicking the general tab
+      // Take a screenshot after clicking the render tab
       await window.screenshot({ path: path.join(__dirname, '../../tests/render-tab-selected.png') });
-
+      
       // Just log that we clicked the render tab
       console.log('Clicked the render tab');
     } else {
       console.log('Render Tab NOT Found!');
     }
-    
-    return { window, electronApp };
-  },
-  
-  /**
-   * Test interacting with the render tab content
-   */
-  testRenderTabInteraction: async ({ page, electronApp, window }) => {
-    // First verify the render tab is present without interacting with it
-    const result = await exports.tabRenderTests.testRenderTabPresent({ page, electronApp, window });
-    window = result.window;
-    
-    console.log('Checking for render UI elements without activating them');
-    
-    // Look for render options or settings - just verify existence
-    const renderOptions = await window.$$('.render-option, .render-setting, .render-format, select, input[type="radio"], input[type="checkbox"]');
-    console.log(`Found ${renderOptions.length} render option elements`);
-    
-    // Look for the render button - just verify existence
-    const renderButton = await window.$$('button:has-text("Render"), button:has-text("Export"), button:has-text("Start Render")');
-    console.log(`Found ${renderButton.length} render button elements`);
-    
-    // Take a screenshot of the UI elements
-    await window.screenshot({ path: path.join(__dirname, '../../tests/render-ui-elements.png') });
-    
-    // We expect to find some UI elements related to rendering
-    const totalElements = renderOptions.length + renderButton.length;
-    console.log(`Total render UI elements found: ${totalElements}`);
-    
-    // Log that we're not interacting with any elements to avoid activating the render engine
-    console.log('Not interacting with render UI elements to avoid activating render engine');
     
     return { window, electronApp };
   }
