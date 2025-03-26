@@ -9,6 +9,7 @@ const { createNewVideoAssemblyDialogTests } = require('./modules/create_new_vide
 const { leftIconBarTests } = require('./modules/left_icon_bar');
 const { fileMenuTests } = require('./modules/file_menu');
 const { tabTimelineTests } = require('./modules/tab_timeline');
+const { timelineSegmentOperationsTests } = require('./modules/timeline_segment_operations');
 const { renderBarTests } = require('./modules/render_bar');
 const { explorerBarContentSourcesTests } = require('./modules/explorer_bar_content_sources');
 const { tabOverlayImagesTests } = require('./modules/tab_overlay_images');
@@ -113,8 +114,15 @@ test('Smoke tests', async ({ page }) => {
       electronApp,
       window: rawTabResult.window // Pass the window reference
     });
-    electronApp = renderBarNotPresentResult.electronApp
-
+    electronApp = renderBarNotPresentResult.electronApp;
+    
+    // Test timeline segment operations (add, edit, delete)
+    const segmentOperationsResult = await timelineSegmentOperationsTests.testAddSegmentToTimeline({
+      page,
+      electronApp,
+      window: renderBarNotPresentResult.window // Pass the window reference
+    });
+    electronApp = segmentOperationsResult.electronApp;
 
     console.log('Smoke tests completed successfully');
   } finally {

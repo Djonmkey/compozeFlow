@@ -12,6 +12,7 @@ const { explorerBarSearchTests } = require('./modules/explorer_bar_search');
 const { fileMenuTests } = require('./modules/file_menu');
 const { renderBarTests } = require('./modules/render_bar');
 const { tabTimelineTests } = require('./modules/tab_timeline');
+const { timelineSegmentOperationsTests } = require('./modules/timeline_segment_operations');
 const { tabFileTests } = require('./modules/tab_file');
 const { tabOverlayImagesTests } = require('./modules/tab_overlay_images');
 const { tabMixedAudioTests } = require('./modules/tab_mixed_audio');
@@ -158,6 +159,12 @@ test('Timeline and file tabs', async ({ page }) => {
     
     // Test interacting with the timeline
     await tabTimelineTests.testTimelineInteraction({ page, electronApp });
+    
+    // Test timeline segment operations (add, edit, delete)
+    // Get window reference first to avoid errors
+    const windows = await electronApp.windows();
+    let testWindow = windows.length > 0 ? windows[0] : null;
+    await timelineSegmentOperationsTests.runAllSegmentOperationTests({ page, electronApp, window: testWindow });
     
     // Test the file tab is present and can be selected
     await tabFileTests.testFileTabPresent({ page, electronApp });
