@@ -234,7 +234,7 @@ def generate_video_scene(cut, segment, scene, quick_and_dirty, manifest_last_mod
 
     if enabled:
         if timeline_clip_type == "image":
-            timeline_video_clip = load_image_clips(segment, scene, sorted_timeline_clips, sorted_sequential_audio_clips, aspect_ratio, quick_and_dirty, render_output, source_file_watermark)
+            timeline_video_clip = load_image_clips(segment, scene, sorted_timeline_clips, sorted_sequential_audio_clips, aspect_ratio, render_output, quick_and_dirty, source_file_watermark)
 
         else:
             timeline_video_clip = load_video_clips(cut, segment, scene, sorted_timeline_clips, sorted_sequential_audio_clips, aspect_ratio, quick_and_dirty, render_output, source_file_watermark)
